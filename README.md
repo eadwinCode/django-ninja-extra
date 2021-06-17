@@ -5,7 +5,7 @@
 **Key features:**
 
 - **Class Based**: Design your APIs in a class based fashion.
-- **Async Model Fetch Support**: .
+- **Async Model Fetch Support**: Supports Django's ORM current async solution 
 - **Route Permissions**: Protect endpoint(s) at ease, specific or general
 - **Route Pagination**: Paginate route(s) with ease
 
