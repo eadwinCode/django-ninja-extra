@@ -1,14 +1,13 @@
-# Django Ninja Extra - Class Based Utility and more for Django Ninja(Fast Django REST Framework)
+# Django Ninja Extra
 
 **Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It adds **DRF** batteries to **Django Ninja** and they are really extensible for custom use-cases.
 
+**Key features:**
 
- **Key features:**
-
-  - **Class Based**: Design your APIs in a class based fashion.
-  - **Async Model Fetch Support**: .
-  - **Route Permissions**: Protect endpoint(s) at ease, specific or general
-  - **Route Pagination**:  Paginate route(s) with ease
+- **Class Based**: Design your APIs in a class based fashion.
+- **Async Model Fetch Support**: .
+- **Route Permissions**: Protect endpoint(s) at ease, specific or general
+- **Route Pagination**: Paginate route(s) with ease
 
 ---
 
@@ -17,16 +16,14 @@
 ```
 pip install django-ninja-extra
 ```
+
 or
 
 ```
 pip install git+https://github.com/eadwinCode/django-ninja-extra.git
 ```
 
-
-
 ## Usage
-
 
 In your django project next to urls.py create new `api.py` file:
 
@@ -54,10 +51,10 @@ class UserController(APIController):
         user = get_object_or_404(user_model, pk=user_id)
         response_object = UserSchema.from_django(user)
         return response_object
-    
+
     @route.retrieve(
-        '/{user_id}/profile', 
-        response=UserProfileSchema, 
+        '/{user_id}/profile',
+        response=UserProfileSchema,
         permissions=[AllowAny],
         query_set=UserProfile.objects.all(),
         lookup_url_kwarg='user_id',
@@ -74,9 +71,7 @@ api.register_controllers(
 )
 ```
 
-
 Now go to `urls.py` and add the following:
-
 
 ```Python hl_lines="3 7"
 ...
@@ -92,10 +87,10 @@ urlpatterns = [
 
 Now you've just created an API that:
 
- - receives an HTTP GET request at `/api/add`
- - takes, validates and type-casts GET parameters `a` and `b`
- - decodes the result to JSON
- - generates an OpenAPI schema for defined operation
+- receives an HTTP GET request at `/api/add`
+- takes, validates and type-casts GET parameters `a` and `b`
+- decodes the result to JSON
+- generates an OpenAPI schema for defined operation
 
 ### Interactive API docs
 
@@ -103,6 +98,4 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
-
 ![Swagger UI](docs/docs/img/index-swagger-ui.png)
-
