@@ -5,7 +5,7 @@
 **Key features:**
 
 - **Class Based**: Design your APIs in a class based fashion.
-- **Async Model Fetch Support**: Supports Django's ORM current async solution 
+- **Async Model Fetch Support**: Supports Django's ORM current async solution
 - **Route Permissions**: Protect endpoint(s) at ease, specific or general
 - **Route Pagination**: Paginate route(s) with ease
 
@@ -99,3 +99,10 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
 ![Swagger UI](docs/docs/img/index-swagger-ui.png)
+
+## What next?
+
+- Read the full documentation here - Still in progress
+- To support this project, please give star it on Github
+- Permission feature is not fully ready
+- Unit Test is in progress
