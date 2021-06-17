@@ -3,7 +3,7 @@ from typing import Any, Dict, Union
 from asgiref.sync import sync_to_async
 from ninja.constants import NOT_SET
 from ninja.types import TCallable
-from ninja_extra import GenericAPIView, GenericPaginatedAPIView
+from ninja_extra.generics import GenericAPIView, GenericPaginatedAPIView
 from ninja_extra.schemas import PaginatedResponseSchema
 
 
