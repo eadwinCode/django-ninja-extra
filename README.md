@@ -102,7 +102,7 @@ You will see the automatic interactive API documentation (provided by <a href="h
 
 ## What next?
 
-- Read the full documentation here - Still in progress
+- Full documentation here - Still in progress
 - To support this project, please give star it on Github
 - Permission feature is not fully ready
 - Unit Test is in progress
