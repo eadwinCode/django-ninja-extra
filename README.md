@@ -106,8 +106,3 @@ You will see the automatic interactive API documentation (provided by <a href="h
 
 ![Swagger UI](docs/docs/img/index-swagger-ui.png)
 
-## What next?
-
- - Read the full documentation here - **Documentation**: https://django-ninja.rest-framework.com
- - To support this project, please give star it on Github. ![github star](docs/docs/img/github-star.png)
- - If you already using django-ninja, please share your feedback to ppr.vitaly@gmail.com
