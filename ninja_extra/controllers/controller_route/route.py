@@ -5,6 +5,7 @@ from typing import (
 )
 from django.db.models import QuerySet
 from ninja.constants import NOT_SET
+from ninja.schema import Schema
 from ninja.types import TCallable
 
 from ninja_extra.pagination import BasePagination, PageNumberPagination
@@ -360,10 +361,10 @@ class Route:
             cls,
             path: str,
             query_set: Union[TCallable, QuerySet],
+            response: Schema,
             *,
             methods: List[str] = None,
             auth: Any = NOT_SET,
-            response: Any = None,
             operation_id: Optional[str] = None,
             summary: Optional[str] = None,
             description: Optional[str] = None,
