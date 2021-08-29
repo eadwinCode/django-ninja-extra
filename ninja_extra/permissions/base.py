@@ -1,4 +1,5 @@
 """
+Copied from DRF
 Provides a set of pluggable permission policies.
 """
 

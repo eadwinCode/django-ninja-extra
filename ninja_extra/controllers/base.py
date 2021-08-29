@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -15,44 +16,51 @@ from django.urls import URLPattern, path as django_path
 
 from ninja.constants import NOT_SET
 from ninja.operation import PathView
+from ninja.types import TCallable
 from ninja.utils import normalize_path
 from ninja_extra.controllers.controller_route.route import Route
 from ninja_extra.permissions.mixins import NinjaExtraAPIPermissionMixin
+from ninja_extra.controllers.mixins import ObjectControllerMixin, ListControllerMixin
 
 if TYPE_CHECKING:
     from ninja import NinjaAPI
+    from .controller_route.route_functions import RouteFunction
 
 
-__all__ = ["APIController"]
+__all__ = ["APIController", "APIContext"]
 
 
-class APIController(NinjaExtraAPIPermissionMixin):
-    __path_operations: Dict[str, PathView] = {}
-    api: Optional["NinjaAPI"] = None
-    prefix = ''
-    controller_auth = NOT_SET
-    controller_tags = None
+class APIContext:
+    request: Any
+    object: Any
+    object_list: List[Any]
+    kwargs: Dict
+    view_func: "RouteFunction"
+
+    def __init__(self, data: Dict):
+        self.__dict__ = data
+
+
+class APIController(
+    ABC,
+    NinjaExtraAPIPermissionMixin,
+    ObjectControllerMixin,
+    ListControllerMixin
+):
+    _path_operations: Dict[str, PathView]
+    api: Optional["NinjaAPI"]
     route_definition: Route = None
     queryset: QuerySet = None
-
-    @property
-    def auth(self):
-        return self.controller_auth
-
-    @property
-    def tags(self):
-        _tags = self.controller_tags
-        if not _tags:
-            _tags = ['users']
-        return _tags
+    args = []
+    kwargs = dict()
 
     @property
     def path_operations(self):
-        return self.__path_operations
+        return self._path_operations
 
     @classmethod
-    def add_from_route(cls, route: Route):
-        cls.add_api_operation(view_func=route.view_func, **route.route_params)
+    def add_operation_from_route_definition(cls, route: Route):
+        cls.add_api_operation(view_func=route.view_func, **route.route_params.dict())
 
     def __new__(cls, **kwargs):
         obj = super().__new__(cls)
@@ -82,11 +90,11 @@ class APIController(NinjaExtraAPIPermissionMixin):
             url_name: Optional[str] = None,
             include_in_schema: bool = True,
     ) -> None:
-        if path not in cls.__path_operations:
+        if path not in cls._path_operations:
             path_view = PathView()
-            cls.__path_operations[path] = path_view
+            cls._path_operations[path] = path_view
         else:
-            path_view = cls.__path_operations[path]
+            path_view = cls._path_operations[path]
         path_view.add_operation(
             path=path,
             methods=methods,
@@ -108,7 +116,7 @@ class APIController(NinjaExtraAPIPermissionMixin):
         return None
 
     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
-        for path, path_view in self.__path_operations.items():
+        for path, path_view in self._path_operations.items():
             path = path.replace("{", "<").replace("}", ">")
             route = "/".join([i for i in (prefix, path) if i])
             # to skip lot of checks we simply treat double slash as a mistake:
@@ -121,9 +129,29 @@ class APIController(NinjaExtraAPIPermissionMixin):
 
     def set_api_instance(self, api: "NinjaAPI") -> None:
         self.api = api
-        for path_view in self.__path_operations.values():
+        for path_view in self._path_operations.values():
             path_view.set_api_instance(self.api, self)
 
     def build_routers(self) -> List[Tuple[str, "APIController"]]:
         internal_routes = []
         return [(self.prefix, self), *internal_routes]
+
+    def get_context(self, **kwargs):
+        data = dict(request=self.request, kwargs=self.kwargs)
+        data.update(**kwargs)
+        return APIContext(data=data)
+
+    def run_view_func(self, api_func: TCallable):
+        return api_func(
+            self, self.get_context(), *self.args, **self.kwargs
+        )
+
+    async def async_run_view_func(self, api_func: TCallable):
+        return await api_func(
+            self, self.get_context(), *self.args, **self.kwargs
+        )
+
+    def resolve_queryset(self, request_context: APIContext):
+        if callable(self.queryset):
+            return self.queryset(self, request_context)
+        return self.queryset

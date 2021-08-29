@@ -1,3 +1,4 @@
+import sys
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import List, Union, Dict
@@ -6,7 +7,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.db.models import QuerySet
 
 from ninja_extra.exceptions import NotFound
-from ninja_extra.schemas import PaginatedFilters, PaginatedResponseSchema
+from ninja_extra.schemas import PaginatedFilters, PaginatedResponseSchema, get_paginated_response_schema
 from ninja_extra.urls import replace_query_param, remove_query_param
 
 
@@ -129,4 +130,6 @@ class PageNumberPagination(BasePagination):
 
     @classmethod
     def get_response_schema(cls):
-        return PaginatedResponseSchema
+        if sys.version_info >= (3, 8):
+            return PaginatedResponseSchema
+        return get_paginated_response_schema

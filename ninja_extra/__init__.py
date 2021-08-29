@@ -4,11 +4,12 @@ __version__ = "0.10.1"
 
 
 from ninja_extra.main import NinjaExtraAPI
-from ninja_extra.controllers import APIController
+from ninja_extra.controllers import APIController, APIContext
 from ninja_extra.controllers.controller_route.route_functions import (
-    APIContext, PaginatedRouteFunction, RetrieveObjectRouteFunction, RouteFunction
+    PaginatedRouteFunction, RetrieveObjectRouteFunction, RouteFunction
 )
 from ninja_extra.controllers.controller_route.route import route, Route
+from ninja_extra.controllers.controller_route.router import router, ControllerRouter
 
 __all__ = [
     'NinjaExtraAPI',
@@ -18,5 +19,7 @@ __all__ = [
     'Route',
     'route',
     'RouteFunction',
-    'APIController'
+    'APIController',
+    'router',
+    'ControllerRouter'
 ]

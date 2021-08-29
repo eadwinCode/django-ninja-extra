@@ -7,6 +7,7 @@ __all__ = ['NinjaExtraAPIPermissionMixin']
 
 class NinjaExtraAPIPermissionMixin:
     permission_classes: List[BasePermission] = []
+    request = None
 
     @staticmethod
     def permission_denied(permission):
@@ -19,21 +20,21 @@ class NinjaExtraAPIPermissionMixin:
         """
         return [permission() for permission in self.permission_classes]
 
-    def check_permissions(self, request):
+    def check_permissions(self):
         """
         Check if the request should be permitted.
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if not permission.has_permission(request, self):
+            if not permission.has_permission(self.request, self):
                 self.permission_denied(permission)
 
-    def check_object_permissions(self, request, obj):
+    def check_object_permissions(self, obj):
         """
         Check if the request should be permitted for a given object.
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if not permission.has_object_permission(request, self, obj):
+            if not permission.has_object_permission(self.request, self, obj):
                 self.permission_denied(permission)
 
