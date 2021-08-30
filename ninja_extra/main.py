@@ -5,7 +5,7 @@ from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
-from ninja_extra.controllers.base import APIController
+from ninja_extra.controllers.base import APIController, APIControllerToNinjaRouter
 from ninja_extra.controllers.controller_route.router import ControllerRouter
 
 __all__ = ['NinjaExtraAPI', ]
@@ -32,12 +32,12 @@ class NinjaExtraAPI(NinjaAPI):
             renderer=renderer, parser=parser
         )
 
-    def register_controllers(self, *controllers: APIController):
+    def register_controllers(self, *controllers: APIController) -> None:
         for controller in controllers:
             if not controller.registered:
-                controller_instance = object.__new__(controller)
-                self._routers.extend(controller_instance.build_routers())
-                controller_instance.set_api_instance(self)
+                controller_ninja_router = APIControllerToNinjaRouter(controller)
+                self._routers.extend(controller_ninja_router.build_routers())
+                controller_ninja_router.set_api_instance(self)
                 controller.registered = True
 
     def auto_discover_controllers(self):

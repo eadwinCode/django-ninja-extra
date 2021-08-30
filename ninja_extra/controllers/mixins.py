@@ -20,6 +20,7 @@ class ObjectControllerMixin:
     get_context: Callable[..., "APIContext"]
     check_object_permissions: Callable[..., bool]
     resolve_queryset: Callable[..., QuerySet]
+    resolve_get_object: Callable[..., "APIContext"]
     kwargs: dict
     args: tuple
     request: Any
@@ -40,9 +41,11 @@ class ObjectControllerMixin:
 
     def run_object_view_func(self, api_func: TCallable):
         query_set = self.resolve_queryset(self.get_context())
+        obj = self.resolve_get_object()
         obj = self.get_object(queryset=query_set)
         obj_schema = None
         self.check_object_permissions(obj=obj)
+
         if self.route_definition.object_schema is not NOT_SET:
             obj_schema = self.route_definition.object_schema.from_django(obj)
         view_context = self.get_context(
@@ -51,8 +54,12 @@ class ObjectControllerMixin:
         return api_func(self, view_context, *self.args, **self.kwargs)
 
     async def async_run_object_view_func(self, api_func: TCallable):
-        query_set = self.resolve_queryset(self.get_context())
-        obj = await sync_to_async(self.get_object)(queryset=query_set)
+        obj = None
+        if get_object and callable(get_object):
+            obj = await sync_to_async(self.resolve_get_object)(get_object, self.get_context())
+        if not obj:
+            query_set = self.resolve_queryset(self.get_context())
+            obj = await sync_to_async(self.get_object)(queryset=query_set)
         obj_schema = None
         self.check_object_permissions(obj=obj)
         if self.route_definition.object_schema is not NOT_SET:
