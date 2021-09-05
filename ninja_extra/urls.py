@@ -1,5 +1,4 @@
 from urllib import parse
-
 from django.utils.encoding import force_str
 
 

@@ -1,7 +1,5 @@
-import inspect
 from abc import ABC, ABCMeta
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -14,32 +12,16 @@ from typing import (
 
 from django.db.models import QuerySet
 from django.urls import URLPattern, path as django_path
-from .controller_route import RouteFunction
+from .route.route_functions import RouteFunction
 from ninja.constants import NOT_SET
-from ninja.operation import PathView
-from ninja.types import TCallable
+from ninja_extra.operation import PathView, Operation
 from ninja.utils import normalize_path
-from ninja_extra.controllers.controller_route.route import Route
+from ninja_extra.controllers.route import Route
 from ninja_extra.permissions.mixins import NinjaExtraAPIPermissionMixin
-from ninja_extra.controllers.mixins import ObjectControllerMixin, ListControllerMixin
+from ninja import NinjaAPI
+from ninja.security.base import AuthBase
 
-if TYPE_CHECKING:
-    from ninja import NinjaAPI
-    from ninja.security.base import AuthBase
-    from .controller_route.route_functions import RouteFunction
-
-__all__ = ["APIController", "APIContext", "APIControllerToNinjaRouter"]
-
-
-class APIContext:
-    request: Any
-    object: Any
-    object_list: List[Any]
-    kwargs: Dict
-    view_func: "RouteFunction"
-
-    def __init__(self, data: Dict):
-        self.__dict__ = data
+__all__ = ["APIController", "APIControllerToNinjaRouter"]
 
 
 def _get_class_route_functions(**kwargs) -> Iterator[RouteFunction]:
@@ -57,6 +39,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
         if name == 'APIController' and ABC in bases:
             return cls
 
+        cls = cast(APIController, cls)
         cls._path_operations = {}
         cls.prefix = namespace.get('prefix', None)
         cls.auth = namespace.get('auth', None)
@@ -68,10 +51,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
             cls.tags = [tag]
 
         for method_route_func in _get_class_route_functions(**namespace):
-            method_route_func.route_definition.controller = cls
-            method_route_func.route_definition.queryset = (
-                    method_route_func.route_definition.queryset or cls.queryset
-            )
+            method_route_func.controller = cls
             method_route_func.route_definition.permissions = (
                     method_route_func.route_definition.permissions or cls.permission_classes
             )
@@ -82,18 +62,15 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
 class APIController(
     ABC,
     NinjaExtraAPIPermissionMixin,
-    ObjectControllerMixin,
-    ListControllerMixin,
     metaclass=APIControllerModelSchemaMetaclass
 ):
     _path_operations: Dict[str, PathView]
-    api: Optional["NinjaAPI"]
-    route_definition: Route = None
+    api: Optional[NinjaAPI]
     queryset: QuerySet = None
     args = []
     kwargs = dict()
     prefix: str
-    auth: "AuthBase"
+    auth: AuthBase
     registered: bool
 
     @classmethod
@@ -103,13 +80,6 @@ class APIController(
     @classmethod
     def add_operation_from_route_definition(cls, route: Route):
         cls.add_api_operation(view_func=route.view_func, **route.route_params.dict())
-
-    def __new__(cls, **kwargs):
-        obj = super().__new__(cls)
-        for k, v in kwargs.items():
-            if hasattr(obj, k):
-                setattr(obj, k, v)
-        return obj
 
     @classmethod
     def add_api_operation(
@@ -131,13 +101,13 @@ class APIController(
             exclude_none: bool = False,
             url_name: Optional[str] = None,
             include_in_schema: bool = True,
-    ) -> None:
+    ) -> Operation:
         if path not in cls._path_operations:
             path_view = PathView()
             cls._path_operations[path] = path_view
         else:
             path_view = cls._path_operations[path]
-        path_view.add_operation(
+        operation = path_view.add_operation(
             path=path,
             methods=methods,
             view_func=view_func,
@@ -155,33 +125,7 @@ class APIController(
             url_name=url_name,
             include_in_schema=include_in_schema
         )
-        return None
-
-    def get_context(self, **kwargs):
-        data = dict(request=self.request, kwargs=self.kwargs)
-        data.update(**kwargs)
-        return APIContext(data=data)
-
-    def run_view_func(self, api_func: TCallable):
-        return api_func(
-            self, self.get_context(), *self.args, **self.kwargs
-        )
-
-    async def async_run_view_func(self, api_func: TCallable):
-        return await api_func(
-            self, self.get_context(), *self.args, **self.kwargs
-        )
-
-    def resolve_queryset(self, request_context: APIContext):
-        if callable(self.queryset):
-            return self.queryset(self, request_context)
-        if isinstance(self.queryset, classmethod):
-            return self.queryset(self.__class__, request_context)
-        return self.queryset
-
-    def resolve_get_object(self):
-        get_object_suffix = "_get_object"
-
+        return operation
 
 
 class APIControllerToNinjaRouter:

@@ -5,7 +5,7 @@ from pydantic.main import BaseModel
 from pydantic.networks import AnyHttpUrl
 from pydantic.generics import GenericModel
 
-__all__ = ['PaginatedResponseSchema', 'get_paginated_response_schema', 'PaginatedFilters', 'RouteParameter']
+__all__ = ['PaginatedResponseSchema', 'get_paginated_response_schema', 'RouteParameter']
 
 T = TypeVar('T')
 
@@ -28,11 +28,6 @@ def get_paginated_response_schema(item_schema):
         results: List[item_schema]
     ListResponseSchema.__name__ = f"List{str(item_schema.__name__).capitalize()}"
     return ListResponseSchema
-
-
-class PaginatedFilters(BaseModel):
-    page: int = 1
-    page_size: int = None
 
 
 class RouteParameter(BaseModel):

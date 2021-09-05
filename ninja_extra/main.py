@@ -6,7 +6,8 @@ from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
 from ninja_extra.controllers.base import APIController, APIControllerToNinjaRouter
-from ninja_extra.controllers.controller_route.router import ControllerRouter
+from ninja_extra.controllers.router import ControllerRouter
+from ninja_extra.exceptions import PermissionDenied
 
 __all__ = ['NinjaExtraAPI', ]
 

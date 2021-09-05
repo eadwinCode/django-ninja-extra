@@ -42,7 +42,7 @@ classifiers = [
 requires = [
     "Django >=3.1",
     "django-ninja >=0.13.2",
-    "pydantic[email]"
+    "Injector"
 ]
 description-file = "README.md"
 requires-python = ">=3.6"

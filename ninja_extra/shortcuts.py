@@ -1,14 +1,15 @@
+from django.db.models import QuerySet, Model
 from ninja_extra.exceptions import NotFound
 
 
-def _get_queryset(klass):
+def _get_queryset(klass: Model) -> QuerySet:
     # If it is a model class or anything else with ._default_manager
     if hasattr(klass, "_default_manager"):
         return klass._default_manager.all()
     return klass
 
 
-def get_object_or_404(klass, error_message=None, **kwargs):
+def get_object_or_404(klass: Model, error_message=None, **kwargs):
     queryset = _get_queryset(klass)
     _validate_queryset(klass, queryset)
     try:

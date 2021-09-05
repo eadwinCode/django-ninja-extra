@@ -2,40 +2,23 @@ import uuid
 from typing import (
     Any,
     List,
-    Optional, Dict, Union, TYPE_CHECKING, Callable
+    Optional
 )
-from django.db.models import QuerySet
 from ninja.constants import NOT_SET
 from ninja.types import TCallable
-
-from ninja_extra.pagination import BasePagination
 from ninja_extra.permissions import BasePermission
-from ninja_extra.controllers.controller_route.route_functions import (
-    RouteFunction
-)
 from ninja_extra.schemas import RouteParameter
+from .route_functions import *
 
-if TYPE_CHECKING:
-    from ninja_extra.controllers.base import APIContext, APIController
 
 __all__ = ["route", 'Route']
 
 
 class Route:
     route_params: RouteParameter = None
-    controller: "APIController" = None
-
     route_function: RouteFunction = RouteFunction
-    object_schema: Any = NOT_SET
-
+    has_request_param: bool = False
     permissions: List[BasePermission] = None
-    _queryset: Union[Callable[[Any, "APIContext"], QuerySet], QuerySet] = None
-    lookup_field: str
-    lookup_url_kwarg: Dict
-
-    pagination_class: BasePagination
-    page_size: int
-    max_page_size: int
 
     def __new__(
             cls,
@@ -67,7 +50,8 @@ class Route:
             url_name=url_name, include_in_schema=include_in_schema
         )
         obj.route_params = ninja_route_params
-        obj.route_function = RouteFunction
+        obj.has_request_param = False
+
         for k, v in kwargs.items():
             setattr(obj, k, v)
         return obj
@@ -82,13 +66,6 @@ class Route:
                 f"{str(uuid.uuid4())[:8]}_controller_{converted_api_func.__name__}"
         )
         return route_func_instance
-
-    def create_view_func_instance(self, request, *args, **kwargs):
-        return self.controller(
-            permission_classes=self.permissions,
-            route_definition=self,
-            request=request, args=args, kwargs=kwargs
-        )
 
     @classmethod
     def get(
@@ -127,7 +104,6 @@ class Route:
             url_name=url_name,
             include_in_schema=include_in_schema,
             permissions=permissions,
-            object_schema=response,
         )
 
     @classmethod
@@ -167,7 +143,6 @@ class Route:
             url_name=url_name,
             include_in_schema=include_in_schema,
             permissions=permissions,
-            object_schema=response
         )
 
     @classmethod
@@ -207,7 +182,6 @@ class Route:
             url_name=url_name,
             include_in_schema=include_in_schema,
             permissions=permissions,
-            object_schema=response
         )
 
     @classmethod
@@ -247,7 +221,6 @@ class Route:
             url_name=url_name,
             include_in_schema=include_in_schema,
             permissions=permissions,
-            object_schema=response
         )
 
     @classmethod
@@ -287,7 +260,6 @@ class Route:
             url_name=url_name,
             include_in_schema=include_in_schema,
             permissions=permissions,
-            object_schema=response
         )
 
 

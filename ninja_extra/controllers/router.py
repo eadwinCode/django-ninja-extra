@@ -1,7 +1,7 @@
 from typing import Any, Optional, List, Iterator, Dict, TYPE_CHECKING
 from ninja.constants import NOT_SET
 
-from ninja_extra.controllers.controller_route.route_functions import RouteFunction
+from ninja_extra.controllers.route.route_functions import RouteFunction
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController
 
@@ -23,17 +23,19 @@ class ControllerRouterBorg:
 
 
 class ControllerRouter(ControllerRouterBorg):
-    def __init__(self, prefix, *, auth: Any = NOT_SET, tags: Optional[List[str]] = None):
+    def __init__(self, prefix, *, auth: Any = NOT_SET, tags: Optional[List[str]] = None, permission_classes=None):
         ControllerRouterBorg.__init__(self)
         self.prefix = prefix
         self.auth = auth
         self.tags = tags
+        self.permission_classes = permission_classes or []
 
-    def __call__(self, controller: "APIController", *args, **kwargs):
+    def __call__(self, controller: "APIController"):
         controller.prefix = self.prefix
         controller.auth = self.auth
         controller.api = controller.api if hasattr(controller, 'api') else None
         controller.registered = False
+        controller.permission_classes = self.permission_classes
         self.add_controller(controller)
         return controller
 
