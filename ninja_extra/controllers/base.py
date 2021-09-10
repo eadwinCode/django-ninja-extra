@@ -12,6 +12,8 @@ from typing import (
 
 from django.db.models import QuerySet
 from django.urls import URLPattern, path as django_path
+from injector import is_decorated_with_inject, inject
+from ninja_extra.shortcuts import failed_silently
 from .route.route_functions import RouteFunction
 from ninja.constants import NOT_SET
 from ninja_extra.operation import PathView, Operation
@@ -52,10 +54,10 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
 
         for method_route_func in _get_class_route_functions(**namespace):
             method_route_func.controller = cls
-            method_route_func.route_definition.permissions = (
-                    method_route_func.route_definition.permissions or cls.permission_classes
-            )
             cls.add_operation_from_route_definition(method_route_func.route_definition)
+
+        if not is_decorated_with_inject(cls.__init__):
+            failed_silently(inject, constructor_or_class=cls)
         return cls
 
 

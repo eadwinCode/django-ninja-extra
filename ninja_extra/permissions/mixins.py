@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Callable, cast
+
+from django.http import HttpRequest
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions.base import BasePermission
 
@@ -7,7 +9,7 @@ __all__ = ['NinjaExtraAPIPermissionMixin']
 
 class NinjaExtraAPIPermissionMixin:
     permission_classes: List[BasePermission] = []
-    request = None
+    request: HttpRequest = None
 
     @staticmethod
     def permission_denied(permission):
@@ -18,7 +20,10 @@ class NinjaExtraAPIPermissionMixin:
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        return [permission() for permission in self.permission_classes]
+        for permission_class in self.permission_classes:
+            permission_class = cast(Callable, permission_class)
+            permission_instance = permission_class()
+            yield permission_instance
 
     def check_permissions(self):
         """
@@ -26,7 +31,7 @@ class NinjaExtraAPIPermissionMixin:
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if not permission.has_permission(self.request, self):
+            if not permission.has_permission(request=self.request, controller=self):
                 self.permission_denied(permission)
 
     def check_object_permissions(self, obj):
@@ -35,6 +40,6 @@ class NinjaExtraAPIPermissionMixin:
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if not permission.has_object_permission(self.request, self, obj):
+            if not permission.has_object_permission(request=self.request, controller=self, obj=obj):
                 self.permission_denied(permission)
 

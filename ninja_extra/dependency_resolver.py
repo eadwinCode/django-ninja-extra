@@ -2,16 +2,21 @@ from typing import Any, cast
 from django.apps import apps
 from injector import Injector
 
-__all__ = ['resolve_container_services']
+__all__ = ['resolve_container_services', 'get_injector']
+
+
+def get_injector() -> Injector:
+    injector: Injector = Injector()
+    app = cast(Any, apps.get_app_config('django_injector'))
+    if app and app.injector:
+        injector = app.injector
+    return injector
 
 
 def resolve_container_services(*services):
     assert services, 'Service can not be empty'
 
-    injector: Injector = Injector()
-    app = cast(Any, apps.get_app_config('django_injector'))
-    if app and app.injector:
-        injector = app.injector
+    injector = get_injector()
 
     if len(services) > 1:
         services_resolved = []

@@ -23,12 +23,12 @@ class ControllerRouterBorg:
 
 
 class ControllerRouter(ControllerRouterBorg):
-    def __init__(self, prefix, *, auth: Any = NOT_SET, tags: Optional[List[str]] = None, permission_classes=None):
+    def __init__(self, prefix, *, auth: Any = NOT_SET, tags: Optional[List[str]] = None, permissions=None):
         ControllerRouterBorg.__init__(self)
         self.prefix = prefix
         self.auth = auth
         self.tags = tags
-        self.permission_classes = permission_classes or []
+        self.permission_classes = permissions or []
 
     def __call__(self, controller: "APIController"):
         controller.prefix = self.prefix

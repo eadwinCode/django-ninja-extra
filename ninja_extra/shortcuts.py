@@ -1,5 +1,15 @@
+from typing import Any, Union
 from django.db.models import QuerySet, Model
+from ninja.types import TCallable, DictStrAny
 from ninja_extra.exceptions import NotFound
+
+
+def failed_silently(func: TCallable, **kwargs: DictStrAny) -> Union[Any, None]:
+    try:
+        return func(**kwargs)
+    except Exception as ex:
+        pass
+    return None
 
 
 def _get_queryset(klass: Model) -> QuerySet:

@@ -6,7 +6,7 @@ from django.http import HttpRequest
 from django.http.response import HttpResponseBase
 from ninja.signature import is_async
 from ninja.types import TCallable
-from ninja_extra.dependency_resolver import resolve_container_services
+from ninja_extra.dependency_resolver import get_injector
 
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController
@@ -83,7 +83,8 @@ class RouteFunction:
     def _get_controller_instance(
             self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
     ) -> "APIController":
-        controller_instance = resolve_container_services(self.controller)
+        injector = get_injector()
+        controller_instance = injector.create_object(self.controller)
         init_kwargs = self._get_controller_init_kwargs(request, *args, **kwargs)
 
         for k, v in init_kwargs.items():
@@ -95,6 +96,6 @@ class RouteFunction:
             self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
     ) -> Dict[str, Any]:
         return dict(
-            permission_classes=self.route_definition.permissions,
+            permission_classes=self.route_definition.permissions or self.controller.permission_classes,
             request=request, kwargs=kwargs, args=args
         )
