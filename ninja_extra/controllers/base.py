@@ -132,39 +132,3 @@ class APIController(
             include_in_schema=include_in_schema
         )
         return operation
-
-
-# class APIControllerToNinjaRouter:
-#     @property
-#     def path_operations(self):
-#         return self.api_controller.path_operations()
-#
-#     def __init__(self, api_controller: APIController):
-#         self.api_controller = api_controller
-#
-#     def set_api_instance(self, api: "NinjaAPI") -> None:
-#         self.api_controller.api = api
-#         for path_view in self.path_operations.values():
-#             path_view.set_api_instance(api, self.api_controller)
-#
-#     def build_routers(self) -> List[Tuple[str, "APIController"]]:
-#         internal_routes = []
-#         return [(self.api_controller.prefix, self), *internal_routes]
-#
-#     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
-#         for path, path_view in self.path_operations.items():
-#             path = path.replace("{", "<").replace("}", ">")
-#             route = "/".join([i for i in (prefix, path) if i])
-#             # to skip lot of checks we simply treat double slash as a mistake:
-#             route = normalize_path(route)
-#             route = route.lstrip("/")
-#
-#             yield django_path(
-#                 route, path_view.get_view(), name=cast(str, path_view.url_name)
-#             )
-#
-#     def __repr__(self):
-#         return f'<controller - {self.api_controller.__name__}>'
-#
-#     def __str__(self):
-#         return self.api_controller.__name__
