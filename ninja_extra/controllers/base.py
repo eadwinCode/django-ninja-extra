@@ -6,24 +6,25 @@ from typing import (
     Iterator,
     List,
     Optional,
-    Tuple,
     cast, no_type_check,
 )
 
-from django.db.models import QuerySet
-from django.urls import URLPattern, path as django_path
 from injector import is_decorated_with_inject, inject
-from ninja_extra.shortcuts import failed_silently
-from .route.route_functions import RouteFunction
+from ninja_extra.shortcuts import fail_silently
 from ninja.constants import NOT_SET
 from ninja_extra.operation import PathView, Operation
-from ninja.utils import normalize_path
 from ninja_extra.controllers.route import Route
 from ninja_extra.permissions.mixins import NinjaExtraAPIPermissionMixin
 from ninja import NinjaAPI
 from ninja.security.base import AuthBase
+from .route.route_functions import RouteFunction
+from .router import ControllerRouter
 
-__all__ = ["APIController", "APIControllerToNinjaRouter"]
+__all__ = ["APIController"]
+
+
+class MissingRouterDecoratorException(Exception):
+    pass
 
 
 def _get_class_route_functions(**kwargs) -> Iterator[RouteFunction]:
@@ -43,8 +44,6 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
 
         cls = cast(APIController, cls)
         cls._path_operations = {}
-        cls.prefix = namespace.get('prefix', None)
-        cls.auth = namespace.get('auth', None)
         cls.api = namespace.get('api', None)
         cls.registered = False
 
@@ -57,7 +56,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
             cls.add_operation_from_route_definition(method_route_func.route_definition)
 
         if not is_decorated_with_inject(cls.__init__):
-            failed_silently(inject, constructor_or_class=cls)
+            fail_silently(inject, constructor_or_class=cls)
         return cls
 
 
@@ -68,15 +67,20 @@ class APIController(
 ):
     _path_operations: Dict[str, PathView]
     api: Optional[NinjaAPI]
-    queryset: QuerySet = None
     args = []
     kwargs = dict()
-    prefix: str
     auth: AuthBase
     registered: bool
+    _router: ControllerRouter = None
 
     @classmethod
-    def path_operations(cls):
+    def get_router(cls):
+        if not cls._router:
+            raise MissingRouterDecoratorException('Could not register controller')
+        return cls._router
+
+    @classmethod
+    def get_path_operations(cls):
         return cls._path_operations
 
     @classmethod
@@ -130,31 +134,37 @@ class APIController(
         return operation
 
 
-class APIControllerToNinjaRouter:
-    @property
-    def path_operations(self):
-        return self.api_controller.path_operations()
-
-    def __init__(self, api_controller: APIController):
-        self.api_controller = api_controller
-
-    def set_api_instance(self, api: "NinjaAPI") -> None:
-        self.api_controller.api = api
-        for path_view in self.path_operations.values():
-            path_view.set_api_instance(api, self.api_controller)
-
-    def build_routers(self) -> List[Tuple[str, "APIController"]]:
-        internal_routes = []
-        return [(self.api_controller.prefix, self), *internal_routes]
-
-    def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
-        for path, path_view in self.path_operations.items():
-            path = path.replace("{", "<").replace("}", ">")
-            route = "/".join([i for i in (prefix, path) if i])
-            # to skip lot of checks we simply treat double slash as a mistake:
-            route = normalize_path(route)
-            route = route.lstrip("/")
-
-            yield django_path(
-                route, path_view.get_view(), name=cast(str, path_view.url_name)
-            )
+# class APIControllerToNinjaRouter:
+#     @property
+#     def path_operations(self):
+#         return self.api_controller.path_operations()
+#
+#     def __init__(self, api_controller: APIController):
+#         self.api_controller = api_controller
+#
+#     def set_api_instance(self, api: "NinjaAPI") -> None:
+#         self.api_controller.api = api
+#         for path_view in self.path_operations.values():
+#             path_view.set_api_instance(api, self.api_controller)
+#
+#     def build_routers(self) -> List[Tuple[str, "APIController"]]:
+#         internal_routes = []
+#         return [(self.api_controller.prefix, self), *internal_routes]
+#
+#     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
+#         for path, path_view in self.path_operations.items():
+#             path = path.replace("{", "<").replace("}", ">")
+#             route = "/".join([i for i in (prefix, path) if i])
+#             # to skip lot of checks we simply treat double slash as a mistake:
+#             route = normalize_path(route)
+#             route = route.lstrip("/")
+#
+#             yield django_path(
+#                 route, path_view.get_view(), name=cast(str, path_view.url_name)
+#             )
+#
+#     def __repr__(self):
+#         return f'<controller - {self.api_controller.__name__}>'
+#
+#     def __str__(self):
+#         return self.api_controller.__name__

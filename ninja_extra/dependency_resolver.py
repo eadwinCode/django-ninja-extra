@@ -1,19 +1,23 @@
-from typing import Any, cast
+from typing import Any, cast, Tuple, Union
 from django.apps import apps
+from django.core.exceptions import ImproperlyConfigured
 from injector import Injector
+from ninja_extra.apps import NinjaExtraConfig
 
 __all__ = ['resolve_container_services', 'get_injector']
 
 
 def get_injector() -> Injector:
-    injector: Injector = Injector()
-    app = cast(Any, apps.get_app_config('django_injector'))
-    if app and app.injector:
-        injector = app.injector
+    app = cast(NinjaExtraConfig, apps.get_app_config(NinjaExtraConfig.name))
+    if not app:
+        raise ImproperlyConfigured(
+            f"ninja_extra app is not installed. Did you forget register `ninja_extra` in `INSTALLED_APPS`"
+        )
+    injector = app.injector
     return injector
 
 
-def resolve_container_services(*services):
+def resolve_container_services(*services: type) -> Union[Tuple[Any], Any]:
     assert services, 'Service can not be empty'
 
     injector = get_injector()

@@ -1,5 +1,4 @@
 from django.utils.encoding import force_str
-
 from ninja_extra import status
 from django.utils.translation import gettext_lazy as _
 from ninja.errors import HttpError

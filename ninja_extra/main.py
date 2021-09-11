@@ -1,13 +1,16 @@
 from importlib import import_module
 from typing import Optional, Union, Sequence, Callable
+
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import module_has_submodule
+from injector import Module
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
-from ninja_extra.controllers.base import APIController, APIControllerToNinjaRouter
-from ninja_extra.controllers.router import ControllerRouter
-from ninja_extra.exceptions import PermissionDenied
+from ninja_extra.controllers.base import APIController
+from ninja_extra.controllers.router import ControllerRegistry
+from ninja_extra.dependency_resolver import get_injector
 
 __all__ = ['NinjaExtraAPI', ]
 
@@ -26,7 +29,7 @@ class NinjaExtraAPI(NinjaAPI):
             auth: Union[Sequence[Callable], Callable, object] = NOT_SET,
             renderer: Optional[BaseRenderer] = None,
             parser: Optional[Parser] = None,
-    ):
+    ) -> None:
         super(NinjaExtraAPI, self).__init__(
             title=title, version=version, description=description, openapi_url=openapi_url,
             docs_url=docs_url, urls_namespace=urls_namespace, csrf=csrf, auth=auth,
@@ -35,13 +38,29 @@ class NinjaExtraAPI(NinjaAPI):
 
     def register_controllers(self, *controllers: APIController) -> None:
         for controller in controllers:
+            if not issubclass(controller, APIController):
+                raise ImproperlyConfigured(
+                    f"{controller.__class__.__name__} class is not a controller"
+                )
             if not controller.registered:
-                controller_ninja_router = APIControllerToNinjaRouter(controller)
+                controller_ninja_router = controller.get_router()
                 self._routers.extend(controller_ninja_router.build_routers())
                 controller_ninja_router.set_api_instance(self)
                 controller.registered = True
 
-    def auto_discover_controllers(self):
+    @classmethod
+    def register_injector_modules(cls, *modules: Module) -> None:
+        for module in modules:
+            if not issubclass(module, Module):
+                raise ImproperlyConfigured(
+                    f"{module.__class__.__name__} class is not a valid Module"
+                )
+            injector = get_injector()
+            if isinstance(module, type) and issubclass(module, Module):
+                module = module()
+            injector.binder.install(module)
+
+    def auto_discover_controllers(self) -> None:
         from django.apps import apps
         installed_apps = [v for k, v in apps.app_configs.items() if not v.name.startswith("django.")]
         possible_module_name = ['api', 'controllers']
@@ -53,6 +72,6 @@ class NinjaExtraAPI(NinjaAPI):
                     if module_has_submodule(app_module_, module):
                         mod_path = '%s.%s' % (app_module.name, module)
                         import_module(mod_path)
-                self.register_controllers(*ControllerRouter.get_controllers().values())
+                self.register_controllers(*ControllerRegister.get_controllers().values())
             except ImportError as ex:
                 raise ex
