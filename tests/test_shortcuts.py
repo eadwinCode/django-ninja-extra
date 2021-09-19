@@ -20,7 +20,7 @@ class TestModelUtils:
     def test_get_object_or_exception_should_raise_exception(self):
         with pytest.raises(NotFound) as exception_info:
             get_object_or_exception(Permission, id=0)
-        assert 'Permission with id = 0  was not found' == exception_info.value.message
+        assert "Permission with id = 0  was not found" == exception_info.value.message
         assert exception_info.value.status_code == 404
 
     @pytest.mark.django_db
@@ -32,7 +32,9 @@ class TestModelUtils:
     @pytest.mark.django_db
     def test_get_object_or_exception_with_custom_exception(self):
         with pytest.raises(CustomException) as exception_info:
-            get_object_or_exception(Permission, error_message="Bad Request", id=0, exception=CustomException)
+            get_object_or_exception(
+                Permission, error_message="Bad Request", id=0, exception=CustomException
+            )
         assert "Bad Request" in str(exception_info.value.message)
         assert exception_info.value.status_code == 400
 

@@ -16,22 +16,22 @@ class SomeControllerWithInject(APIController):
 
 
 class SomeControllerWithRoute(APIController):
-    @route.get('/example')
+    @route.get("/example")
     def example(self):
         pass
 
-    @route.get('/example/{ex_id}')
+    @route.get("/example/{ex_id}")
     def example2(self, ex_id: str):
         pass
 
 
-@router("", tags=['new tag'])
+@router("", tags=["new tag"])
 class SomeControllerWithRouter(APIController):
-    @route.get('/example')
+    @route.get("/example")
     def example(self):
         pass
 
-    @route.get('/example/{ex_id}')
+    @route.get("/example/{ex_id}")
     def example2(self, ex_id: str):
         pass
 
@@ -39,7 +39,7 @@ class SomeControllerWithRouter(APIController):
 class TestAPIController:
     def test_controller_should_have_preset_properties(self):
         api = NinjaExtraAPI()
-        assert SomeController.tags == ['some']
+        assert SomeController.tags == ["some"]
         assert SomeController._path_operations == {}
         assert SomeController.permission_classes is None
         assert SomeController._router is None
@@ -48,7 +48,7 @@ class TestAPIController:
 
         with pytest.raises(MissingRouterDecoratorException) as ex:
             api.register_controllers(SomeController)
-        assert 'Could not register controller' in str(ex.value)
+        assert "Could not register controller" in str(ex.value)
 
     def test_controller_with_router_should_have_preset_properties(self):
         api = NinjaExtraAPI()
@@ -62,20 +62,23 @@ class TestAPIController:
         assert SomeControllerWithRouter.registered
 
     def test_controller_should_wrap_with_inject(self):
-        assert not hasattr(SomeController.__init__, '__bindings__')
-        assert hasattr(SomeControllerWithInject.__init__, '__bindings__')
+        assert not hasattr(SomeController.__init__, "__bindings__")
+        assert hasattr(SomeControllerWithInject.__init__, "__bindings__")
 
     def test_controller_should_have_path_operation_list(self):
         assert len(SomeControllerWithRoute._path_operations) == 2
 
         route_function: RouteFunction = SomeControllerWithRoute.example
         path_view = SomeControllerWithRoute._path_operations.get(str(route_function))
-        assert path_view, 'route doesnt exist in controller'
+        assert path_view, "route doesnt exist in controller"
         assert len(path_view.operations) == 1
 
         operation = path_view.operations[0]
         assert operation.methods == route_function.route_definition.route_params.methods
-        assert operation.operation_id == route_function.route_definition.route_params.operation_id
+        assert (
+            operation.operation_id
+            == route_function.route_definition.route_params.operation_id
+        )
 
     def test_controller_route_function_should_know_their_controller(self):
         assert len(SomeControllerWithRoute._path_operations) == 2

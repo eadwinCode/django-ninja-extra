@@ -2,7 +2,12 @@ import pytest
 from ninja import Schema
 from ninja_extra import NinjaExtraAPI, APIController, route, router
 from ninja.errors import ConfigError
-from ninja_extra.pagination import PageNumberPaginationExtra, PageNumberPagination, PaginationBase, paginate
+from ninja_extra.pagination import (
+    PageNumberPaginationExtra,
+    PageNumberPagination,
+    PaginationBase,
+    paginate,
+)
 from ninja_extra.testing import TestClient
 
 ITEMS = list(range(100))
@@ -15,10 +20,10 @@ class CustomPagination(PaginationBase):
 
     def paginate_queryset(self, items, request, **params):
         skip = params["pagination"].skip
-        return items[skip: skip + 5]
+        return items[skip : skip + 5]
 
 
-@router('')
+@router("")
 class SomeAPIController(APIController):
     @route.get("/items_1")
     @paginate  # WITHOUT brackets (should use default pagination)
@@ -139,10 +144,10 @@ class TestPagination:
 
     def test_case4(self):
         response = client.get("/items_4?page=2").json()
-        assert response.get('results') == ITEMS[10:20]
-        assert response.get('count') == 100
-        assert response.get('next') == 'http://testlocation/?page=3'
-        assert response.get('previous') == 'http://testlocation/'
+        assert response.get("results") == ITEMS[10:20]
+        assert response.get("count") == 100
+        assert response.get("next") == "http://testlocation/?page=3"
+        assert response.get("previous") == "http://testlocation/"
 
         schema = api.get_openapi_schema()["paths"]["/api/items_4"]["get"]
         # print(schema)
@@ -168,7 +173,7 @@ class TestPagination:
                     "type": "integer",
                 },
                 "required": False,
-            }
+            },
         ]
 
     def test_case5(self):

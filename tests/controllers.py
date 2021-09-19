@@ -16,7 +16,7 @@ class EventSchema(BaseModel):
         orm_mode = True
 
 
-@router('events')
+@router("events")
 class EventController(APIController):
     @route.post("/create", url_name="event-create-url-name")
     def create_event(self, event: EventSchema):

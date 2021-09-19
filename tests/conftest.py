@@ -51,11 +51,9 @@ def pytest_configure(config):
             "tests",
         ),
         PASSWORD_HASHERS=("django.contrib.auth.hashers.MD5PasswordHasher",),
-        AUTHENTICATION_BACKENDS=(
-            "django.contrib.auth.backends.ModelBackend",
-        ),
+        AUTHENTICATION_BACKENDS=("django.contrib.auth.backends.ModelBackend",),
         LANGUAGE_CODE="en-us",
-        TIME_ZONE="UTC"
+        TIME_ZONE="UTC",
     )
 
     django.setup()
