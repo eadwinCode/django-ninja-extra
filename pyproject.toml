@@ -41,7 +41,7 @@ classifiers = [
 
 requires = [
     "Django >=3.1",
-    "django-ninja >=0.13.2",
+    "django-ninja >= 0.13.2",
     "injector"
 ]
 description-file = "README.md"
