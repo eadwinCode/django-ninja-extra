@@ -1,13 +1,4 @@
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple, cast
 
 from django.urls import URLPattern, path as django_path
 from ninja.constants import NOT_SET
@@ -18,8 +9,8 @@ from ninja_extra.permissions import BasePermission
 from ninja_extra.permissions.common import AllowAny
 
 if TYPE_CHECKING:
-    from ninja_extra.controllers.base import APIController
     from ninja_extra import NinjaExtraAPI
+    from ninja_extra.controllers.base import APIController
 
 __all__ = ["router", "ControllerRegistry", "ControllerRouter"]
 

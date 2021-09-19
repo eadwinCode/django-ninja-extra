@@ -40,7 +40,7 @@ classifiers = [
 ]
 
 requires = [
-    "Django >=3.1",
+    "Django >=2.1",
     "django-ninja >= 0.13.2",
     "injector"
 ]
