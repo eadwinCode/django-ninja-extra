@@ -5,8 +5,6 @@ from django.http import HttpRequest
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions.base import BasePermission
 
-__all__ = ["APIControllerPermissionMixin"]
-
 
 class APIControllerPermissionMixin:
     # partial class of APIController

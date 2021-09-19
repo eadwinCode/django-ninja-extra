@@ -9,7 +9,7 @@ from ninja_extra.exceptions import APIException, NotFound
 def fail_silently(func: TCallable, **kwargs: DictStrAny) -> Optional[Any]:
     try:
         return func(**kwargs)
-    except Exception as ex:
+    except (Exception,):
         pass
     return None
 

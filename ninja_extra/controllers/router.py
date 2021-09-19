@@ -12,8 +12,6 @@ if TYPE_CHECKING:
     from ninja_extra import NinjaExtraAPI
     from ninja_extra.controllers.base import APIController
 
-__all__ = ["router", "ControllerRegistry", "ControllerRouter"]
-
 
 class ControllerBorg:
     _shared_state_ = dict(controllers=dict())

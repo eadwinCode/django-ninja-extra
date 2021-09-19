@@ -1,9 +1,9 @@
 import uuid
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional
 
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
-from ninja.types import DictStrAny, TCallable
+from ninja.types import TCallable
 
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
@@ -16,9 +16,6 @@ PATCH = "PATCH"
 DELETE = "DELETE"
 GET = "GET"
 ROUTE_METHODS = [POST, PUT, DELETE, GET]
-
-
-__all__ = ["route", "Route", "RouteFunction", "AsyncRouteFunction"]
 
 
 class RouteInvalidParameterException(Exception):

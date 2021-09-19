@@ -13,7 +13,7 @@ def get_injector() -> Injector:
     app = cast(NinjaExtraConfig, apps.get_app_config(NinjaExtraConfig.name))
     if not app:
         raise ImproperlyConfigured(
-            f"ninja_extra app is not installed. Did you forget register `ninja_extra` in `INSTALLED_APPS`"
+            "ninja_extra app is not installed. Did you forget register `ninja_extra` in `INSTALLED_APPS`"
         )
     injector = app.injector
     return injector

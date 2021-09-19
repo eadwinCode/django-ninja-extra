@@ -15,8 +15,6 @@ from ninja_extra.shortcuts import fail_silently
 from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 
-__all__ = ["APIController", "MissingRouterDecoratorException"]
-
 
 class MissingRouterDecoratorException(Exception):
     pass
