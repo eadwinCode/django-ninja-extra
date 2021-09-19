@@ -23,7 +23,7 @@ jobs:
       - name: Install core
         run: pip install "Django${{ matrix.django-version }}" pydantic
       - name: Install tests
-        run: pip install pytest pytest-asyncio pytest-django
+        run: pip install pytest pytest-asyncio pytest-django injector
       - name: Test
         run: pytest
   codestyle:
@@ -40,10 +40,10 @@ jobs:
       - name: Install Dependencies
         run: flit install --symlink
       - name: Black
-        run: black --check ninja tests
+        run: black --check ninja_extra tests
       - name: isort
-        run: isort --check ninja tests
+        run: isort --check ninja_extra tests
       - name: Flake8
-        run: flake8 ninja tests
+        run: flake8 ninja_extra tests
       - name: mypy
-        run: mypy ninja
+        run: mypy ninja_extra
