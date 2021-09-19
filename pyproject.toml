@@ -42,7 +42,7 @@ classifiers = [
 requires = [
     "Django >=3.1",
     "django-ninja >=0.13.2",
-    "Injector"
+    "injector"
 ]
 description-file = "README.md"
 requires-python = ">=3.6"
@@ -59,7 +59,7 @@ test = [
     "pytest-asyncio",
     "black",
     "isort",
-    "Injector",
+    "injector",
     "flake8",
     "mypy",
     "django-stubs",
