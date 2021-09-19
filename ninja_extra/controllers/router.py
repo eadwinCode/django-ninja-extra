@@ -1,5 +1,4 @@
-from typing import (TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple,
-                    cast)
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple, cast
 
 from django.urls import URLPattern
 from django.urls import path as django_path
