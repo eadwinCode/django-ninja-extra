@@ -3,11 +3,13 @@ from ninja_extra.shortcuts import fail_silently
 from django.apps import AppConfig, apps
 from ninja_extra.modules import NinjaExtraModule
 from injector import Injector
+from django.utils.translation import gettext_lazy as _
 
 
 class NinjaExtraConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'ninja_extra'
+    verbose_name = _("Django Ninja Extra")
     injector: Injector
 
     def ready(self) -> None:

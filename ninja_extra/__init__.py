@@ -13,6 +13,7 @@ from ninja_extra import status
 from ninja_extra import shortcuts
 from ninja_extra.dependency_resolver import get_injector, service_resolver
 
+default_app_config = 'ninja_extra.apps.NinjaExtraConfig'
 
 __all__ = [
     'NinjaExtraAPI',
