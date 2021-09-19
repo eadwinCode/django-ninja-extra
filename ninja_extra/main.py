@@ -72,6 +72,6 @@ class NinjaExtraAPI(NinjaAPI):
                     if module_has_submodule(app_module_, module):
                         mod_path = '%s.%s' % (app_module.name, module)
                         import_module(mod_path)
-                self.register_controllers(*ControllerRegister.get_controllers().values())
+                self.register_controllers(*ControllerRegistry.get_controllers().values())
             except ImportError as ex:
                 raise ex

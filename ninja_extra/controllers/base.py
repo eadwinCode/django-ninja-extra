@@ -10,27 +10,22 @@ from typing import (
 )
 
 from injector import is_decorated_with_inject, inject
+from ninja.operation import Operation
 from ninja_extra.shortcuts import fail_silently
 from ninja.constants import NOT_SET
-from ninja_extra.operation import PathView, Operation
+from ninja_extra.operation import PathView
 from ninja_extra.controllers.route import Route
-from ninja_extra.permissions.mixins import NinjaExtraAPIPermissionMixin
+from ninja_extra.permissions.mixins import APIControllerPermissionMixin
 from ninja import NinjaAPI
 from ninja.security.base import AuthBase
 from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 
-__all__ = ["APIController"]
+__all__ = ["APIController", 'MissingRouterDecoratorException']
 
 
 class MissingRouterDecoratorException(Exception):
     pass
-
-
-def _get_class_route_functions(**kwargs) -> Iterator[RouteFunction]:
-    for method in kwargs.values():
-        if isinstance(method, RouteFunction):
-            yield method
 
 
 class APIControllerModelSchemaMetaclass(ABCMeta):
@@ -46,12 +41,13 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
         cls._path_operations = {}
         cls.api = namespace.get('api', None)
         cls.registered = False
+        cls.permission_classes = None
 
         if not namespace.get('tags'):
             tag = str(cls.__name__).lower().replace('controller', '')
             cls.tags = [tag]
 
-        for method_route_func in _get_class_route_functions(**namespace):
+        for method_route_func in cls.get_route_functions():
             method_route_func.controller = cls
             cls.add_operation_from_route_definition(method_route_func.route_definition)
 
@@ -62,9 +58,11 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
 
 class APIController(
     ABC,
-    NinjaExtraAPIPermissionMixin,
+    APIControllerPermissionMixin,
     metaclass=APIControllerModelSchemaMetaclass
 ):
+    # TODO: implement csrf on route function or on controller level. Which can override api csrf
+    #   controller should have a csrf ON unless turned off by api instance
     _path_operations: Dict[str, PathView]
     api: Optional[NinjaAPI]
     args = []
@@ -132,3 +130,9 @@ class APIController(
             include_in_schema=include_in_schema
         )
         return operation
+
+    @classmethod
+    def get_route_functions(cls) -> Iterator[RouteFunction]:
+        for method in cls.__dict__.values():
+            if isinstance(method, RouteFunction):
+                yield method

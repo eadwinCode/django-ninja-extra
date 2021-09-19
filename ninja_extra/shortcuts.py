@@ -1,7 +1,7 @@
 from typing import Any, Optional
 from django.db.models import QuerySet, Model
 from ninja.types import TCallable, DictStrAny
-from ninja_extra.exceptions import NotFound
+from ninja_extra.exceptions import NotFound, APIException
 
 
 def fail_silently(func: TCallable, **kwargs: DictStrAny) -> Optional[Any]:
@@ -19,7 +19,8 @@ def _get_queryset(klass: Model) -> QuerySet:
     return klass
 
 
-def get_object_or_404(klass: Model, error_message=None, **kwargs):
+def get_object_or_exception(klass: Model, error_message: str = None, exception: APIException = NotFound,
+                            **kwargs: DictStrAny):
     queryset = _get_queryset(klass)
     _validate_queryset(klass, queryset)
     try:
@@ -31,7 +32,7 @@ def get_object_or_404(klass: Model, error_message=None, **kwargs):
             message = "{} with {} was not found".format(
                 queryset.model._meta.object_name, _format_dict(kwargs)
             )
-        raise NotFound(message) from ex
+        raise exception(message=message) from ex
 
 
 def _format_dict(table):

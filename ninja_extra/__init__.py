@@ -7,10 +7,22 @@ from ninja_extra.main import NinjaExtraAPI
 from ninja_extra.controllers import APIController
 from ninja_extra.controllers.route import route
 from ninja_extra.controllers.router import router
+from ninja_extra import permissions
+from ninja_extra import exceptions
+from ninja_extra import status
+from ninja_extra import shortcuts
+from ninja_extra.dependency_resolver import get_injector, service_resolver
+
 
 __all__ = [
     'NinjaExtraAPI',
     'route',
     'APIController',
     'router',
+    'permissions',
+    'exceptions',
+    'status',
+    'shortcuts',
+    'get_injector',
+    'service_resolver'
 ]

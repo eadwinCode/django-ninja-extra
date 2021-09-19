@@ -12,9 +12,12 @@ class APIException(HttpError):
     message = _('A server error occurred.')
 
     def __init__(self, message=None, status_code=None):
-        message = message or self.message
-        status_code = status_code or self.status_code
-        super().__init__(status_code, message=message)
+        self.message = message or self.message
+        self.status_code = status_code or self.status_code
+        super().__init__(status_code=self.status_code, message=self.message)
+
+    def __str__(self):
+        return self.message
 
 
 class AuthenticationFailed(APIException):

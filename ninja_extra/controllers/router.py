@@ -2,7 +2,8 @@ from typing import Any, Optional, List, Iterator, Dict, TYPE_CHECKING, Tuple, ca
 from django.urls import URLPattern, path as django_path
 from ninja.utils import normalize_path
 from ninja.constants import NOT_SET
-
+from ninja_extra.permissions.common import AllowAny
+from ninja_extra.permissions import BasePermission
 from ninja_extra.controllers.route.route_functions import RouteFunction
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController
@@ -11,34 +12,46 @@ if TYPE_CHECKING:
 __all__ = ['router', 'ControllerRegistry', 'ControllerRouter']
 
 
-class ControllerRouterBorg:
+class ControllerBorg:
     _shared_state_ = dict(controllers=dict())
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__dict__ = self._shared_state_
 
-    def add_controller(self, controller: "APIController"):
+    def add_controller(self, controller: "APIController") -> None:
         self._shared_state_['controllers'].update(**{str(controller): controller})
+
+    def remove_controller(self, controller: "APIController") -> Optional['APIController']:
+        if str(controller) in self._shared_state_['controllers']:
+            return self._shared_state_['controllers'].pop(str(controller))
+        return None
+
+    def clear_controller(self) -> None:
+        self._shared_state_['controllers'] = dict()
 
     @classmethod
     def get_controllers(cls) -> Dict[str, "APIController"]:
         return cls._shared_state_.get('controllers')
 
 
-class ControllerRegistry(ControllerRouterBorg):
-    def __init__(self):
-        ControllerRouterBorg.__init__(self)
+class ControllerRegistry(ControllerBorg):
+    def __init__(self) -> None:
+        ControllerBorg.__init__(self)
 
 
 class ControllerRouter:
     _tags: Optional[List[str]] = None
     _controller: "APIController"
 
-    def __init__(self, prefix, *, auth: Any = NOT_SET, tags: Optional[List[str]] = None, permissions=None):
+    def __init__(
+            self, prefix, *, auth: Any = NOT_SET,
+            tags: Optional[List[str]] = None,
+            permissions: List[BasePermission] = None
+    ):
         self.prefix = prefix
         self.auth = auth
         self.tags = tags
-        self.permission_classes = permissions or []
+        self.permission_classes = permissions or [AllowAny]
         self._controller = None
 
     @property
@@ -54,7 +67,7 @@ class ControllerRouter:
 
     def __call__(self, controller: "APIController"):
         self._controller = controller
-        controller.permission_classes = self.permission_classes or controller.permission_classes
+        controller.permission_classes = self.permission_classes
         controller._router = self
         self.tags = self.tags or controller.tags
         ControllerRegistry().add_controller(controller)

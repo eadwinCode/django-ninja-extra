@@ -1,24 +1,28 @@
 import inspect
 import sys
+import logging
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, Type, TYPE_CHECKING
+from typing import Any, Callable, Type, TYPE_CHECKING, cast
 
 from django.core.paginator import InvalidPage, Paginator, Page
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.utils.module_loading import import_string
 from ninja import Schema
-from ninja_extra.exceptions import NotFound
 from ninja.conf import settings
 from ninja.constants import NOT_SET
-from ninja.errors import ConfigError
+from ninja.pagination import (
+    PageNumberPagination, PaginationBase, LimitOffsetPagination
+)
 from ninja.signature import has_kwargs
 from ninja.types import DictStrAny
-from ninja.pagination import PageNumberPagination, PaginationBase, LimitOffsetPagination
+from ninja_extra.exceptions import NotFound
+from ninja_extra.schemas import PaginatedResponseSchema, get_paginated_response_schema
 from ninja_extra.urls import replace_query_param, remove_query_param
 from pydantic import Field
-from ninja_extra.schemas import PaginatedResponseSchema, get_paginated_response_schema
+
+logger = logging.getLogger()
 
 if TYPE_CHECKING:
     from .controllers import APIController
@@ -61,13 +65,14 @@ class PageNumberPaginationExtra(PageNumberPagination):
         class Input(Schema):
             page: int = Field(1, gt=0)
             page_size: int = Field(self.page_size, lt=self.max_page_size)
+
         return Input
 
     def paginate_queryset(
             self, items: QuerySet, request: HttpRequest, **params: DictStrAny
     ) -> QuerySet:
 
-        pagination_input: "PageNumberPaginationExtra.Input" = params["pagination"]
+        pagination_input = cast(PageNumberPaginationExtra.Input, params["pagination"])
         page_size = self.get_page_size(pagination_input.page_size)
         page = pagination_input.page
         paginator = self.paginator_class(items, page_size)
@@ -124,9 +129,8 @@ class PageNumberPaginationExtra(PageNumberPagination):
 
 
 def paginate(
-    func_or_pgn_class: Any = NOT_SET, **paginator_params: DictStrAny
+        func_or_pgn_class: Any = NOT_SET, **paginator_params: DictStrAny
 ) -> Callable:
-
     isfunction = inspect.isfunction(func_or_pgn_class)
     isnotset = func_or_pgn_class == NOT_SET
 
@@ -145,25 +149,32 @@ def paginate(
 
 
 def _inject_pagination(
-    func: Callable,
-    paginator_class: Type[PaginationBase],
-    **paginator_params: DictStrAny,
+        func: Callable,
+        paginator_class: Type[PaginationBase],
+        **paginator_params: DictStrAny,
 ) -> Callable:
+    func._has_kwargs = True
     if not has_kwargs(func):
-        raise ConfigError(
-            f"function {func.__name__} must have **kwargs argument to be used with pagination"
+        func._has_kwargs = False
+        logger.warning(
+            f"function {func.__name__} should have **kwargs argument to be used with pagination"
         )
 
     paginator: PaginationBase = paginator_class(**paginator_params)
+    paginator_kwargs_name = 'pagination'
 
     @wraps(func)
     def view_with_pagination(controller: "APIController", *args, **kw: DictStrAny) -> Any:
-        items = func(controller, *args, **kw)
+        func_kwargs = dict(kw)
+        if not func._has_kwargs:
+            func_kwargs.pop(paginator_kwargs_name)
+
+        items = func(controller, *args, **func_kwargs)
         return paginator.paginate_queryset(items, controller.request, **kw)
 
     view_with_pagination._ninja_contribute_args = [  # type: ignore
         (
-            "pagination",
+            paginator_kwargs_name,
             paginator.Input,
             paginator.InputSource,
         ),

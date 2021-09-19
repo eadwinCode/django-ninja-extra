@@ -59,6 +59,7 @@ test = [
     "pytest-asyncio",
     "black",
     "isort",
+    "Injector",
     "flake8",
     "mypy",
     "django-stubs",

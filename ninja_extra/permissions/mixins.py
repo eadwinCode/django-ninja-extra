@@ -4,15 +4,17 @@ from django.http import HttpRequest
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions.base import BasePermission
 
-__all__ = ['NinjaExtraAPIPermissionMixin']
+__all__ = ['APIControllerPermissionMixin']
 
 
-class NinjaExtraAPIPermissionMixin:
-    permission_classes: List[BasePermission] = []
+class APIControllerPermissionMixin:
+    # partial class of APIController
+
+    permission_classes: List[BasePermission]
     request: HttpRequest = None
 
-    @staticmethod
-    def permission_denied(permission):
+    @classmethod
+    def permission_denied(cls, permission: BasePermission):
         message = getattr(permission, 'message', None)
         raise PermissionDenied(message)
 

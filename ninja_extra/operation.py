@@ -1,9 +1,6 @@
-from collections import Callable
-from typing import Tuple, Dict, Any, Union
-
 from django.http import HttpRequest
 from django.http.response import HttpResponse
-from ninja.operation import PathView as NinjaPathView, Operation
+from ninja.operation import PathView as NinjaPathView
 
 
 class PathView(NinjaPathView):
