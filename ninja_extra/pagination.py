@@ -22,8 +22,10 @@ from ninja.types import DictStrAny
 from pydantic import Field
 
 from ninja_extra.exceptions import NotFound
-from ninja_extra.schemas import (PaginatedResponseSchema,
-                                 get_paginated_response_schema)
+from ninja_extra.schemas import (
+    PaginatedResponseSchema,
+    get_paginated_response_schema,
+)
 from ninja_extra.urls import remove_query_param, replace_query_param
 
 logger = logging.getLogger()
