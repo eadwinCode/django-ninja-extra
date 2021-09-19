@@ -3,8 +3,10 @@ from typing import List
 
 from django.shortcuts import get_object_or_404
 from pydantic import BaseModel
+
+from ninja_extra import APIController, route, router
+
 from .models import Event
-from ninja_extra import APIController, router, route
 
 
 class EventSchema(BaseModel):

@@ -1,9 +1,10 @@
 import pytest
-from ninja_extra.permissions.common import AllowAny
-from ninja_extra.controllers.base import MissingRouterDecoratorException
-from ninja_extra import APIController, route, router, NinjaExtraAPI
-from ninja_extra.controllers.router import ControllerRouter
+
+from ninja_extra import APIController, NinjaExtraAPI, route, router
 from ninja_extra.controllers import RouteFunction
+from ninja_extra.controllers.base import MissingRouterDecoratorException
+from ninja_extra.controllers.router import ControllerRouter
+from ninja_extra.permissions.common import AllowAny
 
 
 class SomeController(APIController):

@@ -1,5 +1,14 @@
 from abc import ABC, ABCMeta
-from typing import Any, Callable, Dict, Iterator, List, Optional, cast, no_type_check
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    cast,
+    no_type_check,
+)
 
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI

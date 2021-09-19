@@ -1,10 +1,9 @@
-import pytest
 from ninja import Schema
-from ninja_extra import NinjaExtraAPI, APIController, route, router
-from ninja.errors import ConfigError
+
+from ninja_extra import APIController, NinjaExtraAPI, route, router
 from ninja_extra.pagination import (
-    PageNumberPaginationExtra,
     PageNumberPagination,
+    PageNumberPaginationExtra,
     PaginationBase,
     paginate,
 )

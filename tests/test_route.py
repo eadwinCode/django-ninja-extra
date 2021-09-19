@@ -1,10 +1,11 @@
-from ninja_extra.controllers import RouteFunction, AsyncRouteFunction
 from unittest.mock import Mock
+
 import pytest
-from ninja_extra import APIController, route, router
-from ninja_extra import permissions
-from ninja_extra.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser, User
+
+from ninja_extra import APIController, permissions, route, router
+from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
+from ninja_extra.exceptions import PermissionDenied
 
 anonymous_request = Mock()
 anonymous_request.user = AnonymousUser()

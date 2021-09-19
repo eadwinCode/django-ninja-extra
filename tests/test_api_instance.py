@@ -2,8 +2,9 @@ from unittest import mock
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-from injector import Module, Binder
-from ninja_extra import NinjaExtraAPI, APIController, route, router
+from injector import Binder, Module
+
+from ninja_extra import APIController, NinjaExtraAPI, route, router
 from ninja_extra.controllers.router import ControllerRegistry
 
 

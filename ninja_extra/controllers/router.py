@@ -1,7 +1,15 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    cast,
+)
 
-from django.urls import URLPattern
-from django.urls import path as django_path
+from django.urls import URLPattern, path as django_path
 from ninja.constants import NOT_SET
 from ninja.utils import normalize_path
 

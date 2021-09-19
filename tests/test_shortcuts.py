@@ -1,8 +1,9 @@
 import pytest
-from django.contrib.auth.models import Permission, Group
-from ninja_extra.shortcuts import get_object_or_exception, get_object_or_none
-from ninja_extra.exceptions import NotFound, APIException
+from django.contrib.auth.models import Group, Permission
+
 from ninja_extra import status
+from ninja_extra.exceptions import APIException, NotFound
+from ninja_extra.shortcuts import get_object_or_exception, get_object_or_none
 
 
 class CustomException(APIException):

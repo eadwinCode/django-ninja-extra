@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, User
+
 from ninja_extra import permissions
 
 anonymous_request = Mock()

@@ -1,4 +1,5 @@
 from injector import Injector
+
 from ninja_extra.dependency_resolver import get_injector, service_resolver
 
 

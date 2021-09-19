@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path
+
 from ninja_extra import NinjaExtraAPI
+
 from .controllers import EventController
 
 api = NinjaExtraAPI()
