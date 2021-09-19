@@ -10,7 +10,7 @@ from django.http import HttpRequest
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController
 
-SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
+SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
 
 class OperationHolderMixin:
@@ -58,16 +58,16 @@ class AND:
         self.op2 = op2
 
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
-        return (
-                self.op1.has_permission(request, controller) and
-                self.op2.has_permission(request, controller)
+        return self.op1.has_permission(request, controller) and self.op2.has_permission(
+            request, controller
         )
 
-    def has_object_permission(self, request: HttpRequest, controller: "APIController", obj) -> bool:
-        return (
-                self.op1.has_object_permission(request, controller, obj) and
-                self.op2.has_object_permission(request, controller, obj)
-        )
+    def has_object_permission(
+        self, request: HttpRequest, controller: "APIController", obj
+    ) -> bool:
+        return self.op1.has_object_permission(
+            request, controller, obj
+        ) and self.op2.has_object_permission(request, controller, obj)
 
 
 class OR:
@@ -76,16 +76,16 @@ class OR:
         self.op2 = op2
 
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
-        return (
-                self.op1.has_permission(request, controller) or
-                self.op2.has_permission(request, controller)
+        return self.op1.has_permission(request, controller) or self.op2.has_permission(
+            request, controller
         )
 
-    def has_object_permission(self, request: HttpRequest, controller: "APIController", obj) -> bool:
-        return (
-                self.op1.has_object_permission(request, controller, obj) or
-                self.op2.has_object_permission(request, controller, obj)
-        )
+    def has_object_permission(
+        self, request: HttpRequest, controller: "APIController", obj
+    ) -> bool:
+        return self.op1.has_object_permission(
+            request, controller, obj
+        ) or self.op2.has_object_permission(request, controller, obj)
 
 
 class NOT:
@@ -95,7 +95,9 @@ class NOT:
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
         return not self.op1.has_permission(request, controller)
 
-    def has_object_permission(self, request: HttpRequest, controller: "APIController", obj) -> bool:
+    def has_object_permission(
+        self, request: HttpRequest, controller: "APIController", obj
+    ) -> bool:
         return not self.op1.has_object_permission(request, controller, obj)
 
 
@@ -114,7 +116,9 @@ class BasePermission(metaclass=BasePermissionMetaclass):
         """
         return True
 
-    def has_object_permission(self, request: HttpRequest, controller: "APIController", obj: Any) -> bool:
+    def has_object_permission(
+        self, request: HttpRequest, controller: "APIController", obj: Any
+    ) -> bool:
         """
         Return `True` if permission is granted, `False` otherwise.
         """

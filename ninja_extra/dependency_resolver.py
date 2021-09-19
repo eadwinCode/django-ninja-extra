@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from injector import Injector
 from ninja_extra.apps import NinjaExtraConfig
 
-__all__ = ['service_resolver', 'get_injector']
+__all__ = ["service_resolver", "get_injector"]
 
 
 def get_injector() -> Injector:
@@ -18,7 +18,7 @@ def get_injector() -> Injector:
 
 
 def service_resolver(*services: type) -> Union[Tuple[Any], Any]:
-    assert services, 'Service can not be empty'
+    assert services, "Service can not be empty"
 
     injector = get_injector()
 

@@ -12,9 +12,7 @@ from django.utils.module_loading import import_string
 from ninja import Schema
 from ninja.conf import settings
 from ninja.constants import NOT_SET
-from ninja.pagination import (
-    PageNumberPagination, PaginationBase, LimitOffsetPagination
-)
+from ninja.pagination import PageNumberPagination, PaginationBase, LimitOffsetPagination
 from ninja.signature import has_kwargs
 from ninja.types import DictStrAny
 from ninja_extra.exceptions import NotFound
@@ -32,7 +30,7 @@ __all__ = [
     "PageNumberPaginationExtra",
     "PaginationBase",
     "LimitOffsetPagination",
-    "paginate"
+    "paginate",
 ]
 
 
@@ -49,8 +47,8 @@ def _positive_int(integer_string, strict=False, cutoff=None):
 
 
 class PageNumberPaginationExtra(PageNumberPagination):
-    page_query_param = 'page'
-    page_size_query_param = 'page_size'
+    page_query_param = "page"
+    page_size_query_param = "page_size"
 
     max_page_size = 200
     paginator_class: Paginator = Paginator
@@ -69,7 +67,7 @@ class PageNumberPaginationExtra(PageNumberPagination):
         return Input
 
     def paginate_queryset(
-            self, items: QuerySet, request: HttpRequest, **params: DictStrAny
+        self, items: QuerySet, request: HttpRequest, **params: DictStrAny
     ) -> QuerySet:
 
         pagination_input = cast(PageNumberPaginationExtra.Input, params["pagination"])
@@ -81,18 +79,20 @@ class PageNumberPaginationExtra(PageNumberPagination):
             page = paginator.page(page)
             return self.get_paginated_response(base_url=url, page=page)
         except InvalidPage as exc:
-            msg = 'Invalid page. {page_number} {message}'.format(
+            msg = "Invalid page. {page_number} {message}".format(
                 page_number=page, message=str(exc)
             )
             raise NotFound(msg)
 
     def get_paginated_response(self, *, base_url: str, page: Page) -> DictStrAny:
-        return OrderedDict([
-            ('count', page.paginator.count),
-            ('next', self.get_next_link(base_url, page=page)),
-            ('previous', self.get_previous_link(base_url, page=page)),
-            ('results', list(page))
-        ])
+        return OrderedDict(
+            [
+                ("count", page.paginator.count),
+                ("next", self.get_next_link(base_url, page=page)),
+                ("previous", self.get_previous_link(base_url, page=page)),
+                ("results", list(page)),
+            ]
+        )
 
     @classmethod
     def get_response_schema(cls, response_schema: Schema) -> Schema:
@@ -117,11 +117,7 @@ class PageNumberPaginationExtra(PageNumberPagination):
     def get_page_size(self, page_size: int):
         if page_size:
             try:
-                return _positive_int(
-                    page_size,
-                    strict=True,
-                    cutoff=self.max_page_size
-                )
+                return _positive_int(page_size, strict=True, cutoff=self.max_page_size)
             except (KeyError, ValueError):
                 pass
 
@@ -129,7 +125,7 @@ class PageNumberPaginationExtra(PageNumberPagination):
 
 
 def paginate(
-        func_or_pgn_class: Any = NOT_SET, **paginator_params: DictStrAny
+    func_or_pgn_class: Any = NOT_SET, **paginator_params: DictStrAny
 ) -> Callable:
     isfunction = inspect.isfunction(func_or_pgn_class)
     isnotset = func_or_pgn_class == NOT_SET
@@ -149,9 +145,9 @@ def paginate(
 
 
 def _inject_pagination(
-        func: Callable,
-        paginator_class: Type[PaginationBase],
-        **paginator_params: DictStrAny,
+    func: Callable,
+    paginator_class: Type[PaginationBase],
+    **paginator_params: DictStrAny,
 ) -> Callable:
     func._has_kwargs = True
     if not has_kwargs(func):
@@ -161,10 +157,12 @@ def _inject_pagination(
         )
 
     paginator: PaginationBase = paginator_class(**paginator_params)
-    paginator_kwargs_name = 'pagination'
+    paginator_kwargs_name = "pagination"
 
     @wraps(func)
-    def view_with_pagination(controller: "APIController", *args, **kw: DictStrAny) -> Any:
+    def view_with_pagination(
+        controller: "APIController", *args, **kw: DictStrAny
+    ) -> Any:
         func_kwargs = dict(kw)
         if not func._has_kwargs:
             func_kwargs.pop(paginator_kwargs_name)

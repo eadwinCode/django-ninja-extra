@@ -2,16 +2,12 @@ from typing import TYPE_CHECKING
 
 from django.http import HttpRequest
 from ninja_extra.permissions.base import BasePermission, SAFE_METHODS
+
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController
 
 
-__all__ = [
-    'AllowAny',
-    'IsAuthenticated',
-    'IsAdminUser',
-    'IsAuthenticatedOrReadOnly'
-]
+__all__ = ["AllowAny", "IsAuthenticated", "IsAdminUser", "IsAuthenticatedOrReadOnly"]
 
 
 class AllowAny(BasePermission):
@@ -51,7 +47,7 @@ class IsAuthenticatedOrReadOnly(BasePermission):
 
     def has_permission(self, request: HttpRequest, controller: "APIController"):
         return bool(
-            request.method in SAFE_METHODS or
-            request.user and
-            request.user.is_authenticated
+            request.method in SAFE_METHODS
+            or request.user
+            and request.user.is_authenticated
         )

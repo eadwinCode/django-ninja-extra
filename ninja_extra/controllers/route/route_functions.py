@@ -25,13 +25,13 @@ class RouteFunction(object):
         self._resolve_api_func_signature_(self.as_view)
 
     def _get_required_api_func_signature(self):
-        skip_parameters = ['self', 'request']
+        skip_parameters = ["self", "request"]
         sig_inspect = inspect.signature(self.api_func)
         sig_parameter = []
         for parameter in sig_inspect.parameters.values():
             if parameter.name not in skip_parameters:
                 sig_parameter.append(parameter)
-            if parameter.name == 'request':
+            if parameter.name == "request":
                 self.has_request_param = True
         return sig_inspect, sig_parameter
 
@@ -43,23 +43,30 @@ class RouteFunction(object):
         return context_func
 
     @classmethod
-    def from_route(cls, api_func: TCallable, route_definition: "Route") -> "RouteFunction":
+    def from_route(
+        cls, api_func: TCallable, route_definition: "Route"
+    ) -> "RouteFunction":
         route_function = cls(route_definition=route_definition, api_func=api_func)
         return route_function
 
     def get_view_function(self) -> TCallable:
-        def as_view(request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> HttpResponseBase:
-            controller_instance = self._get_controller_instance(request, *args, **kwargs)
+        def as_view(
+            request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
+        ) -> HttpResponseBase:
+            controller_instance = self._get_controller_instance(
+                request, *args, **kwargs
+            )
             controller_instance.check_permissions()
             api_func_kwargs = kwargs.copy()
 
             if self.has_request_param:
                 api_func_kwargs.update(request=request)
             return self.api_func(controller_instance, *args, **api_func_kwargs)
+
         return as_view
 
     def _get_controller_instance(
-            self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
+        self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
     ) -> "APIController":
 
         injector = get_injector()
@@ -72,26 +79,29 @@ class RouteFunction(object):
         return controller_instance
 
     def _get_controller_init_kwargs(
-            self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
+        self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
     ) -> Dict[str, Any]:
         if not self.controller:
-            raise ConfigError('Controller object is required')
+            raise ConfigError("Controller object is required")
 
         return dict(
-            permission_classes=self.route_definition.permissions or self.controller.permission_classes,
-            request=request, kwargs=kwargs, args=args
+            permission_classes=self.route_definition.permissions
+            or self.controller.permission_classes,
+            request=request,
+            kwargs=kwargs,
+            args=args,
         )
 
     def __str__(self):
         return self.route_definition.route_params.path
 
     def __repr__(self):
-        return f'<RouteFunction, controller: {self.controller.__name__} path: {self.__str__()}>'
+        return f"<RouteFunction, controller: {self.controller.__name__} path: {self.__str__()}>"
 
 
 class AsyncRouteFunction(RouteFunction):
     async def as_view(
-            self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
+        self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
     ) -> HttpResponseBase:
         controller_instance = self._get_controller_instance(request, *args, **kwargs)
         controller_instance.check_permissions()
@@ -102,4 +112,4 @@ class AsyncRouteFunction(RouteFunction):
         return await self.api_func(controller_instance, *args, **api_func_kwargs)
 
     def __repr__(self):
-        return f'<AsyncRouteFunction, controller: {self.controller.__name__} path: {self.__str__()}>'
+        return f"<AsyncRouteFunction, controller: {self.controller.__name__} path: {self.__str__()}>"

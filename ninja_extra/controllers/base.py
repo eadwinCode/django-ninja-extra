@@ -6,7 +6,8 @@ from typing import (
     Iterator,
     List,
     Optional,
-    cast, no_type_check,
+    cast,
+    no_type_check,
 )
 
 from injector import is_decorated_with_inject, inject
@@ -21,7 +22,7 @@ from ninja.security.base import AuthBase
 from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 
-__all__ = ["APIController", 'MissingRouterDecoratorException']
+__all__ = ["APIController", "MissingRouterDecoratorException"]
 
 
 class MissingRouterDecoratorException(Exception):
@@ -30,21 +31,19 @@ class MissingRouterDecoratorException(Exception):
 
 class APIControllerModelSchemaMetaclass(ABCMeta):
     @no_type_check
-    def __new__(
-            mcs, name: str, bases: tuple, namespace: dict
-    ):
+    def __new__(mcs, name: str, bases: tuple, namespace: dict):
         cls = super().__new__(mcs, name, bases, namespace)
-        if name == 'APIController' and ABC in bases:
+        if name == "APIController" and ABC in bases:
             return cls
 
         cls = cast(APIController, cls)
         cls._path_operations = {}
-        cls.api = namespace.get('api', None)
+        cls.api = namespace.get("api", None)
         cls.registered = False
         cls.permission_classes = None
 
-        if not namespace.get('tags'):
-            tag = str(cls.__name__).lower().replace('controller', '')
+        if not namespace.get("tags"):
+            tag = str(cls.__name__).lower().replace("controller", "")
             cls.tags = [tag]
 
         for method_route_func in cls.get_route_functions():
@@ -57,9 +56,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
 
 
 class APIController(
-    ABC,
-    APIControllerPermissionMixin,
-    metaclass=APIControllerModelSchemaMetaclass
+    ABC, APIControllerPermissionMixin, metaclass=APIControllerModelSchemaMetaclass
 ):
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
@@ -74,7 +71,7 @@ class APIController(
     @classmethod
     def get_router(cls):
         if not cls._router:
-            raise MissingRouterDecoratorException('Could not register controller')
+            raise MissingRouterDecoratorException("Could not register controller")
         return cls._router
 
     @classmethod
@@ -87,24 +84,24 @@ class APIController(
 
     @classmethod
     def add_api_operation(
-            cls,
-            path: str,
-            methods: List[str],
-            view_func: Callable,
-            *,
-            auth: Any = NOT_SET,
-            response: Any = NOT_SET,
-            operation_id: Optional[str] = None,
-            summary: Optional[str] = None,
-            description: Optional[str] = None,
-            tags: Optional[List[str]] = None,
-            deprecated: Optional[bool] = None,
-            by_alias: bool = False,
-            exclude_unset: bool = False,
-            exclude_defaults: bool = False,
-            exclude_none: bool = False,
-            url_name: Optional[str] = None,
-            include_in_schema: bool = True,
+        cls,
+        path: str,
+        methods: List[str],
+        view_func: Callable,
+        *,
+        auth: Any = NOT_SET,
+        response: Any = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
     ) -> Operation:
         if path not in cls._path_operations:
             path_view = PathView()
@@ -127,7 +124,7 @@ class APIController(
             exclude_defaults=exclude_defaults,
             exclude_none=exclude_none,
             url_name=url_name,
-            include_in_schema=include_in_schema
+            include_in_schema=include_in_schema,
         )
         return operation
 

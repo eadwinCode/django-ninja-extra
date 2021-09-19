@@ -19,8 +19,12 @@ def _get_queryset(klass: Model) -> QuerySet:
     return klass
 
 
-def get_object_or_exception(klass: Model, error_message: str = None, exception: APIException = NotFound,
-                            **kwargs: DictStrAny):
+def get_object_or_exception(
+    klass: Model,
+    error_message: str = None,
+    exception: APIException = NotFound,
+    **kwargs: DictStrAny
+):
     queryset = _get_queryset(klass)
     _validate_queryset(klass, queryset)
     try:

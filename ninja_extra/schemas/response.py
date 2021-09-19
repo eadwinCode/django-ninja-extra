@@ -5,11 +5,12 @@ from pydantic.main import BaseModel
 from pydantic.networks import AnyHttpUrl
 from pydantic.generics import GenericModel
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 PaginatedResponseSchema = None
 
 if sys.version_info >= (3, 8):
+
     class PaginatedResponseSchema(GenericModel, Generic[T]):
         count: int
         next: Optional[AnyHttpUrl]
@@ -24,6 +25,7 @@ def get_paginated_response_schema(item_schema):
         next: Optional[AnyHttpUrl]
         previous: Optional[AnyHttpUrl]
         results: List[item_schema]
+
     ListResponseSchema.__name__ = f"List{str(item_schema.__name__).capitalize()}"
     return ListResponseSchema
 

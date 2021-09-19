@@ -5,11 +5,12 @@ from ninja.constants import NOT_SET
 from ninja_extra.permissions.common import AllowAny
 from ninja_extra.permissions import BasePermission
 from ninja_extra.controllers.route.route_functions import RouteFunction
+
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController
     from ninja_extra import NinjaExtraAPI
 
-__all__ = ['router', 'ControllerRegistry', 'ControllerRouter']
+__all__ = ["router", "ControllerRegistry", "ControllerRouter"]
 
 
 class ControllerBorg:
@@ -19,19 +20,21 @@ class ControllerBorg:
         self.__dict__ = self._shared_state_
 
     def add_controller(self, controller: "APIController") -> None:
-        self._shared_state_['controllers'].update(**{str(controller): controller})
+        self._shared_state_["controllers"].update(**{str(controller): controller})
 
-    def remove_controller(self, controller: "APIController") -> Optional['APIController']:
-        if str(controller) in self._shared_state_['controllers']:
-            return self._shared_state_['controllers'].pop(str(controller))
+    def remove_controller(
+        self, controller: "APIController"
+    ) -> Optional["APIController"]:
+        if str(controller) in self._shared_state_["controllers"]:
+            return self._shared_state_["controllers"].pop(str(controller))
         return None
 
     def clear_controller(self) -> None:
-        self._shared_state_['controllers'] = dict()
+        self._shared_state_["controllers"] = dict()
 
     @classmethod
     def get_controllers(cls) -> Dict[str, "APIController"]:
-        return cls._shared_state_.get('controllers')
+        return cls._shared_state_.get("controllers")
 
 
 class ControllerRegistry(ControllerBorg):
@@ -44,9 +47,12 @@ class ControllerRouter:
     _controller: "APIController"
 
     def __init__(
-            self, prefix, *, auth: Any = NOT_SET,
-            tags: Optional[List[str]] = None,
-            permissions: List[BasePermission] = None
+        self,
+        prefix,
+        *,
+        auth: Any = NOT_SET,
+        tags: Optional[List[str]] = None,
+        permissions: List[BasePermission] = None,
     ):
         self.prefix = prefix
         self.auth = auth
@@ -74,7 +80,9 @@ class ControllerRouter:
         return controller
 
     @classmethod
-    def _get_class_route_functions(cls, controller: "APIController") -> Iterator[RouteFunction]:
+    def _get_class_route_functions(
+        cls, controller: "APIController"
+    ) -> Iterator[RouteFunction]:
         for method in controller.__dict__.values():
             if isinstance(method, RouteFunction):
                 yield method
@@ -104,7 +112,7 @@ class ControllerRouter:
             )
 
     def __repr__(self):
-        return f'<controller - {self._controller.__name__}>'
+        return f"<controller - {self._controller.__name__}>"
 
     def __str__(self):
         return self._controller.__name__

@@ -20,7 +20,5 @@ class TestClient(NinjaExtraClientBase):
 
 
 class TestAsyncClient(NinjaExtraClientBase):
-    async def _call(
-        self, func: Callable, request: Mock, kwargs: Dict
-    ) -> NinjaResponse:
+    async def _call(self, func: Callable, request: Mock, kwargs: Dict) -> NinjaResponse:
         return NinjaResponse(await func(request, **kwargs))

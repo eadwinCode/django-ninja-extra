@@ -8,8 +8,9 @@ class APIException(HttpError):
     """
     Subclasses should provide `.status_code` and `.message` properties.
     """
+
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    message = _('A server error occurred.')
+    message = _("A server error occurred.")
 
     def __init__(self, message=None, status_code=None):
         self.message = message or self.message
@@ -22,22 +23,22 @@ class APIException(HttpError):
 
 class AuthenticationFailed(APIException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    message = _('Incorrect authentication credentials.')
+    message = _("Incorrect authentication credentials.")
 
 
 class NotAuthenticated(APIException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    message = _('Authentication credentials were not provided.')
+    message = _("Authentication credentials were not provided.")
 
 
 class PermissionDenied(APIException):
     status_code = status.HTTP_403_FORBIDDEN
-    message = _('You do not have permission to perform this action.')
+    message = _("You do not have permission to perform this action.")
 
 
 class NotFound(APIException):
     status_code = status.HTTP_404_NOT_FOUND
-    message = _('Not found.')
+    message = _("Not found.")
 
 
 class MethodNotAllowed(APIException):
