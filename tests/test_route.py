@@ -106,7 +106,7 @@ class TestRouteFunction:
         route_function = RouteFunction(route_definition=route.get(''), api_func=self.api_func_with_param)
         sig_inspect, sig_parameter = route_function._get_required_api_func_signature()
         assert len(sig_parameter) == 1
-        assert str(sig_parameter[0]) == 'example_id:str'
+        assert str(sig_parameter[0]).replace(' ', '') == 'example_id:str'
 
     def test_from_route_returns_route_function_instance(self):
         route_function = RouteFunction.from_route(self.api_func, route.get(''))
