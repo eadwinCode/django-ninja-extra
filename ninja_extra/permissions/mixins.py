@@ -1,6 +1,7 @@
-from typing import List, Callable, cast
+from typing import Callable, List, cast
 
 from django.http import HttpRequest
+
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions.base import BasePermission
 

@@ -1,24 +1,27 @@
 import inspect
-import sys
 import logging
+import sys
 from collections import OrderedDict
 from functools import wraps
-from typing import Any, Callable, Type, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, Callable, Type, cast
 
-from django.core.paginator import InvalidPage, Paginator, Page
+from django.core.paginator import InvalidPage, Page, Paginator
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.utils.module_loading import import_string
 from ninja import Schema
 from ninja.conf import settings
 from ninja.constants import NOT_SET
-from ninja.pagination import PageNumberPagination, PaginationBase, LimitOffsetPagination
+from ninja.pagination import (LimitOffsetPagination, PageNumberPagination,
+                              PaginationBase)
 from ninja.signature import has_kwargs
 from ninja.types import DictStrAny
-from ninja_extra.exceptions import NotFound
-from ninja_extra.schemas import PaginatedResponseSchema, get_paginated_response_schema
-from ninja_extra.urls import replace_query_param, remove_query_param
 from pydantic import Field
+
+from ninja_extra.exceptions import NotFound
+from ninja_extra.schemas import (PaginatedResponseSchema,
+                                 get_paginated_response_schema)
+from ninja_extra.urls import remove_query_param, replace_query_param
 
 logger = logging.getLogger()
 

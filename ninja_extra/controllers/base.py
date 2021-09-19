@@ -1,24 +1,18 @@
 from abc import ABC, ABCMeta
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    cast,
-    no_type_check,
-)
+from typing import (Any, Callable, Dict, Iterator, List, Optional, cast,
+                    no_type_check)
 
-from injector import is_decorated_with_inject, inject
-from ninja.operation import Operation
-from ninja_extra.shortcuts import fail_silently
-from ninja.constants import NOT_SET
-from ninja_extra.operation import PathView
-from ninja_extra.controllers.route import Route
-from ninja_extra.permissions.mixins import APIControllerPermissionMixin
+from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI
+from ninja.constants import NOT_SET
+from ninja.operation import Operation
 from ninja.security.base import AuthBase
+
+from ninja_extra.controllers.route import Route
+from ninja_extra.operation import PathView
+from ninja_extra.permissions.mixins import APIControllerPermissionMixin
+from ninja_extra.shortcuts import fail_silently
+
 from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 

@@ -1,12 +1,14 @@
 import uuid
 from typing import Any, List, Optional, Tuple
-from ninja.signature import is_async
+
 from ninja.constants import NOT_SET
-from ninja.types import TCallable, DictStrAny
+from ninja.signature import is_async
+from ninja.types import DictStrAny, TCallable
+
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
-from .route_functions import RouteFunction, AsyncRouteFunction
 
+from .route_functions import AsyncRouteFunction, RouteFunction
 
 POST = "POST"
 PUT = "PUT"

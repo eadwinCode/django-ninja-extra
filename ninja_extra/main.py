@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Optional, Union, Sequence, Callable
+from typing import Callable, Optional, Sequence, Union
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import module_has_submodule
@@ -8,6 +8,7 @@ from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
+
 from ninja_extra.controllers.base import APIController
 from ninja_extra.controllers.router import ControllerRegistry
 from ninja_extra.dependency_resolver import get_injector

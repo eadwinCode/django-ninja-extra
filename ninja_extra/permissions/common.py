@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
 
 from django.http import HttpRequest
-from ninja_extra.permissions.base import BasePermission, SAFE_METHODS
+
+from ninja_extra.permissions.base import SAFE_METHODS, BasePermission
 
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController

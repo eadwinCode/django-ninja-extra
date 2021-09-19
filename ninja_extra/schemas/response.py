@@ -1,9 +1,10 @@
 import sys
-from typing import Any, TypeVar, Optional, List, Generic
+from typing import Any, Generic, List, Optional, TypeVar
+
 from ninja.constants import NOT_SET
+from pydantic.generics import GenericModel
 from pydantic.main import BaseModel
 from pydantic.networks import AnyHttpUrl
-from pydantic.generics import GenericModel
 
 T = TypeVar("T")
 

@@ -3,15 +3,12 @@
 __version__ = "0.10.1"
 
 
-from ninja_extra.main import NinjaExtraAPI
+from ninja_extra import exceptions, permissions, shortcuts, status
 from ninja_extra.controllers import APIController
 from ninja_extra.controllers.route import route
 from ninja_extra.controllers.router import router
-from ninja_extra import permissions
-from ninja_extra import exceptions
-from ninja_extra import status
-from ninja_extra import shortcuts
 from ninja_extra.dependency_resolver import get_injector, service_resolver
+from ninja_extra.main import NinjaExtraAPI
 
 default_app_config = "ninja_extra.apps.NinjaExtraConfig"
 

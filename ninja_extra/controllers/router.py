@@ -1,10 +1,14 @@
-from typing import Any, Optional, List, Iterator, Dict, TYPE_CHECKING, Tuple, cast
-from django.urls import URLPattern, path as django_path
-from ninja.utils import normalize_path
+from typing import (TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple,
+                    cast)
+
+from django.urls import URLPattern
+from django.urls import path as django_path
 from ninja.constants import NOT_SET
-from ninja_extra.permissions.common import AllowAny
-from ninja_extra.permissions import BasePermission
+from ninja.utils import normalize_path
+
 from ninja_extra.controllers.route.route_functions import RouteFunction
+from ninja_extra.permissions import BasePermission
+from ninja_extra.permissions.common import AllowAny
 
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController

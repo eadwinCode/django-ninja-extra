@@ -1,8 +1,9 @@
 from typing import Callable, Dict
 from unittest.mock import Mock
 
-from ninja_extra import NinjaExtraAPI, APIController
 from ninja.testing.client import NinjaClientBase, NinjaResponse
+
+from ninja_extra import APIController, NinjaExtraAPI
 
 
 class NinjaExtraClientBase(NinjaClientBase):

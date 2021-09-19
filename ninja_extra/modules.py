@@ -1,5 +1,5 @@
-from injector import Module, Binder, singleton
 from django.conf import Settings, settings
+from injector import Binder, Module, singleton
 
 
 class NinjaExtraModule(Module):

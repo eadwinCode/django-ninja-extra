@@ -1,7 +1,9 @@
-from typing import Any, cast, Tuple, Union
+from typing import Any, Tuple, Union, cast
+
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
 from injector import Injector
+
 from ninja_extra.apps import NinjaExtraConfig
 
 __all__ = ["service_resolver", "get_injector"]

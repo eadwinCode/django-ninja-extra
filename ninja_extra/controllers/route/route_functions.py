@@ -1,12 +1,13 @@
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Tuple, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Tuple
 
 from django.http import HttpRequest
 from django.http.response import HttpResponseBase
 from ninja.types import TCallable
-from ninja_extra.dependency_resolver import get_injector
 from pydantic import ConfigError
+
+from ninja_extra.dependency_resolver import get_injector
 
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController

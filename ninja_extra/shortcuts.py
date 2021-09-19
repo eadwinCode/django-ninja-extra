@@ -1,7 +1,9 @@
 from typing import Any, Optional
-from django.db.models import QuerySet, Model
-from ninja.types import TCallable, DictStrAny
-from ninja_extra.exceptions import NotFound, APIException
+
+from django.db.models import Model, QuerySet
+from ninja.types import DictStrAny, TCallable
+
+from ninja_extra.exceptions import APIException, NotFound
 
 
 def fail_silently(func: TCallable, **kwargs: DictStrAny) -> Optional[Any]:

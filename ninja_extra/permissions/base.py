@@ -2,7 +2,7 @@
 Copied from DRF
 Provides a set of pluggable permission policies.
 """
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
 from django.http import HttpRequest

@@ -1,9 +1,11 @@
-from typing import cast, Any
-from ninja_extra.shortcuts import fail_silently
+from typing import Any, cast
+
 from django.apps import AppConfig, apps
-from ninja_extra.modules import NinjaExtraModule
-from injector import Injector
 from django.utils.translation import gettext_lazy as _
+from injector import Injector
+
+from ninja_extra.modules import NinjaExtraModule
+from ninja_extra.shortcuts import fail_silently
 
 
 class NinjaExtraConfig(AppConfig):
