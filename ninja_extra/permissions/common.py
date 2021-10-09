@@ -1,5 +1,4 @@
-from typing import TYPE_CHECKING
-
+from typing import TYPE_CHECKING, cast
 from django.http import HttpRequest
 
 from ninja_extra.permissions.base import SAFE_METHODS, BasePermission
@@ -16,7 +15,7 @@ class AllowAny(BasePermission):
     more explicit.
     """
 
-    def has_permission(self, request: HttpRequest, controller: "APIController"):
+    def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
         return True
 
 
@@ -25,7 +24,7 @@ class IsAuthenticated(BasePermission):
     Allows access only to authenticated users.
     """
 
-    def has_permission(self, request: HttpRequest, controller: "APIController"):
+    def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
         return bool(request.user and request.user.is_authenticated)
 
 
@@ -34,8 +33,8 @@ class IsAdminUser(BasePermission):
     Allows access only to admin users.
     """
 
-    def has_permission(self, request: HttpRequest, controller: "APIController"):
-        return bool(request.user and request.user.is_staff)
+    def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
+        return bool(request.user and request.user.is_staff)  # type: ignore
 
 
 class IsAuthenticatedOrReadOnly(BasePermission):
@@ -43,9 +42,5 @@ class IsAuthenticatedOrReadOnly(BasePermission):
     The request is authenticated as a user, or is a read-only request.
     """
 
-    def has_permission(self, request: HttpRequest, controller: "APIController"):
-        return bool(
-            request.method in SAFE_METHODS
-            or request.user
-            and request.user.is_authenticated
-        )
+    def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
+        return bool(request.method in SAFE_METHODS or request.user and request.user.is_authenticated)

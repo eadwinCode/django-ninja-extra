@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple, ca
 
 from django.urls import URLPattern, path as django_path
 from ninja.constants import NOT_SET
+from ninja.types import DictStrAny
 from ninja.utils import normalize_path
 
 from ninja_extra.controllers.route.route_functions import RouteFunction
@@ -61,17 +62,17 @@ class ControllerRouter:
         self._controller = None
 
     @property
-    def tags(self):
+    def tags(self) -> List[str]:
         return self._tags
 
     @tags.setter
-    def tags(self, value):
+    def tags(self, value) -> None:
         tag = value
         if value and not isinstance(value, list):
             tag = [value]
         self._tags = tag
 
-    def __call__(self, controller: "APIController"):
+    def __call__(self, controller: "APIController") -> "APIController":
         self._controller = controller
         controller.permission_classes = self.permission_classes
         controller._router = self
@@ -88,7 +89,7 @@ class ControllerRouter:
                 yield method
 
     @property
-    def path_operations(self):
+    def path_operations(self) -> DictStrAny:
         return self._controller.get_path_operations()
 
     def set_api_instance(self, api: "NinjaExtraAPI") -> None:

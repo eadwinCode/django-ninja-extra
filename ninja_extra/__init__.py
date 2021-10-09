@@ -2,8 +2,6 @@
 
 __version__ = "0.10.1"
 
-
-from ninja_extra import exceptions, permissions, shortcuts, status
 from ninja_extra.controllers import APIController
 from ninja_extra.controllers.route import route
 from ninja_extra.controllers.router import router

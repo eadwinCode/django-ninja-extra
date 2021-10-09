@@ -8,23 +8,23 @@ And RFC 4918 - https://tools.ietf.org/html/rfc4918
 """
 
 
-def is_informational(code):
+def is_informational(code: int) -> bool:
     return 100 <= code <= 199
 
 
-def is_success(code):
+def is_success(code: int) -> bool:
     return 200 <= code <= 299
 
 
-def is_redirect(code):
+def is_redirect(code: int) -> bool:
     return 300 <= code <= 399
 
 
-def is_client_error(code):
+def is_client_error(code: int) -> bool:
     return 400 <= code <= 499
 
 
-def is_server_error(code):
+def is_server_error(code: int) -> bool:
     return 500 <= code <= 599
 
 

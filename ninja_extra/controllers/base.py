@@ -1,14 +1,18 @@
 from abc import ABC, ABCMeta
-from typing import Any, Callable, Dict, Iterator, List, Optional, cast, no_type_check
+from typing import Any, Callable, Dict, Iterator, List, Optional, cast, no_type_check, Type
 
+from django.http.request import HttpRequest
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.operation import Operation
 from ninja.security.base import AuthBase
+from ninja.types import DictStrAny
 
 from ninja_extra.controllers.route import Route
+from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.operation import PathView
+from ninja_extra.permissions import BasePermission
 from ninja_extra.permissions.mixins import APIControllerPermissionMixin
 from ninja_extra.shortcuts import fail_silently
 
@@ -52,25 +56,27 @@ class APIController(
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
     _path_operations: Dict[str, PathView]
-    api: Optional[NinjaAPI]
+    api: Optional[NinjaAPI] = None
     args = []
     kwargs = dict()
-    auth: AuthBase
+    auth: Optional[AuthBase] = None
     registered: bool
-    _router: ControllerRouter = None
+    _router: Optional[ControllerRouter] = None
+    permission_classes: List[Type[BasePermission]]
+    request: Optional[HttpRequest] = None
 
     @classmethod
-    def get_router(cls):
+    def get_router(cls) -> Optional[ControllerRouter]:
         if not cls._router:
             raise MissingRouterDecoratorException("Could not register controller")
         return cls._router
 
     @classmethod
-    def get_path_operations(cls):
+    def get_path_operations(cls) -> DictStrAny:
         return cls._path_operations
 
     @classmethod
-    def add_operation_from_route_definition(cls, route: Route):
+    def add_operation_from_route_definition(cls, route: Route) -> None:
         cls.add_api_operation(view_func=route.view_func, **route.route_params.dict())
 
     @classmethod
@@ -124,3 +130,36 @@ class APIController(
         for method in cls.__dict__.values():
             if isinstance(method, RouteFunction):
                 yield method
+
+    @classmethod
+    def permission_denied(cls, permission: Type[BasePermission]) -> None:
+        message = getattr(permission, "message", None)
+        raise PermissionDenied(message)
+
+    def get_permissions(self) -> Iterator[BasePermission]:
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        for permission_class in self.permission_classes:
+            permission_instance = permission_class()
+            yield permission_instance
+
+    def check_permissions(self) -> None:
+        """
+        Check if the request should be permitted.
+        Raises an appropriate exception if the request is not permitted.
+        """
+        for permission in self.get_permissions():
+            if self.request and not permission.has_permission(request=self.request, controller=self):
+                self.permission_denied(permission)
+
+    def check_object_permissions(self, obj: Any) -> None:
+        """
+        Check if the request should be permitted for a given object.
+        Raises an appropriate exception if the request is not permitted.
+        """
+        for permission in self.get_permissions():
+            if self.request and not permission.has_object_permission(
+                    request=self.request, controller=self, obj=obj
+            ):
+                self.permission_denied(permission)

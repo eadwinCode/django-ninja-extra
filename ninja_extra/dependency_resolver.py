@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Union, cast
+from typing import Any, Tuple, Union, cast, List
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
@@ -25,7 +25,7 @@ def service_resolver(*services: type) -> Union[Tuple[Any], Any]:
     injector = get_injector()
 
     if len(services) > 1:
-        services_resolved = []
+        services_resolved: List[Any] = []
         for service in services:
             services_resolved.append(injector.get(service))
         return tuple(services_resolved)

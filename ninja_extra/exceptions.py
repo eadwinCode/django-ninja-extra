@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from ninja.errors import HttpError
@@ -13,12 +15,12 @@ class APIException(HttpError):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     message = _("A server error occurred.")
 
-    def __init__(self, message=None, status_code=None):
+    def __init__(self, message: Optional[str] = None, status_code: Optional[int] = None) -> None:
         self.message = message or self.message
         self.status_code = status_code or self.status_code
         super().__init__(status_code=self.status_code, message=self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -46,7 +48,7 @@ class MethodNotAllowed(APIException):
     status_code = status.HTTP_405_METHOD_NOT_ALLOWED
     default_detail = _('Method "{method}" not allowed.')
 
-    def __init__(self, method, detail=None, code=None):
+    def __init__(self, method: str, detail: Optional[str] = None, status_code: Optional[int] = None) -> None:
         if detail is None:
             detail = force_str(self.default_detail).format(method=method)
-        super().__init__(status_code=code, message=detail)
+        super().__init__(status_code=status_code, message=detail)

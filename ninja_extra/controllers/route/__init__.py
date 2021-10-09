@@ -23,10 +23,10 @@ class RouteInvalidParameterException(Exception):
 
 
 class Route:
-    route_params: RouteParameter = None
+    route_params: Optional[RouteParameter] = None
     route_function: RouteFunction
     has_request_param: bool = False
-    permissions: List[BasePermission] = None
+    permissions: Optional[List[BasePermission]] = None
 
     def __new__(
         cls,

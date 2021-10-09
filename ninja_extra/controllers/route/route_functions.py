@@ -1,11 +1,11 @@
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Dict, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Tuple, Callable, Type
 
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 from django.http.response import HttpResponseBase
 from ninja.types import TCallable
-from pydantic import ConfigError
 
 from ninja_extra.dependency_resolver import get_injector
 
@@ -15,8 +15,7 @@ if TYPE_CHECKING:
 
 
 class RouteFunction(object):
-    controller: "APIController" = None
-    as_view: TCallable
+    controller: "APIController"
 
     def __init__(self, route_definition: "Route", api_func: TCallable):
         self.route_definition = route_definition
@@ -25,7 +24,7 @@ class RouteFunction(object):
         self.as_view = wraps(api_func)(self.get_view_function())
         self._resolve_api_func_signature_(self.as_view)
 
-    def _get_required_api_func_signature(self):
+    def _get_required_api_func_signature(self) -> Tuple:
         skip_parameters = ["self", "request"]
         sig_inspect = inspect.signature(self.api_func)
         sig_parameter = []
@@ -36,11 +35,11 @@ class RouteFunction(object):
                 self.has_request_param = True
         return sig_inspect, sig_parameter
 
-    def _resolve_api_func_signature_(self, context_func):
+    def _resolve_api_func_signature_(self, context_func: Callable) -> Callable:
         # Override signature
         sig_inspect, sig_parameter = self._get_required_api_func_signature()
         sig_replaced = sig_inspect.replace(parameters=sig_parameter)
-        context_func.__signature__ = sig_replaced
+        context_func.__signature__ = sig_replaced  # type: ignore
         return context_func
 
     @classmethod
@@ -50,7 +49,7 @@ class RouteFunction(object):
         route_function = cls(route_definition=route_definition, api_func=api_func)
         return route_function
 
-    def get_view_function(self) -> TCallable:
+    def get_view_function(self) -> Callable:
         def as_view(
             request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
         ) -> HttpResponseBase:
@@ -83,7 +82,7 @@ class RouteFunction(object):
         self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
     ) -> Dict[str, Any]:
         if not self.controller:
-            raise ConfigError("Controller object is required")
+            raise ImproperlyConfigured("Controller object is required")
 
         return dict(
             permission_classes=self.route_definition.permissions
@@ -93,10 +92,10 @@ class RouteFunction(object):
             args=args,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.route_definition.route_params.path
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<RouteFunction, controller: {self.controller.__name__} path: {self.__str__()}>"
 
 
@@ -112,5 +111,5 @@ class AsyncRouteFunction(RouteFunction):
             api_func_kwargs.update(request=request)
         return await self.api_func(controller_instance, *args, **api_func_kwargs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<AsyncRouteFunction, controller: {self.controller.__name__} path: {self.__str__()}>"

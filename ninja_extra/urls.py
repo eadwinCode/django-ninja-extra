@@ -3,7 +3,7 @@ from urllib import parse
 from django.utils.encoding import force_str
 
 
-def replace_query_param(url, key, val):
+def replace_query_param(url: str, key: str, val: str) -> str:
     """
     Given a URL and a key/val pair, set or replace an item in the query
     parameters of the URL, and return the new URL.
@@ -15,7 +15,7 @@ def replace_query_param(url, key, val):
     return parse.urlunsplit((scheme, netloc, path, query, fragment))
 
 
-def remove_query_param(url, key):
+def remove_query_param(url: str, key: str) -> str:
     """
     Given a URL and a key/val pair, remove an item in the query
     parameters of the URL, and return the new URL.

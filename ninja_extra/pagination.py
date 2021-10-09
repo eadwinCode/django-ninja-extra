@@ -3,7 +3,7 @@ import logging
 import sys
 from collections import OrderedDict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Type, cast
+from typing import TYPE_CHECKING, Any, Callable, Tuple, Type, cast
 
 from django.core.paginator import InvalidPage, Page, Paginator
 from django.db.models import QuerySet
@@ -35,7 +35,7 @@ __all__ = [
 ]
 
 
-def _positive_int(integer_string, strict=False, cutoff=None):
+def _positive_int(integer_string, strict=False, cutoff=None) -> int:
     """
     Cast a string to a strictly positive integer.
     """
@@ -69,7 +69,7 @@ class PageNumberPaginationExtra(PageNumberPagination):
 
     def paginate_queryset(
         self, items: QuerySet, request: HttpRequest, **params: DictStrAny
-    ) -> QuerySet:
+    ) -> DictStrAny:
 
         pagination_input = cast(PageNumberPaginationExtra.Input, params["pagination"])
         page_size = self.get_page_size(pagination_input.page_size)
@@ -162,7 +162,7 @@ def _inject_pagination(
 
     @wraps(func)
     def view_with_pagination(
-        controller: "APIController", *args, **kw: DictStrAny
+        controller: "APIController", *args: Tuple[Any], **kw: DictStrAny
     ) -> Any:
         func_kwargs = dict(kw)
         if not func._has_kwargs:
