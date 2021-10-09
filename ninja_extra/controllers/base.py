@@ -23,7 +23,6 @@ from ninja_extra.controllers.route import Route
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.operation import PathView
 from ninja_extra.permissions import BasePermission
-from ninja_extra.permissions.mixins import APIControllerPermissionMixin
 from ninja_extra.shortcuts import fail_silently
 
 from .route.route_functions import RouteFunction
@@ -61,7 +60,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
 
 
 class APIController(
-    ABC, APIControllerPermissionMixin, metaclass=APIControllerModelSchemaMetaclass
+    ABC, metaclass=APIControllerModelSchemaMetaclass
 ):
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance

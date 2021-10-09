@@ -20,9 +20,8 @@ class MyServiceModule(Module):
         pass
 
 
-class InvalidModule:
-    def configure(self, binder: Binder) -> None:
-        pass
+class InvalidSomeAPIController:
+    pass
 
 
 api = NinjaExtraAPI()
@@ -63,11 +62,6 @@ def test_api_register_injector_modules_works():
         ninja_extra_api.register_injector_modules(MyServiceModule)
         assert mock_configure.call_count == 1
 
-    with pytest.raises(ImproperlyConfigured) as ex:
-        ninja_extra_api.register_injector_modules(InvalidModule)
-
-    assert "class is not a valid Module" in str(ex.value)
-
 
 def test_api_register_controller_works():
     @router("/another")
@@ -87,6 +81,6 @@ def test_api_register_controller_works():
     assert "/another" in {k: v for k, v in ninja_extra_api._routers}
 
     with pytest.raises(ImproperlyConfigured) as ex:
-        ninja_extra_api.register_controllers(InvalidModule)
+        ninja_extra_api.register_controllers(InvalidSomeAPIController)
 
     assert "class is not a controller" in str(ex.value)
