@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Union, cast, List
+from typing import Any, List, Tuple, Union, cast
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured

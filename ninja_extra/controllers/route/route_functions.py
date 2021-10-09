@@ -1,10 +1,9 @@
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Dict, Tuple, Callable, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Tuple
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
-from django.http.response import HttpResponseBase
 from ninja.types import TCallable
 
 from ninja_extra.dependency_resolver import get_injector
@@ -52,12 +51,12 @@ class RouteFunction(object):
     def get_view_function(self) -> Callable:
         def as_view(
             request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
-        ) -> HttpResponseBase:
+        ) -> Any:
             controller_instance = self._get_controller_instance(
                 request, *args, **kwargs
             )
             controller_instance.check_permissions()
-            api_func_kwargs = kwargs.copy()
+            api_func_kwargs = dict(**kwargs)
 
             if self.has_request_param:
                 api_func_kwargs.update(request=request)
@@ -71,7 +70,7 @@ class RouteFunction(object):
 
         injector = get_injector()
         init_kwargs = self._get_controller_init_kwargs(request, *args, **kwargs)
-        controller_instance = injector.create_object(self.controller)
+        controller_instance: "APIController" = injector.create_object(self.controller)
 
         for k, v in init_kwargs.items():
             if hasattr(controller_instance, k):
@@ -102,11 +101,11 @@ class RouteFunction(object):
 class AsyncRouteFunction(RouteFunction):
     async def as_view(
         self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
-    ) -> HttpResponseBase:
+    ) -> Any:
         controller_instance = self._get_controller_instance(request, *args, **kwargs)
         controller_instance.check_permissions()
 
-        api_func_kwargs = kwargs.copy()
+        api_func_kwargs = dict(**kwargs)
         if self.has_request_param:
             api_func_kwargs.update(request=request)
         return await self.api_func(controller_instance, *args, **api_func_kwargs)

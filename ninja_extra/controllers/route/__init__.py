@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Type
 
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
@@ -22,14 +22,13 @@ class RouteInvalidParameterException(Exception):
     pass
 
 
-class Route:
-    route_params: Optional[RouteParameter] = None
+class Route(object):
     route_function: RouteFunction
     has_request_param: bool = False
-    permissions: Optional[List[BasePermission]] = None
+    permissions: Optional[Optional[List[Type[BasePermission]]]] = None
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         path: str,
         methods: List[str],
         *,
@@ -46,9 +45,8 @@ class Route:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        **kwargs,
-    ) -> "Route":
-        obj = super().__new__(cls)
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> None:
         ninja_route_params = RouteParameter(
             path=path,
             methods=methods,
@@ -66,12 +64,9 @@ class Route:
             url_name=url_name,
             include_in_schema=include_in_schema,
         )
-        obj.route_params = ninja_route_params
-        obj.has_request_param = False
-
-        for k, v in kwargs.items():
-            setattr(obj, k, v)
-        return obj
+        self.route_params = ninja_route_params
+        self.is_async = False
+        self.permissions = permissions
 
     def __call__(self, view_func: TCallable) -> RouteFunction:
         route_function = RouteFunction
@@ -107,8 +102,8 @@ class Route:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: List[BasePermission] = None,
-    ):
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> "Route":
         return Route(
             path,
             [GET],
@@ -146,8 +141,8 @@ class Route:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: List[BasePermission] = None,
-    ):
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> "Route":
         return Route(
             path,
             [POST],
@@ -185,8 +180,8 @@ class Route:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: List[BasePermission] = None,
-    ):
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> "Route":
         return Route(
             path,
             [DELETE],
@@ -224,8 +219,8 @@ class Route:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: List[BasePermission] = None,
-    ):
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> "Route":
         return Route(
             path,
             [PATCH],
@@ -263,8 +258,8 @@ class Route:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: List[BasePermission] = None,
-    ):
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> "Route":
         return Route(
             path,
             [PUT],
@@ -303,8 +298,8 @@ class Route:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: List[BasePermission] = None,
-    ):
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> "Route":
 
         if not isinstance(methods, list):
             raise RouteInvalidParameterException("methods must be a list")

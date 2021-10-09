@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Generic, List, Optional, TypeVar, no_type_check, no_type_check_decorator, Type
+from typing import Any, Generic, List, Optional, Type, TypeVar
 
 from ninja import Schema
 from ninja.constants import NOT_SET
@@ -21,11 +21,15 @@ class BasePaginatedResponseSchema(Schema):
 
 if sys.version_info >= (3, 8):
 
-    class PaginatedResponseSchema(GenericModel, Generic[T], BasePaginatedResponseSchema):
+    class PaginatedResponseSchema(
+        GenericModel, Generic[T], BasePaginatedResponseSchema
+    ):
         results: List[T]
 
 
-def get_paginated_response_schema(item_schema: Schema) -> Type[BasePaginatedResponseSchema]:
+def get_paginated_response_schema(
+    item_schema: Schema,
+) -> Type[BasePaginatedResponseSchema]:
     # fix for paginatedResponseSchema for python 3.6 and 3.7 which doesn't support generic typing
     class ListResponseSchema(BasePaginatedResponseSchema):
         results: List[item_schema]  # type: ignore

@@ -15,7 +15,9 @@ class APIException(HttpError):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     message = _("A server error occurred.")
 
-    def __init__(self, message: Optional[str] = None, status_code: Optional[int] = None) -> None:
+    def __init__(
+        self, message: Optional[str] = None, status_code: Optional[int] = None
+    ) -> None:
         self.message = message or self.message
         self.status_code = status_code or self.status_code
         super().__init__(status_code=self.status_code, message=self.message)
@@ -48,7 +50,12 @@ class MethodNotAllowed(APIException):
     status_code = status.HTTP_405_METHOD_NOT_ALLOWED
     default_detail = _('Method "{method}" not allowed.')
 
-    def __init__(self, method: str, detail: Optional[str] = None, status_code: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        method: str,
+        detail: Optional[str] = None,
+        status_code: Optional[int] = None,
+    ) -> None:
         if detail is None:
             detail = force_str(self.default_detail).format(method=method)
         super().__init__(status_code=status_code, message=detail)

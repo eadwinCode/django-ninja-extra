@@ -1,5 +1,15 @@
 from abc import ABC, ABCMeta
-from typing import Any, Callable, Dict, Iterator, List, Optional, cast, no_type_check, Type
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Type,
+    cast,
+    no_type_check,
+)
 
 from django.http.request import HttpRequest
 from injector import inject, is_decorated_with_inject
@@ -57,8 +67,8 @@ class APIController(
     #   controller should have a csrf ON unless turned off by api instance
     _path_operations: Dict[str, PathView]
     api: Optional[NinjaAPI] = None
-    args = []
-    kwargs = dict()
+    args: List[Any] = []
+    kwargs: DictStrAny = dict()
     auth: Optional[AuthBase] = None
     registered: bool
     _router: Optional[ControllerRouter] = None
@@ -132,7 +142,7 @@ class APIController(
                 yield method
 
     @classmethod
-    def permission_denied(cls, permission: Type[BasePermission]) -> None:
+    def permission_denied(cls, permission: BasePermission) -> None:
         message = getattr(permission, "message", None)
         raise PermissionDenied(message)
 
@@ -150,7 +160,9 @@ class APIController(
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if self.request and not permission.has_permission(request=self.request, controller=self):
+            if self.request and not permission.has_permission(
+                request=self.request, controller=self
+            ):
                 self.permission_denied(permission)
 
     def check_object_permissions(self, obj: Any) -> None:
@@ -160,6 +172,6 @@ class APIController(
         """
         for permission in self.get_permissions():
             if self.request and not permission.has_object_permission(
-                    request=self.request, controller=self, obj=obj
+                request=self.request, controller=self, obj=obj
             ):
                 self.permission_denied(permission)

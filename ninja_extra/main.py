@@ -52,19 +52,15 @@ class NinjaExtraAPI(NinjaAPI):
                 raise ImproperlyConfigured(
                     f"{controller.__class__.__name__} class is not a controller"
                 )
-            if not controller.registered:
-                controller_ninja_router = controller.get_router()
-                self._routers.extend(controller_ninja_router.build_routers())
+            controller_ninja_router = controller.get_router()
+            if not controller.registered and controller_ninja_router:
+                self._routers.extend(controller_ninja_router.build_routers())  # type: ignore
                 controller_ninja_router.set_api_instance(self)
                 controller.registered = True
 
     @classmethod
     def register_injector_modules(cls, *modules: Module) -> None:
         for module in modules:
-            if not issubclass(module, Module):
-                raise ImproperlyConfigured(
-                    f"{module.__class__.__name__} class is not a valid Module"
-                )
             injector = get_injector()
             if isinstance(module, type) and issubclass(module, Module):
                 module = module()

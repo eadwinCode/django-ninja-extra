@@ -10,6 +10,7 @@ class NinjaExtraClientBase(NinjaClientBase):
     def __init__(self, controller: APIController) -> None:
         api = NinjaExtraAPI()
         controller_ninja_router = controller.get_router()
+        assert controller_ninja_router
         controller_ninja_router.set_api_instance(api)
         self._urls_cache = list(controller_ninja_router.urls_paths(""))
         super(NinjaExtraClientBase, self).__init__(api)

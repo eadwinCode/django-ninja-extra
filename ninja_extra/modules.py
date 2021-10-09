@@ -4,4 +4,4 @@ from injector import Binder, Module, singleton
 
 class NinjaExtraModule(Module):
     def configure(self, binder: Binder) -> None:
-        binder.bind(Settings, to=settings, scope=singleton)
+        binder.bind(Settings, to=settings, scope=singleton)  # type: ignore

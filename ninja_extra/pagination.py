@@ -3,7 +3,7 @@ import logging
 import sys
 from collections import OrderedDict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Tuple, Type, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, Tuple, Type, Union, cast
 
 from django.core.paginator import InvalidPage, Page, Paginator
 from django.db.models import QuerySet
@@ -35,7 +35,9 @@ __all__ = [
 ]
 
 
-def _positive_int(integer_string, strict=False, cutoff=None) -> int:
+def _positive_int(
+    integer_string: Union[str, int], strict: bool = False, cutoff: Optional[int] = None
+) -> int:
     """
     Cast a string to a strictly positive integer.
     """
@@ -47,41 +49,49 @@ def _positive_int(integer_string, strict=False, cutoff=None) -> int:
     return ret
 
 
-class PageNumberPaginationExtra(PageNumberPagination):
+class PageNumberPaginationExtra(PaginationBase):
+    class Input(Schema):
+        page: int = Field(1, gt=0)
+        page_size: int = Field(100, lt=200)
+
     page_query_param = "page"
     page_size_query_param = "page_size"
 
     max_page_size = 200
-    paginator_class: Paginator = Paginator
+    paginator_class = Paginator
 
-    def __init__(self, page_size=None, max_page_size=None) -> None:
-        self.page_size = page_size or settings.PAGINATION_PER_PAGE
+    def __init__(
+        self,
+        page_size: int = settings.PAGINATION_PER_PAGE,
+        max_page_size: Optional[int] = None,
+    ) -> None:
+        super().__init__()
+        self.page_size = page_size
         self.max_page_size = max_page_size or 200
-        super().__init__(page_size=page_size)
-        self.Input = self.create_input()
+        self.Input = self.create_input()  # type:ignore
 
-    def create_input(self) -> Schema:
-        class Input(Schema):
+    def create_input(self) -> Type[Input]:
+        class DynamicInput(PageNumberPaginationExtra.Input):
             page: int = Field(1, gt=0)
             page_size: int = Field(self.page_size, lt=self.max_page_size)
 
-        return Input
+        return DynamicInput
 
     def paginate_queryset(
         self, items: QuerySet, request: HttpRequest, **params: DictStrAny
-    ) -> DictStrAny:
+    ) -> Any:
 
         pagination_input = cast(PageNumberPaginationExtra.Input, params["pagination"])
         page_size = self.get_page_size(pagination_input.page_size)
-        page = pagination_input.page
+        current_page_number = pagination_input.page
         paginator = self.paginator_class(items, page_size)
         try:
             url = request.build_absolute_uri()
-            page = paginator.page(page)
+            page: Page = paginator.page(current_page_number)
             return self.get_paginated_response(base_url=url, page=page)
         except InvalidPage as exc:
             msg = "Invalid page. {page_number} {message}".format(
-                page_number=page, message=str(exc)
+                page_number=current_page_number, message=str(exc)
             )
             raise NotFound(msg)
 
@@ -96,18 +106,18 @@ class PageNumberPaginationExtra(PageNumberPagination):
         )
 
     @classmethod
-    def get_response_schema(cls, response_schema: Schema) -> Schema:
+    def get_response_schema(cls, response_schema: Schema) -> Type[Schema]:
         if sys.version_info >= (3, 8):
             return PaginatedResponseSchema[response_schema]
         return get_paginated_response_schema(response_schema)
 
-    def get_next_link(self, url: str, page: Page):
+    def get_next_link(self, url: str, page: Page) -> Optional[str]:
         if not page.has_next():
             return None
         page_number = page.next_page_number()
         return replace_query_param(url, self.page_query_param, page_number)
 
-    def get_previous_link(self, url: str, page: Page):
+    def get_previous_link(self, url: str, page: Page) -> Optional[str]:
         if not page.has_previous():
             return None
         page_number = page.previous_page_number()
@@ -115,7 +125,7 @@ class PageNumberPaginationExtra(PageNumberPagination):
             return remove_query_param(url, self.page_query_param)
         return replace_query_param(url, self.page_query_param, page_number)
 
-    def get_page_size(self, page_size: int):
+    def get_page_size(self, page_size: int) -> int:
         if page_size:
             try:
                 return _positive_int(page_size, strict=True, cutoff=self.max_page_size)
@@ -150,25 +160,27 @@ def _inject_pagination(
     paginator_class: Type[PaginationBase],
     **paginator_params: DictStrAny,
 ) -> Callable:
-    func._has_kwargs = True
-    if not has_kwargs(func):
-        func._has_kwargs = False
+    func_modified = cast(Any, func)
+    func_modified.has_kwargs = True
+    if not has_kwargs(func_modified):
+        func_modified.has_kwargs = False
         logger.warning(
-            f"function {func.__name__} should have **kwargs argument to be used with pagination"
+            f"function {func_modified.__name__} should have **kwargs argument to be used with pagination"
         )
 
     paginator: PaginationBase = paginator_class(**paginator_params)
     paginator_kwargs_name = "pagination"
 
-    @wraps(func)
+    @wraps(func_modified)
     def view_with_pagination(
         controller: "APIController", *args: Tuple[Any], **kw: DictStrAny
     ) -> Any:
         func_kwargs = dict(kw)
-        if not func._has_kwargs:
+        if not func_modified.has_kwargs:
             func_kwargs.pop(paginator_kwargs_name)
 
         items = func(controller, *args, **func_kwargs)
+        assert controller.request
         return paginator.paginate_queryset(items, controller.request, **kw)
 
     view_with_pagination._ninja_contribute_args = [  # type: ignore

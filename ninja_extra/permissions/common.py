@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
+
 from django.http import HttpRequest
 
 from ninja_extra.permissions.base import SAFE_METHODS, BasePermission
@@ -43,4 +44,8 @@ class IsAuthenticatedOrReadOnly(BasePermission):
     """
 
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
-        return bool(request.method in SAFE_METHODS or request.user and request.user.is_authenticated)
+        return bool(
+            request.method in SAFE_METHODS
+            or request.user
+            and request.user.is_authenticated
+        )

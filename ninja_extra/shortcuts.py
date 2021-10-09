@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, no_type_check
+from typing import Any, Dict, Optional, cast, no_type_check
 
 from django.db.models import Model, QuerySet
 from ninja.types import DictStrAny, TCallable
@@ -6,7 +6,8 @@ from ninja.types import DictStrAny, TCallable
 from ninja_extra.exceptions import APIException, NotFound
 
 
-def fail_silently(func: TCallable, **kwargs: DictStrAny) -> Optional[Any]:
+@no_type_check
+def fail_silently(func: TCallable, **kwargs: Dict) -> Optional[Any]:
     try:
         return func(**kwargs)
     except (Exception,):
@@ -18,8 +19,8 @@ def fail_silently(func: TCallable, **kwargs: DictStrAny) -> Optional[Any]:
 def _get_queryset(klass: Model) -> QuerySet:
     # If it is a model class or anything else with ._default_manager
     if hasattr(klass, "_default_manager"):
-        return klass._default_manager.all()
-    return klass
+        return cast(QuerySet, klass._default_manager.all())
+    return cast(QuerySet, klass)
 
 
 @no_type_check

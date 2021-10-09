@@ -1,5 +1,6 @@
 from .base import APIController, MissingRouterDecoratorException
-from .route import AsyncRouteFunction, Route, RouteFunction, route
+from .route import Route, route
+from .route.route_functions import AsyncRouteFunction, RouteFunction
 from .router import ControllerRegistry, ControllerRouter, router
 
 __all__ = [

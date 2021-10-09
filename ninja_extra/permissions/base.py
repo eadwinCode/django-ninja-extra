@@ -2,7 +2,7 @@
 Copied from DRF
 Provides a set of pluggable permission policies.
 """
-from typing import TYPE_CHECKING, Any, Type, Generic, TypeVar, Tuple
+from typing import TYPE_CHECKING, Any, Generic, Tuple, Type, TypeVar
 
 from django.http import HttpRequest
 from ninja.types import DictStrAny
@@ -12,32 +12,28 @@ if TYPE_CHECKING:
 
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class OperationHolderMixin:
-    def __and__(self, other: Type["BasePermission"]) -> 'OperandHolder[AND]':
+    def __and__(self, other: Type["BasePermission"]) -> "OperandHolder[AND]":
         return OperandHolder(AND, self, other)  # type: ignore
 
-    def __or__(self, other: Type["BasePermission"]) -> 'OperandHolder[OR]':
+    def __or__(self, other: Type["BasePermission"]) -> "OperandHolder[OR]":
         return OperandHolder(OR, self, other)  # type: ignore
 
-    def __rand__(self, other: Type["BasePermission"]) -> 'OperandHolder[AND]':
+    def __rand__(self, other: Type["BasePermission"]) -> "OperandHolder[AND]":
         return OperandHolder(AND, other, self)  # type: ignore
 
-    def __ror__(self, other: Type["BasePermission"]) -> 'OperandHolder[OR]':
+    def __ror__(self, other: Type["BasePermission"]) -> "OperandHolder[OR]":
         return OperandHolder(OR, other, self)  # type: ignore
 
-    def __invert__(self) -> 'SingleOperandHolder[NOT]':
+    def __invert__(self) -> "SingleOperandHolder[NOT]":
         return SingleOperandHolder(NOT, self)  # type: ignore
 
 
 class SingleOperandHolder(OperationHolderMixin, Generic[T]):
-    def __init__(
-            self,
-            operator_class: T,
-            op1_class: Type["BasePermission"]
-    ) -> None:
+    def __init__(self, operator_class: T, op1_class: Type["BasePermission"]) -> None:
         self.operator_class = operator_class
         self.op1_class = op1_class
 
@@ -48,16 +44,16 @@ class SingleOperandHolder(OperationHolderMixin, Generic[T]):
 
 class OperandHolder(OperationHolderMixin, Generic[T]):
     def __init__(
-            self,
-            operator_class: T,
-            op1_class: Type["BasePermission"],
-            op2_class: Type["BasePermission"]
+        self,
+        operator_class: T,
+        op1_class: Type["BasePermission"],
+        op2_class: Type["BasePermission"],
     ) -> None:
         self.operator_class = operator_class
         self.op1_class = op1_class
         self.op2_class = op2_class
 
-    def __call__(self,  *args: Tuple[Any], **kwargs: DictStrAny) -> T:
+    def __call__(self, *args: Tuple[Any], **kwargs: DictStrAny) -> T:
         op1 = self.op1_class()
         op2 = self.op2_class()
         return self.operator_class(op1, op2)  # type: ignore
@@ -74,7 +70,7 @@ class AND:
         )
 
     def has_object_permission(
-            self, request: HttpRequest, controller: "APIController", obj: Any
+        self, request: HttpRequest, controller: "APIController", obj: Any
     ) -> bool:
         return self.op1.has_object_permission(
             request, controller, obj
@@ -92,7 +88,7 @@ class OR:
         )
 
     def has_object_permission(
-            self, request: HttpRequest, controller: "APIController", obj: Any
+        self, request: HttpRequest, controller: "APIController", obj: Any
     ) -> bool:
         return self.op1.has_object_permission(
             request, controller, obj
@@ -107,7 +103,7 @@ class NOT:
         return not self.op1.has_permission(request, controller)
 
     def has_object_permission(
-            self, request: HttpRequest, controller: "APIController", obj: Any
+        self, request: HttpRequest, controller: "APIController", obj: Any
     ) -> bool:
         return not self.op1.has_object_permission(request, controller, obj)
 
@@ -128,7 +124,7 @@ class BasePermission(metaclass=BasePermissionMetaclass):
         return True
 
     def has_object_permission(
-            self, request: HttpRequest, controller: "APIController", obj: Any
+        self, request: HttpRequest, controller: "APIController", obj: Any
     ) -> bool:
         """
         Return `True` if permission is granted, `False` otherwise.

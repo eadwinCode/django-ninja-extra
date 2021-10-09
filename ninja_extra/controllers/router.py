@@ -1,4 +1,15 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from django.urls import URLPattern, path as django_path
 from ninja.constants import NOT_SET
@@ -15,7 +26,7 @@ if TYPE_CHECKING:
 
 
 class ControllerBorg:
-    _shared_state_ = dict(controllers=dict())
+    _shared_state_: Dict[str, Dict[str, "APIController"]] = dict(controllers=dict())
 
     def __init__(self) -> None:
         self.__dict__ = self._shared_state_
@@ -35,7 +46,7 @@ class ControllerBorg:
 
     @classmethod
     def get_controllers(cls) -> Dict[str, "APIController"]:
-        return cls._shared_state_.get("controllers")
+        return cls._shared_state_.get("controllers", dict())
 
 
 class ControllerRegistry(ControllerBorg):
@@ -49,26 +60,25 @@ class ControllerRouter:
 
     def __init__(
         self,
-        prefix,
+        prefix: str,
         *,
         auth: Any = NOT_SET,
         tags: Optional[List[str]] = None,
-        permissions: List[BasePermission] = None,
-    ):
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> None:
         self.prefix = prefix
         self.auth = auth
         self.tags = tags
         self.permission_classes = permissions or [AllowAny]
-        self._controller = None
 
     @property
-    def tags(self) -> List[str]:
+    def tags(self) -> Optional[List[str]]:
         return self._tags
 
     @tags.setter
-    def tags(self, value) -> None:
-        tag = value
-        if value and not isinstance(value, list):
+    def tags(self, value: Union[str, List[str], None]) -> None:
+        tag: Optional[List[str]] = cast(Optional[List[str]], value)
+        if tag and isinstance(value, str):
             tag = [value]
         self._tags = tag
 
@@ -112,11 +122,11 @@ class ControllerRouter:
                 route, path_view.get_view(), name=cast(str, path_view.url_name)
             )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<controller - {self._controller.__name__}>"
 
-    def __str__(self):
-        return self._controller.__name__
+    def __str__(self) -> str:
+        return f"{self._controller.__name__}"
 
 
 router = ControllerRouter
