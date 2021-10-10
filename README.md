@@ -7,7 +7,7 @@ All Django-Ninja features are fully supported plus others below:
 
 - **Class Based**: Design your APIs in a class based fashion.
 - **Route Permissions**: Protect endpoint(s) at ease, specific or general
-- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) and [**django_injector**](https://github.com/blubber/django_injector)
+- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector)
 
 ---
 
@@ -33,34 +33,31 @@ api = NinjaExtraAPI()
 user_model = get_user_model()
 
 # function based definition
-@api.get("/add")
+@api.get("/add", tags=['Math'])
 def add(request, a: int, b: int):
     return {"result": a + b}
 
 #class based definition
-@router('/users', tags=['users'], permissions=[])
-class UserController(APIController):
+@router('/', tags=['Math'], permissions=[])
+class MathAPI(APIController):
 
-    @route.get('/{user_id}', response=UserSchema, permissions=[AllowAny])
-    def get_user(self, user_id: int):
-        """get user by id"""
-        user = get_object_or_404(user_model, pk=user_id)
-        response_object = UserSchema.from_django(user)
-        return response_object
+    @route.get('/subtract',)
+    def subtract(self, a: int, b: int):
+        """Subtracts a from b"""
+        return {"result": a - b}
 
-    @route.get(
-        '/{user_id}/profile',
-        response=UserProfileSchema,
-        permissions=[AllowAny]
-    )
-    def get_user_profile(self, user_id: int):
-        """gets a user's profile by user id"""
-        user_profile = get_object_or_404(UserProfile, user_id=user_id)
-        return user_profile
-
-
+    @route.get('/divide',)
+    def divide(self, a: int, b: int):
+        """Divides a by b"""
+        return {"result": a / b}
+    
+    @route.get('/multiple',)
+    def multiple(self, a: int, b: int):
+        """Multiples a with b"""
+        return {"result": a * b}
+    
 api.register_controllers(
-    UserController
+    MathAPI
 )
 ```
 
@@ -82,8 +79,7 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
-![Swagger UI](docs/docs/img/index-swagger-ui.png)
-
+![Swagger UI](docs\images\ui_swagger_preview_readme.gif)
 ## What next?
 
 - Full documentation here - Still in progress
