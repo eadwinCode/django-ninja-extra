@@ -19,13 +19,12 @@ from ninja.operation import Operation
 from ninja.security.base import AuthBase
 from ninja.types import DictStrAny
 
-from ninja_extra.controllers.route import Route
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.operation import PathView
 from ninja_extra.permissions import BasePermission
 from ninja_extra.shortcuts import fail_silently
 
-from .route.route_functions import RouteFunction, AsyncRouteFunction
+from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 
 
@@ -50,10 +49,9 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
             tag = str(cls.__name__).lower().replace("controller", "")
             cls.tags = [tag]
 
-        for method_route_definition in cls.get_route_definitions():
-            route_function_class = AsyncRouteFunction if method_route_definition.is_async else RouteFunction
-            route_function = route_function_class(route_definition=method_route_definition, controller=cls)
-            cls.add_operation_from_route_function(route_function)
+        for cls_route_function in cls.get_route_functions():
+            cls_route_function.controller = cls
+            cls.add_operation_from_route_function(cls_route_function)
 
         if not is_decorated_with_inject(cls.__init__):
             fail_silently(inject, constructor_or_class=cls)
@@ -89,8 +87,7 @@ class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
     @classmethod
     def add_operation_from_route_function(cls, route_function: RouteFunction) -> None:
         cls.add_api_operation(
-            view_func=route_function.as_view,
-            **route_function.route_definition.route_params.dict()
+            view_func=route_function.as_view, **route_function.route.route_params.dict()
         )
 
     @classmethod
@@ -140,9 +137,9 @@ class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
         return operation
 
     @classmethod
-    def get_route_definitions(cls) -> Iterator[Route]:
+    def get_route_functions(cls) -> Iterator[RouteFunction]:
         for method in cls.__dict__.values():
-            if isinstance(method, Route):
+            if isinstance(method, RouteFunction):
                 yield method
 
     @classmethod

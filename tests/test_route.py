@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, User
 
 from ninja_extra import APIController, permissions, route, router
-from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
+from ninja_extra.controllers import AsyncRouteFunction, Route, RouteFunction
 from ninja_extra.exceptions import PermissionDenied
 
 anonymous_request = Mock()
@@ -75,17 +75,14 @@ class TestControllerRoutes:
             operations = list(
                 filter(
                     lambda n: n.operation_id
-                    == route_func.route_definition.route_params.operation_id,
+                    == route_func.route.route_params.operation_id,
                     path_view.operations,
                 )
             )
             assert len(operations) == 1
-            assert (
-                route_func.route_definition.route_params.methods
-                == operations[0].methods
-            )
+            assert route_func.route.route_params.methods == operations[0].methods
 
-    def test_controller_route_should_have_right_route_function(self):
+    def test_controller_route_should_right_view_func_type(self):
         assert isinstance(SomeTestController.example, RouteFunction)
         assert isinstance(SomeTestController.example_async, AsyncRouteFunction)
 
@@ -104,35 +101,22 @@ class TestRouteFunction:
         pass
 
     def test_get_required_api_func_signature_return_filtered_signature(self):
-        route_function = RouteFunction(
-            route_definition=route.get(""), api_func=self.api_func
-        )
+        route_function = route.get("")(self.api_func)
         assert not route_function.has_request_param
         sig_inspect, sig_parameter = route_function._get_required_api_func_signature()
         assert len(sig_parameter) == 0
 
-        route_function = RouteFunction(
-            route_definition=route.get(""),
-            api_func=self.api_func_with_has_request_param,
-        )
+        route_function = route.get("")(self.api_func_with_has_request_param)
         assert route_function.has_request_param
         sig_inspect, sig_parameter = route_function._get_required_api_func_signature()
         assert len(sig_parameter) == 0
 
-        route_function = RouteFunction(
-            route_definition=route.get(""), api_func=self.api_func_with_param
-        )
+        route_function = route.get("")(self.api_func_with_param)
         sig_inspect, sig_parameter = route_function._get_required_api_func_signature()
         assert len(sig_parameter) == 1
         assert str(sig_parameter[0]).replace(" ", "") == "example_id:str"
 
     def test_from_route_returns_route_function_instance(self):
-        route_function = RouteFunction.from_route(self.api_func, route.get(""))
-        assert isinstance(route_function, RouteFunction)
-
-        route_function = AsyncRouteFunction.from_route(self.api_func, route.get(""))
-        assert isinstance(route_function, AsyncRouteFunction)
-
         route_function = route.get("")(self.api_func)
         assert isinstance(route_function, RouteFunction)
 
@@ -140,7 +124,7 @@ class TestRouteFunction:
         assert isinstance(route_function, AsyncRouteFunction)
 
     def test_get_controller_init_kwargs(self):
-        route_function = RouteFunction.from_route(self.api_func, route.get(""))
+        route_function = route.get("")(self.api_func)
         route_function.controller = Mock()
         route_function.controller.permission_classes = []
 
@@ -179,16 +163,16 @@ class TestAPIControllerRoutePermission:
 
     def test_route_is_protected_by_global_controller_permission(self):
         with pytest.raises(PermissionDenied) as pex:
-            PermissionController.example.as_view(anonymous_request)
+            PermissionController.example(anonymous_request)
         assert "You do not have permission to perform this action." in str(
             pex.value.message
         )
 
     def test_route_protected_by_global_controller_permission_works(self):
         request = self.get_real_user_request()
-        response = PermissionController.example.as_view(request)
+        response = PermissionController.example(request)
         assert response == {"message": "OK"}
 
     def test_route_is_protected_by_its_permissions(self):
-        response = PermissionController.example_allow_any.as_view(anonymous_request)
+        response = PermissionController.example_allow_any(anonymous_request)
         assert response == {"message": "OK"}
