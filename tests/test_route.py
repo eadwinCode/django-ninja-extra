@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+import django
 import pytest
 from django.contrib.auth.models import AnonymousUser, User
 
@@ -49,10 +50,6 @@ class SomeTestController(APIController):
     def example_list_create(self, ex_id: str):
         pass
 
-    @route.get("/example_async")
-    async def example_async(self, ex_id: str):
-        pass
-
 
 class TestControllerRoutes:
     @pytest.mark.parametrize(
@@ -84,7 +81,17 @@ class TestControllerRoutes:
 
     def test_controller_route_should_right_view_func_type(self):
         assert isinstance(SomeTestController.example, RouteFunction)
-        assert isinstance(SomeTestController.example_async, AsyncRouteFunction)
+
+
+@pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
+def test_async_route_function():
+    class AsyncSomeTestController(SomeTestController):
+        @route.get("/example_async")
+        async def example_async(self, ex_id: str):
+            pass
+
+    assert isinstance(AsyncSomeTestController.example, RouteFunction)
+    assert isinstance(AsyncSomeTestController.example_async, AsyncRouteFunction)
 
 
 class TestRouteFunction:
