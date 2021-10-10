@@ -1,7 +1,7 @@
 import pytest
 
 from ninja_extra import APIController, NinjaExtraAPI, route, router
-from ninja_extra.controllers import RouteFunction
+from ninja_extra.controllers import RouteFunction, Route
 from ninja_extra.controllers.base import MissingRouterDecoratorException
 from ninja_extra.controllers.router import ControllerRouter
 from ninja_extra.permissions.common import AllowAny
@@ -69,7 +69,7 @@ class TestAPIController:
     def test_controller_should_have_path_operation_list(self):
         assert len(SomeControllerWithRoute._path_operations) == 2
 
-        route_function: RouteFunction = SomeControllerWithRoute.example
+        route_function: RouteFunction = RouteFunction(SomeControllerWithRoute.example, SomeControllerWithRoute)
         path_view = SomeControllerWithRoute._path_operations.get(str(route_function))
         assert path_view, "route doesnt exist in controller"
         assert len(path_view.operations) == 1
@@ -81,7 +81,7 @@ class TestAPIController:
             == route_function.route_definition.route_params.operation_id
         )
 
-    def test_controller_route_function_should_know_their_controller(self):
+    def test_controller_route_definition_should_return_instance_route_definitions(self):
         assert len(SomeControllerWithRoute._path_operations) == 2
-        for route_function in SomeControllerWithRoute.get_route_functions():
-            assert route_function.controller == SomeControllerWithRoute
+        for route_definition in SomeControllerWithRoute.get_route_definitions():
+            assert isinstance(route_definition, Route)

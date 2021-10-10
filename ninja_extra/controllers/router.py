@@ -26,17 +26,17 @@ if TYPE_CHECKING:
 
 
 class ControllerBorg:
-    _shared_state_: Dict[str, Dict[str, "APIController"]] = dict(controllers=dict())
+    _shared_state_: Dict[str, Dict[str,  Type["APIController"]]] = dict(controllers=dict())
 
     def __init__(self) -> None:
         self.__dict__ = self._shared_state_
 
-    def add_controller(self, controller: "APIController") -> None:
+    def add_controller(self, controller:  Type["APIController"]) -> None:
         self._shared_state_["controllers"].update(**{str(controller): controller})
 
     def remove_controller(
-        self, controller: "APIController"
-    ) -> Optional["APIController"]:
+        self, controller:  Type["APIController"]
+    ) -> Optional[ Type["APIController"]]:
         if str(controller) in self._shared_state_["controllers"]:
             return self._shared_state_["controllers"].pop(str(controller))
         return None
@@ -45,7 +45,7 @@ class ControllerBorg:
         self._shared_state_["controllers"] = dict()
 
     @classmethod
-    def get_controllers(cls) -> Dict[str, "APIController"]:
+    def get_controllers(cls) -> Dict[str,  Type["APIController"]]:
         return cls._shared_state_.get("controllers", dict())
 
 
@@ -56,7 +56,7 @@ class ControllerRegistry(ControllerBorg):
 
 class ControllerRouter:
     _tags: Optional[List[str]] = None
-    _controller: "APIController"
+    _controller: Type["APIController"]
 
     def __init__(
         self,
@@ -82,7 +82,7 @@ class ControllerRouter:
             tag = [value]
         self._tags = tag
 
-    def __call__(self, controller: "APIController") -> "APIController":
+    def __call__(self, controller: Type["APIController"]) -> Type["APIController"]:
         self._controller = controller
         controller.permission_classes = self.permission_classes
         controller._router = self

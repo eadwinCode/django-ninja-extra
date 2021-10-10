@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Callable, Optional, Sequence, Union
+from typing import Callable, Optional, Sequence, Union, Type
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import module_has_submodule
@@ -46,7 +46,7 @@ class NinjaExtraAPI(NinjaAPI):
             parser=parser,
         )
 
-    def register_controllers(self, *controllers: APIController) -> None:
+    def register_controllers(self, *controllers:  Type[APIController]) -> None:
         for controller in controllers:
             if not issubclass(controller, APIController):
                 raise ImproperlyConfigured(

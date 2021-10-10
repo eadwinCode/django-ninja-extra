@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, cast, no_type_check
 from django.db.models import Model, QuerySet
 from ninja.types import DictStrAny, TCallable
 
-from ninja_extra.exceptions import APIException, NotFound
+from .exceptions import APIException, NotFound
 
 
 @no_type_check

@@ -25,7 +25,7 @@ from ninja_extra.operation import PathView
 from ninja_extra.permissions import BasePermission
 from ninja_extra.shortcuts import fail_silently
 
-from .route.route_functions import RouteFunction
+from .route.route_functions import RouteFunction, AsyncRouteFunction
 from .router import ControllerRouter
 
 
@@ -50,29 +50,31 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
             tag = str(cls.__name__).lower().replace("controller", "")
             cls.tags = [tag]
 
-        for method_route_func in cls.get_route_functions():
-            method_route_func.controller = cls
-            cls.add_operation_from_route_definition(method_route_func.route_definition)
+        for method_route_definition in cls.get_route_definitions():
+            route_function_class = AsyncRouteFunction if method_route_definition.is_async else RouteFunction
+            route_function = route_function_class(route_definition=method_route_definition, controller=cls)
+            cls.add_operation_from_route_function(route_function)
 
         if not is_decorated_with_inject(cls.__init__):
             fail_silently(inject, constructor_or_class=cls)
         return cls
 
 
-class APIController(
-    ABC, metaclass=APIControllerModelSchemaMetaclass
-):
+class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
+
     _path_operations: Dict[str, PathView]
     api: Optional[NinjaAPI] = None
     args: List[Any] = []
     kwargs: DictStrAny = dict()
     auth: Optional[AuthBase] = None
+
     registered: bool
     _router: Optional[ControllerRouter] = None
     permission_classes: List[Type[BasePermission]]
     request: Optional[HttpRequest] = None
+    tags: List[str] = []
 
     @classmethod
     def get_router(cls) -> Optional[ControllerRouter]:
@@ -85,8 +87,11 @@ class APIController(
         return cls._path_operations
 
     @classmethod
-    def add_operation_from_route_definition(cls, route: Route) -> None:
-        cls.add_api_operation(view_func=route.view_func, **route.route_params.dict())
+    def add_operation_from_route_function(cls, route_function: RouteFunction) -> None:
+        cls.add_api_operation(
+            view_func=route_function.as_view,
+            **route_function.route_definition.route_params.dict()
+        )
 
     @classmethod
     def add_api_operation(
@@ -135,9 +140,9 @@ class APIController(
         return operation
 
     @classmethod
-    def get_route_functions(cls) -> Iterator[RouteFunction]:
+    def get_route_definitions(cls) -> Iterator[Route]:
         for method in cls.__dict__.values():
-            if isinstance(method, RouteFunction):
+            if isinstance(method, Route):
                 yield method
 
     @classmethod
