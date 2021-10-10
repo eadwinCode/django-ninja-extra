@@ -26,17 +26,19 @@ if TYPE_CHECKING:
 
 
 class ControllerBorg:
-    _shared_state_: Dict[str, Dict[str,  Type["APIController"]]] = dict(controllers=dict())
+    _shared_state_: Dict[str, Dict[str, Type["APIController"]]] = dict(
+        controllers=dict()
+    )
 
     def __init__(self) -> None:
         self.__dict__ = self._shared_state_
 
-    def add_controller(self, controller:  Type["APIController"]) -> None:
+    def add_controller(self, controller: Type["APIController"]) -> None:
         self._shared_state_["controllers"].update(**{str(controller): controller})
 
     def remove_controller(
-        self, controller:  Type["APIController"]
-    ) -> Optional[ Type["APIController"]]:
+        self, controller: Type["APIController"]
+    ) -> Optional[Type["APIController"]]:
         if str(controller) in self._shared_state_["controllers"]:
             return self._shared_state_["controllers"].pop(str(controller))
         return None
@@ -45,7 +47,7 @@ class ControllerBorg:
         self._shared_state_["controllers"] = dict()
 
     @classmethod
-    def get_controllers(cls) -> Dict[str,  Type["APIController"]]:
+    def get_controllers(cls) -> Dict[str, Type["APIController"]]:
         return cls._shared_state_.get("controllers", dict())
 
 

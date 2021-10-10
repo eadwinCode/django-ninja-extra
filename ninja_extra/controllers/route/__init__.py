@@ -8,6 +8,8 @@ from ninja.types import TCallable
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
 
+from .route_functions import AsyncRouteFunction, RouteFunction
+
 POST = "POST"
 PUT = "PUT"
 PATCH = "PATCH"
@@ -21,7 +23,6 @@ class RouteInvalidParameterException(Exception):
 
 
 class Route(object):
-    has_request_param: bool = False
     permissions: Optional[Optional[List[Type[BasePermission]]]] = None
 
     def __init__(
@@ -64,17 +65,18 @@ class Route(object):
         self.route_params = ninja_route_params
         self.is_async = False
         self.permissions = permissions
+        self.route_function_class = RouteFunction
 
-    def __call__(self, view_func: TCallable) -> 'Route':
+    def __call__(self, view_func: TCallable) -> RouteFunction:
         if is_async(view_func):
-            self.is_async = True
+            self.route_function_class = AsyncRouteFunction
 
         self.view_func = view_func
         self.route_params.operation_id = (
             self.route_params.operation_id
             or f"{str(uuid.uuid4())[:8]}_controller_{self.view_func.__name__}"
         )
-        return self
+        return self.route_function_class(route=self)
 
     @classmethod
     def get(
