@@ -1,7 +1,7 @@
 site_name: Django Ninja Extra
 site_description: Django Ninja Extra - Adds more power to Django Ninja RESTful api library
 site_url: https://eadwincode.github.io/django-ninja-extra/
-repo_name: vitalik/django-ninja
+repo_name: eadwinCode/django-ninja
 repo_url: https://github.com/eadwinCode/django-ninja-extra
 edit_uri: ''
 
