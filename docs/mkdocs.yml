@@ -4,34 +4,28 @@ site_url: https://eadwincode.github.io/django-ninja-extra/
 repo_name: vitalik/django-ninja
 repo_url: https://github.com/eadwinCode/django-ninja-extra
 edit_uri: ''
-google_analytics:
-- auto
+
 theme:
   name: material
   palette:
-    - scheme: default
-      toggle:
-        icon: material/toggle-switch-off-outline
-        name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deeppurple
+      accent: deeppurple
       toggle:
         icon: material/toggle-switch
+        name: Switch to dark mode
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/toggle-switch-off-outline
         name: Switch to light mode
-  logo: img/docs-logo.png
-  favicon: img/favicon.png
+
   language: en
   icon:
-    repo: fontawesome/brands/github-alt
+    repo: fontawesome/brands/git-alt
 nav:
 - Intro: index.md
-- motivation.md
-- Tutorial / Reference:
-  - tutorial/index.md
-  - tutorial/path-params.md
-  - tutorial/query-params.md
-  - tutorial/body.md
-  - tutorial/form-params.md
-  - tutorial/file-params.md
-  - tutorial/response-schema.md
-  - tutorial/crud.md
-  - tutorial/django-pydantic.md

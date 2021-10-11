@@ -16,6 +16,14 @@ All Django-Ninja features are fully supported plus others below:
 ```
 pip install django-ninja-extra
 ```
+After installation, add `ninja_extra` to your `INSTALLED_APPS`
+
+```Python
+INSTALLED_APPS = [
+    ...,
+    'ninja_extra',
+]
+```
 
 ## Usage
 
