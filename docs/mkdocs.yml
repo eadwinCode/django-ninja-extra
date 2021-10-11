@@ -1,0 +1,37 @@
+site_name: Django Ninja Extra
+site_description: Django Ninja Extra - Adds more power to Django Ninja RESTful api library
+site_url: https://eadwincode.github.io/django-ninja-extra/
+repo_name: vitalik/django-ninja
+repo_url: https://github.com/eadwinCode/django-ninja-extra
+edit_uri: ''
+google_analytics:
+- auto
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  logo: img/docs-logo.png
+  favicon: img/favicon.png
+  language: en
+  icon:
+    repo: fontawesome/brands/github-alt
+nav:
+- Intro: index.md
+- motivation.md
+- Tutorial / Reference:
+  - tutorial/index.md
+  - tutorial/path-params.md
+  - tutorial/query-params.md
+  - tutorial/body.md
+  - tutorial/form-params.md
+  - tutorial/file-params.md
+  - tutorial/response-schema.md
+  - tutorial/crud.md
+  - tutorial/django-pydantic.md
