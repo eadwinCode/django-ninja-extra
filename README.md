@@ -18,7 +18,7 @@ pip install django-ninja-extra
 ```
 After installation, add `ninja_extra` to your `INSTALLED_APPS`
 
-```Python
+```Python 
 INSTALLED_APPS = [
     ...,
     'ninja_extra',
