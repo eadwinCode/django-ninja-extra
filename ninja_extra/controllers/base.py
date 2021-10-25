@@ -49,6 +49,13 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
             tag = str(cls.__name__).lower().replace("controller", "")
             cls.tags = [tag]
 
+        if len(bases) > 1:
+            for base_cls in bases:
+                if issubclass(base_cls, APIController):
+                    for cls_route_function in base_cls.get_route_functions():
+                        cls_route_function.controller = cls
+                        cls.add_operation_from_route_function(cls_route_function)
+
         for cls_route_function in cls.get_route_functions():
             cls_route_function.controller = cls
             cls.add_operation_from_route_function(cls_route_function)
