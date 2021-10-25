@@ -59,7 +59,7 @@ class NinjaExtraAPI(NinjaAPI):
                 controller.registered = True
 
     @classmethod
-    def register_injector_modules(cls, *modules: Module) -> None:
+    def register_injector_modules(cls, *modules: Union[Module, Type[Module]]) -> None:
         for module in modules:
             injector = get_injector()
             if isinstance(module, type) and issubclass(module, Module):
