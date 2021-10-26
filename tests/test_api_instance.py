@@ -55,6 +55,12 @@ def test_api_auto_discover_controller():
         in ControllerRegistry.get_controllers()
     )
 
+    @router("")
+    class SomeAPI2Controller(SomeAPIController):
+        auto_import_include = False
+
+    assert str(SomeAPI2Controller) not in ControllerRegistry.get_controllers()
+
 
 def test_api_register_injector_modules_works():
     ninja_extra_api = NinjaExtraAPI()

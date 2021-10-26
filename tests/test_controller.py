@@ -28,6 +28,8 @@ class SomeControllerWithRoute(APIController):
 
 @router("", tags=["new tag"])
 class SomeControllerWithRouter(APIController):
+    auto_import_include = False  # disable auto_import of the controller
+
     @route.get("/example")
     def example(self):
         pass
@@ -49,7 +51,7 @@ class TestAPIController:
 
         with pytest.raises(MissingRouterDecoratorException) as ex:
             api.register_controllers(SomeController)
-        assert "Could not register controller" in str(ex.value)
+        assert "Controller Router not found" in str(ex.value)
 
     def test_controller_with_router_should_have_preset_properties(self):
         api = NinjaExtraAPI()
@@ -71,7 +73,7 @@ class TestAPIController:
 
         route_function: RouteFunction = SomeControllerWithRoute.example
         path_view = SomeControllerWithRoute._path_operations.get(str(route_function))
-        assert path_view, "route doesnt exist in controller"
+        assert path_view, "route doesn't exist in controller"
         assert len(path_view.operations) == 1
 
         operation = path_view.operations[0]
