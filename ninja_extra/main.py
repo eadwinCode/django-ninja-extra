@@ -2,6 +2,7 @@ from importlib import import_module
 from typing import Callable, Optional, Sequence, Type, Union
 
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpRequest, HttpResponse
 from django.utils.module_loading import module_has_submodule
 from injector import Module
 from ninja import NinjaAPI
@@ -12,6 +13,7 @@ from ninja.renderers import BaseRenderer
 from ninja_extra.controllers.base import APIController
 from ninja_extra.controllers.router import ControllerRegistry
 from ninja_extra.dependency_resolver import get_injector
+from ninja_extra.exceptions import APIException
 
 __all__ = [
     "NinjaExtraAPI",
@@ -45,6 +47,21 @@ class NinjaExtraAPI(NinjaAPI):
             renderer=renderer,
             parser=parser,
         )
+
+        @self.exception_handler(APIException)
+        def api_exception_handler(
+            request: HttpRequest, exc: APIException
+        ) -> HttpResponse:
+            message = (
+                {"message": exc.message}
+                if not isinstance(exc.message, dict)
+                else exc.message
+            )
+            return self.create_response(
+                request,
+                message,
+                status=exc.status_code,
+            )
 
     def register_controllers(self, *controllers: Type[APIController]) -> None:
         for controller in controllers:
