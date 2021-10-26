@@ -72,7 +72,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
 class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
-
+    auto_import_include = True  # set to false and it would be ignored when api.auto_discover is called
     _path_operations: Dict[str, PathView]
     api: Optional[NinjaAPI] = None
     args: List[Any] = []
