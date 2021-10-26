@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional, Union
 
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
@@ -16,9 +16,11 @@ class APIException(HttpError):
     message = _("A server error occurred.")
 
     def __init__(
-        self, message: Optional[str] = None, status_code: Optional[int] = None
+        self,
+        message: Union[str, Dict[str, str], None] = None,
+        status_code: Optional[int] = None,
     ) -> None:
-        self.message = message or self.message
+        self.message = message or self.message  # type: ignore
         self.status_code = status_code or self.status_code
         super().__init__(status_code=self.status_code, message=self.message)
 
