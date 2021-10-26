@@ -32,6 +32,15 @@ class MissingRouterDecoratorException(Exception):
     pass
 
 
+def compute_api_route_function(
+    base_cls: Type["APIController"], controller: Optional[Type["APIController"]] = None
+) -> None:
+    controller = controller if controller else base_cls
+    for cls_route_function in base_cls.get_route_functions():
+        cls_route_function.controller = controller
+        controller.add_operation_from_route_function(cls_route_function)
+
+
 class APIControllerModelSchemaMetaclass(ABCMeta):
     @no_type_check
     def __new__(mcs, name: str, bases: tuple, namespace: dict):
@@ -39,7 +48,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
         if name == "APIController" and ABC in bases:
             return cls
 
-        cls = cast(APIController, cls)
+        cls = cast(Type[APIController], cls)
         cls._path_operations = {}
         cls.api = namespace.get("api", None)
         cls.registered = False
@@ -50,16 +59,11 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
             cls.tags = [tag]
 
         if len(bases) > 1:
-            for base_cls in bases:
+            for base_cls in reversed(bases):
                 if issubclass(base_cls, APIController):
-                    for cls_route_function in base_cls.get_route_functions():
-                        cls_route_function.controller = cls
-                        cls.add_operation_from_route_function(cls_route_function)
+                    compute_api_route_function(base_cls, cls)
 
-        for cls_route_function in cls.get_route_functions():
-            cls_route_function.controller = cls
-            cls.add_operation_from_route_function(cls_route_function)
-
+        compute_api_route_function(cls)
         if not is_decorated_with_inject(cls.__init__):
             fail_silently(inject, constructor_or_class=cls)
         return cls
