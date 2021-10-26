@@ -34,7 +34,7 @@ class ControllerBorg:
         self.__dict__ = self._shared_state_
 
     def add_controller(self, controller: Type["APIController"]) -> None:
-        if controller.auto_import_include:
+        if controller.auto_import:
             self._shared_state_["controllers"].update(**{str(controller): controller})
 
     def remove_controller(

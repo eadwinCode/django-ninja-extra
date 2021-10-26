@@ -57,7 +57,7 @@ def test_api_auto_discover_controller():
 
     @router("")
     class SomeAPI2Controller(SomeAPIController):
-        auto_import_include = False
+        auto_import = False
 
     assert str(SomeAPI2Controller) not in ControllerRegistry.get_controllers()
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, cast, no_type_check
+from typing import Any, Optional, cast, no_type_check
 
 from django.db.models import Model, QuerySet
 from ninja.types import DictStrAny, TCallable
@@ -7,7 +7,7 @@ from .exceptions import APIException, NotFound
 
 
 @no_type_check
-def fail_silently(func: TCallable, **kwargs: Dict) -> Optional[Any]:
+def fail_silently(func: TCallable, **kwargs: Any) -> Optional[Any]:
     try:
         return func(**kwargs)
     except (Exception,):

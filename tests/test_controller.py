@@ -28,7 +28,7 @@ class SomeControllerWithRoute(APIController):
 
 @router("", tags=["new tag"])
 class SomeControllerWithRouter(APIController):
-    auto_import_include = False  # disable auto_import of the controller
+    auto_import = False  # disable auto_import of the controller
 
     @route.get("/example")
     def example(self):
