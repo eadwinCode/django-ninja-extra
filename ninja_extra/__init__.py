@@ -21,4 +21,5 @@ __all__ = [
     "shortcuts",
     "get_injector",
     "service_resolver",
+    "lazy",
 ]
