@@ -1,3 +1,5 @@
+![Test](https://github.com/eadwinCode/django-ninja-extra/workflows/Test/badge.svg)
+[![PyPI version](https://badge.fury.io/py/django-ninja-extra.svg)](https://badge.fury.io/py/django-ninja-extra)
 # Django Ninja Extra
 
 **Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It adds **DRF** batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) which are really extensible for custom use-cases.
