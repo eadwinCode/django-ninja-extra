@@ -68,11 +68,20 @@ class ControllerRouter:
         auth: Any = NOT_SET,
         tags: Optional[List[str]] = None,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        controller: Optional[Type["APIController"]] = None,
     ) -> None:
         self.prefix = prefix
         self.auth = auth
         self.tags = tags
         self.permission_classes = permissions or [AllowAny]
+
+        if controller:
+            self._controller = controller
+            self(controller)
+
+    @property
+    def controller(self) -> Optional[Type["APIController"]]:
+        return self._controller
 
     @property
     def tags(self) -> Optional[List[str]]:
