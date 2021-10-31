@@ -1,16 +1,20 @@
-from typing import Any, List, Tuple, Union, cast
+from typing import Any, List, Optional, Tuple, Union, cast
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
 from injector import Injector
 
 from ninja_extra.apps import NinjaExtraConfig
+from ninja_extra.shortcuts import fail_silently
 
 __all__ = ["service_resolver", "get_injector"]
 
 
 def get_injector() -> Injector:
-    app = cast(NinjaExtraConfig, apps.get_app_config(NinjaExtraConfig.name))
+    app = cast(
+        Optional[NinjaExtraConfig],
+        fail_silently(apps.get_app_config, NinjaExtraConfig.name),
+    )
     if not app:
         raise ImproperlyConfigured(
             "ninja_extra app is not installed. Did you forget register `ninja_extra` in `INSTALLED_APPS`"
