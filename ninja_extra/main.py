@@ -11,7 +11,7 @@ from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
 
 from ninja_extra.controllers.base import APIController
-from ninja_extra.controllers.router import ControllerRegistry
+from ninja_extra.controllers.router import ControllerRegistry, ControllerRouter
 from ninja_extra.dependency_resolver import get_injector
 from ninja_extra.exceptions import APIException
 
@@ -74,6 +74,20 @@ class NinjaExtraAPI(NinjaAPI):
                 self._routers.extend(controller_ninja_router.build_routers())  # type: ignore
                 controller_ninja_router.set_api_instance(self)
                 controller.registered = True
+
+    def add_controller_router(
+        self, *routers: Union[ControllerRouter, Type[ControllerRouter]]
+    ) -> None:
+        for router in routers:
+            if not isinstance(router, ControllerRouter):
+                raise ImproperlyConfigured(
+                    f"{router.__class__.__name__} class is not a ControllerRouter"
+                )
+            if not router.controller:
+                raise ImproperlyConfigured(
+                    f"{router.__class__.__name__} has no controller"
+                )
+            self.register_controllers(router.controller)
 
     @classmethod
     def register_injector_modules(cls, *modules: Union[Module, Type[Module]]) -> None:
