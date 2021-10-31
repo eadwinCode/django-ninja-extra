@@ -21,9 +21,7 @@ class RouteFunction(object):
         self.as_view = wraps(route.view_func)(self.get_view_function())
         self._resolve_api_func_signature_(self.as_view)
 
-    def __call__(
-        self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
-    ) -> Any:
+    def __call__(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
         return self.as_view(request=request, *args, **kwargs)
 
     def _get_required_api_func_signature(self) -> Tuple:
@@ -45,9 +43,7 @@ class RouteFunction(object):
         return context_func
 
     def get_view_function(self) -> Callable:
-        def as_view(
-            request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
-        ) -> Any:
+        def as_view(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
             controller_instance = self._get_controller_instance(
                 request, *args, **kwargs
             )
@@ -61,7 +57,7 @@ class RouteFunction(object):
         return as_view
 
     def _get_controller_instance(
-        self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
+        self, request: HttpRequest, *args: Any, **kwargs: Any
     ) -> "APIController":
 
         injector = get_injector()
@@ -75,7 +71,7 @@ class RouteFunction(object):
         return controller_instance
 
     def _get_controller_init_kwargs(
-        self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
+        self, request: HttpRequest, *args: Any, **kwargs: Any
     ) -> Dict[str, Any]:
         if not self.controller:
             raise ImproperlyConfigured("Controller object is required")
@@ -99,9 +95,7 @@ class RouteFunction(object):
 
 class AsyncRouteFunction(RouteFunction):
     def get_view_function(self) -> Callable:
-        async def as_view(
-            request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
-        ) -> Any:
+        async def as_view(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
             controller_instance = self._get_controller_instance(
                 request, *args, **kwargs
             )
@@ -121,7 +115,5 @@ class AsyncRouteFunction(RouteFunction):
             return f"<AsyncRouteFunction, controller: No Controller Found, path: {self.__str__()}>"
         return f"<AsyncRouteFunction, controller: {self.controller.__name__}, path: {self.__str__()}>"
 
-    async def __call__(
-        self, request: HttpRequest, *args: Tuple[Any], **kwargs: Dict[str, Any]
-    ) -> Any:
+    async def __call__(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
         return await self.as_view(request=request, *args, **kwargs)
