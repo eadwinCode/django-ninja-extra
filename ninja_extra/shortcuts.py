@@ -7,9 +7,9 @@ from .exceptions import APIException, NotFound
 
 
 @no_type_check
-def fail_silently(func: TCallable, **kwargs: Any) -> Optional[Any]:
+def fail_silently(func: TCallable, *args: Any, **kwargs: Any) -> Optional[Any]:
     try:
-        return func(**kwargs)
+        return func(*args, **kwargs)
     except (Exception,):
         pass
     return None
