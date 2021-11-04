@@ -41,7 +41,7 @@ def compute_api_route_function(
         controller.add_operation_from_route_function(cls_route_function)
 
 
-class APIControllerModelSchemaMetaclass(ABCMeta):
+class APIControllerModelMetaclass(ABCMeta):
     @no_type_check
     def __new__(mcs, name: str, bases: tuple, namespace: dict):
         cls = super().__new__(mcs, name, bases, namespace)
@@ -69,7 +69,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
         return cls
 
 
-class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
+class APIController(ABC, metaclass=APIControllerModelMetaclass):
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
     auto_import = (
