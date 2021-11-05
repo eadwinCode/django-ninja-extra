@@ -46,7 +46,6 @@ from ninja_extra import NinjaExtraAPI, route, APIController, router
 
 api = NinjaExtraAPI()
 
-
 @api.get("/hello")
 def hello(request):
     return "Hello world"
@@ -76,12 +75,14 @@ urlpatterns = [
  - PUT
  - DELETE
  - PATCH
- - ... and more
+ - ... and more.
 
+These are Django-Ninja defined operations on the `api` or Django-Ninja `router`. 
+The same functionality is available on `route` for APIController class
 
-**Django Ninja Extra** comes with an extra decorator `route` for defining route function in your controller class:
-**Django Ninja Extra** APIController can only works when wrapped around `ControllerRouter` which is the same as `router`
-The `router` give you global control of all routes defined in a controller.
+**Django Ninja Extra** `route` function is an extra decorator for defining route function in your controller class.
+The `router` here is a short form of `ControllerRouter`, an Adapter class to Django-Ninja Router but without operational functions. 
+It gives you global control of all routes defined in an APIController class.
 
 ```Python
 @router('', tags=['My Operations'], auth=NOT_SET, permissions=[])
@@ -106,12 +107,12 @@ class MyAPIController(APIController):
     def patch_operation(self):
         ...
     
-    @route.generic(["POST", "PATCH"])
+    # If you need to handle multiple methods with a single function, you can use the `generic` method as shown above
+    @route.generic(["POST", "PATCH"]) 
     def mixed(request):
         ...
+
+api.register_controllers()
 ```
-
-If you need to handle multiple methods with a single function, you can use the `generic` method as shown above
-
-**Django Ninja Extra** APIController only works when wrapped around `ControllerRouter` which is the same as `router`
+To have a complete Controller setup, the APIController must be decorated with `ControllerRouter` before it's been registered.
 
