@@ -1,10 +1,10 @@
 # APIController
 
-APIController is a borrowed term C# environment. The controller is concept from MVC. 
-Although Django is not an MVC framework, but we can mimic the concept anyways.
+APIController is a borrowed term from C# environment. Controller is concept from MVC. 
+Although Django is not an MVC framework, but we can mimic the concept generally.
 
 The APIController is an abstract class model that allows you to expose some class instance functions as route functions.
-It also supports dependency injection with Injector or Django injector.
+It also supports dependency injection with **Injector** or **Django injector**.
 
 ```python
 class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):

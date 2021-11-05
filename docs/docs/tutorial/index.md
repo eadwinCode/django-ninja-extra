@@ -78,7 +78,7 @@ urlpatterns = [
  - ... and more.
 
 These are Django-Ninja defined operations on the `api` or Django-Ninja `router`. 
-The same functionality is available on `route` for APIController class
+The same operation functionalities are available on `route` class for APIController class
 
 **Django Ninja Extra** `route` function is an extra decorator for defining route function in your controller class.
 The `router` here is a short form of `ControllerRouter`, an Adapter class to Django-Ninja Router but without operational functions. 
