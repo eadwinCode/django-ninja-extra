@@ -29,3 +29,11 @@ theme:
     repo: fontawesome/brands/git-alt
 nav:
 - Intro: index.md
+- Controller:
+    - APIController: api_controller.md
+    - Controller Router: controller_router.md
+    - Controller Permission: controller_permission.md
+- Pagination: pagination.md
+- Service Module and Injector: service_module_injector.md
+- Custom Exceptions: custom_exception.md
+- Status Codes: status_code.md

@@ -28,3 +28,7 @@ test: ## Run tests
 
 test-cov: ## Run tests with coverage
 	pytest --cov=ninja_extra --cov-report term-missing tests
+
+doc-deploy: ## Run Deploy Documentation
+	make clean
+	mkdocs gh-deploy --force
