@@ -1,3 +1,9 @@
+![Test](https://github.com/eadwinCode/django-ninja-jwt/workflows/Test/badge.svg)
+[![PyPI version](https://badge.fury.io/py/django-ninja-extra.svg)](https://badge.fury.io/py/django-ninja-jwt)
+[![PyPI version](https://img.shields.io/pypi/v/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+[![PyPI version](https://img.shields.io/pypi/pyversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+[![PyPI version](https://img.shields.io/pypi/djversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+
 # Django Ninja Extra
 
 **Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It adds **DRF** batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) which are really extensible for custom use-cases.
@@ -10,6 +16,8 @@ All Django-Ninja features are fully supported plus others below:
 - **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector)
 
 ---
+## Documentation
+Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
 ## Installation
 
