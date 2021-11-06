@@ -25,4 +25,4 @@ class MyController(APIController):
 api = NinjaExtraAPI(title='Exception Test')
 api.register_controllers(MyController)
 ```
-![Preview](docs/images/custom_exception.gif)
+![Preview](../../../docs/images/custom_exception.gif)

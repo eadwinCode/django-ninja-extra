@@ -30,4 +30,4 @@ api = NinjaExtraAPI(title='Pagination Test')
 api.register_controllers(UserController)
 ```
 
-![Preview](docs/images/pagination.gif)
+![Preview](../../../docs/images/pagination.gif)
