@@ -27,18 +27,22 @@ theme:
   language: en
   icon:
     repo: fontawesome/brands/git-alt
+plugins:
+- search
+- mkdocstrings
+
 nav:
 - Index: index.md
-- NinjaExtra:
-    - intro: tutorial/index.md
-    - APIController: tutorial/api_controller.md
-      - Routes: tutorial/api_controller_route.md
-      - Permissions: tutorial/api_controller_permission.md
-      - Router: tutorial/api_controller_router.md
-    - Authentication: tutorial/authentication.md
-    - Body Request: tutorial/body_request.md
-    - Versoning: tutorial/versioning.md
-    - Pagination: tutorial/pagination.md
-    - Exception: tutorial/custom_exception.md
+- Reference:
+  - intro: tutorial/index.md
+  - APIController: tutorial/api_controller.md
+  - Controller Routes: tutorial/api_controller_route.md
+  - Controller Permissions: tutorial/api_controller_permission.md
+  - Controller Router: tutorial/api_controller_router.md
+  - Authentication: tutorial/authentication.md
+  - Body Request: tutorial/body_request.md
+  - Versoning: tutorial/versioning.md
+  - Pagination: tutorial/pagination.md
+  - Exception: tutorial/custom_exception.md
 - Service Module and Injector: service_module_injector.md
 
