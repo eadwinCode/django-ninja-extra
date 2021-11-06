@@ -117,6 +117,8 @@ class BasePermission(metaclass=BasePermissionMetaclass):
     A base class from which all permission classes should inherit.
     """
 
+    message = None
+
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
         """
         Return `True` if permission is granted, `False` otherwise.

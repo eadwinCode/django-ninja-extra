@@ -7,13 +7,13 @@ The APIController is an abstract class model that allows you to expose some clas
 It also supports dependency injection with **Injector** or **Django injector**.
 
 ```python
-class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
+class APIController(ABC, metaclass=APIControllerModelMetaclass):
     ...
 ```
 
 ## Model Properties
 ### `permission_classes`
-List of default permission classes. This can be overridden in route function. default: `[]`
+List of default permission classes defined in a controller `router`
 
 ### `auth`
 List of default Authentication instances. As described in Django-Ninja [Authentication](https://django-ninja.rest-framework.com/tutorial/authentication/). default: `[]`
@@ -47,30 +47,3 @@ Check permission when route function is invoked
 
 ### `check_object_permissions(self, obj: Any)`
 Checks object permissions. This is not automated. However, when called, it triggers all `permission_classes` `has_object_permission` function, just like in DRF
-
-
-## APIController Route Decorator
-To define an APIController function as route, it needs to be decorated with `route`
-The `route` decorator is like `router` class in Django-Ninja but the behaviour is different.
-Its main purpose is to define `route function` in APIController.
-
-For example
-```python
-from ninja_extra import route, APIController
-from ninja_extra.controllers import RouteFunction
-
-class MyController(APIController):
-    @route.get('/test')
-    def test(self):
-        return {'message': 'test'}
-
-assert isinstance(MyController.test, RouteFunction) # true
-
-```
-The `route` class has the following operations
- - GET
- - POST
- - PUT
- - DELETE
- - PATCH
- - GENERIC - for operation combination eg: `methods=['POST', 'PATCH']`

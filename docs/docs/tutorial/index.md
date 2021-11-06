@@ -1,10 +1,7 @@
 # Tutorial - Intro
 
 This tutorial shows you how to use **Django Ninja Extra** with most of its features. 
-It is also built to work as reference documentation.
-
-This tutorial assumes that you know at least some basics of the <a href="https://www.djangoproject.com/" target="_blank">Django Framework</a>, like how to create a project and run it.
-
+And most especially assumes you know how to use **Django Ninja**
 
 ## Installation
 
@@ -112,7 +109,7 @@ class MyAPIController(APIController):
     def mixed(request):
         ...
 
-api.register_controllers()
+api.register_controllers(MyAPIController)
 ```
 To have a complete Controller setup, the APIController must be decorated with `ControllerRouter` before it's been registered.
 

@@ -32,7 +32,6 @@ In your django project next to urls.py create new `api.py` file:
 ```Python
 from ninja_extra import NinjaExtraAPI
 from ninja_extra import APIController, route, router
-from ninja_extra.permissions import AllowAny
 from ninja_extra.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from .models import UserProfile
@@ -71,7 +70,7 @@ api.register_controllers(
 
 Now go to `urls.py` and add the following:
 
-```Python hl_lines="3 7"
+```Python
 ...
 from .api import api
 

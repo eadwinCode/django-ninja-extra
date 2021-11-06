@@ -26,7 +26,8 @@ class IsAuthenticated(BasePermission):
     """
 
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
-        return bool(request.user and request.user.is_authenticated)
+        user = request.user or request.auth  # type: ignore
+        return bool(user and user.is_authenticated)
 
 
 class IsAdminUser(BasePermission):
@@ -35,7 +36,8 @@ class IsAdminUser(BasePermission):
     """
 
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
-        return bool(request.user and request.user.is_staff)  # type: ignore
+        user = request.user or request.auth  # type: ignore
+        return bool(user and user.is_staff)  # type: ignore
 
 
 class IsAuthenticatedOrReadOnly(BasePermission):
@@ -44,8 +46,5 @@ class IsAuthenticatedOrReadOnly(BasePermission):
     """
 
     def has_permission(self, request: HttpRequest, controller: "APIController") -> bool:
-        return bool(
-            request.method in SAFE_METHODS
-            or request.user
-            and request.user.is_authenticated
-        )
+        user = request.user or request.auth  # type: ignore
+        return bool(request.method in SAFE_METHODS or user and user.is_authenticated)
