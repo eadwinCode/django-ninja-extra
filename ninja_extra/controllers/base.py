@@ -7,6 +7,7 @@ from typing import (
     List,
     Optional,
     Type,
+    Union,
     cast,
     no_type_check,
 )
@@ -22,6 +23,7 @@ from ninja.types import DictStrAny
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.operation import PathView
 from ninja_extra.permissions import BasePermission
+from ninja_extra.permissions.base import OperandHolder
 from ninja_extra.shortcuts import fail_silently
 
 from .route.route_functions import RouteFunction
@@ -83,12 +85,12 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
 
     registered: bool
     _router: Optional[ControllerRouter] = None
-    permission_classes: List[Type[BasePermission]]
+    permission_classes: Union[List[Type[BasePermission]], List[OperandHolder[Any]]]
     request: Optional[HttpRequest] = None
     tags: List[str] = []
 
     @classmethod
-    def get_router(cls) -> Optional[ControllerRouter]:
+    def get_router(cls) -> ControllerRouter:
         if not cls._router:
             raise MissingRouterDecoratorException(
                 "Controller Router not found. "

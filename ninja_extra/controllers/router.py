@@ -23,6 +23,7 @@ from ninja_extra.permissions.common import AllowAny
 if TYPE_CHECKING:
     from ninja_extra import NinjaExtraAPI
     from ninja_extra.controllers.base import APIController
+    from ninja_extra.permissions.base import OperandHolder
 
 
 class ControllerBorg:
@@ -67,7 +68,9 @@ class ControllerRouter:
         *,
         auth: Any = NOT_SET,
         tags: Optional[List[str]] = None,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            Union[List[Type[BasePermission]], List["OperandHolder[Any]"]]
+        ] = None,
         controller: Optional[Type["APIController"]] = None,
     ) -> None:
         self.prefix = prefix
@@ -96,7 +99,7 @@ class ControllerRouter:
 
     def __call__(self, controller: Type["APIController"]) -> Type["APIController"]:
         self._controller = controller
-        controller.permission_classes = self.permission_classes
+        controller.permission_classes = self.permission_classes  # type:ignore
         controller._router = self
         self.tags = self.tags or controller.tags
         ControllerRegistry().add_controller(controller)

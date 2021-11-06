@@ -78,7 +78,7 @@ class RouteFunction(object):
 
         return dict(
             permission_classes=self.route.permissions
-            or self.controller.permission_classes,
+            or self.controller.get_router().permission_classes,  # type:ignore
             request=request,
             kwargs=kwargs,
             args=args,
