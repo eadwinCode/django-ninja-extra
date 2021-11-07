@@ -6,13 +6,13 @@
 
 # Django Ninja Extra
 
-**Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It adds **DRF** batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) which are really extensible for custom use-cases.
+**Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It adds **DRF** batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) and they are really extensible for custom use-cases.
 
 **Key features:**
 All Django-Ninja features are fully supported plus others below:
 
 - **Class Based**: Design your APIs in a class based fashion.
-- **Route Permissions**: Protect endpoint(s) at ease, specific or general
+- **Route Permissions**: Protect endpoint(s) at ease with defined permissions. It could be specific to a route or general to all routes
 - **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector)
 
 ---
