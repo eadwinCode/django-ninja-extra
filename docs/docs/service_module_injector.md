@@ -40,7 +40,7 @@ api = NinjaExtraAPI(title='Injector Test')
 api.register_controllers(UserProfileController)
 ```
 
-## Module Registration
+## **Module Registration**
 You can also register an injector module. And Inject the service to the APIController constructor
 ```python
 import logging
