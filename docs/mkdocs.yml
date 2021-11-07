@@ -45,6 +45,7 @@ nav:
   - Pagination: tutorial/pagination.md
   - Exception: tutorial/custom_exception.md
 - Dependency Injection: service_module_injector.md
+- Ninja Schema: ninja_schema.md
 
 markdown_extensions:
 - markdown_include.include
