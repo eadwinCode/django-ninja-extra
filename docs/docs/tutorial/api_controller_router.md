@@ -1,10 +1,10 @@
 # **APIController Router**
 
-The `ControllerRouter` which is `router` in short form, adapts APIController to Django-Ninja router.
+The `ControllerRouter` which is `router` in short form, adapts APIController classes to Django-Ninja router.
 During `api.register_controllers` call, the APIController `_router` is pass to the Django-Ninja for route processing.
 For this reason, APIController class can't be registered without having a `ControllerRouter` decoration
 
-## **Initialization Parameters**
+## **Controller Router Initialization Parameters**
 -  ### **`prefix`**
 it is a required parameter that defines extra route prefix for all route functions defined in an APIController class
 

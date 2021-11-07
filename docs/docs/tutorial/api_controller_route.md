@@ -18,12 +18,13 @@ assert isinstance(MyController.test, RouteFunction) # true
 
 ```
 The `route` predefined method that helps create the following operations
+
 - GET
 - POST
 - PUT
 - DELETE
 - PATCH
-- GENERIC - for operation combination eg: `methods=['POST', 'PATCH']`
+- GENERIC-for operation combination eg: `methods=['POST', 'PATCH']`
 
 ## **Initialization Parameters**
 -  ### **`path`**
@@ -72,14 +73,15 @@ indicates whether an endpoint should appear on the swagger documentation. defaul
 it gives a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
  
 -  ### **`permissions`**
-defines collection route permissions. default: `None`
+defines collection route permission classes. default: `None`
 
 Most of these parameters are what is used in creating and endpoint in Django-Ninja, but it has been abstracted here to be for the same purpose on APIController class
 
 
 ## **Async Route Definition**
 **Django-Ninja-Extra** `route` class also supports async endpoint definition.
-This is only available on Django > 3.0
+This is only available on Django > 3.0.
+
 For Example
 
 ```python

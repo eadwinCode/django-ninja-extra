@@ -41,8 +41,8 @@ class MyV2Controller(MyV1Controller):
         return {'message': 'Hello from V2 Example'}
 
     
-api = NinjaExtraAPI(version='1.0.0')
-api.register_controllers(MyV1Controller)
+api = NinjaExtraAPI(version='2.0.0')
+api.register_controllers(MyV2Controller)
 ```
 
 

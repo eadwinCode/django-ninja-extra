@@ -78,8 +78,9 @@ These are Django-Ninja defined operations on the `api` or Django-Ninja `router`.
 The same operation functionalities are available on `route` class for APIController class
 
 **Django Ninja Extra** `route` function is an extra decorator for defining route function in your controller class.
-The `router` here is a short form of `ControllerRouter`, an Adapter class to Django-Ninja Router but without operational functions. 
-It gives you global control of all routes defined in an APIController class.
+
+The `router` here is a short form of `ControllerRouter`, an Adapter class to Django-Ninja `router` but without operational functions. 
+It also provides global control of all routes defined in any APIController class.
 
 ```Python
 @router('', tags=['My Operations'], auth=NOT_SET, permissions=[])
