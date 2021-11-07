@@ -1,6 +1,7 @@
 # **Testing APIController**
 
 **Django Ninja Extra** has a TestClient provides a seamless effort in testing your APIControllers.
+
 However, there are two test clients
 - TestClient: for synchronous route functions
 - TestClientAsync: for asynchronous route functions
