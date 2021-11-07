@@ -1,8 +1,8 @@
-## Pagination
+# **Pagination**
 
 **Django Ninja Extra** Pagination decorator gives you more pagination information, and it is very extensible.
 
-## Usage
+## **Usage**
 ```python
 from ninja_extra.pagination import paginate, PageNumberPaginationExtra
 from ninja_extra import router, APIController, route, NinjaExtraAPI
@@ -30,4 +30,4 @@ api = NinjaExtraAPI(title='Pagination Test')
 api.register_controllers(UserController)
 ```
 
-![Preview](../../../docs/images/pagination.gif)
+![Preview](../images/pagination.gif)

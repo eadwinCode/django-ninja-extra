@@ -1,4 +1,5 @@
-## APIController Permissions
+# **APIController Permissions**
+
 The concept of these permission system came from Django [DRF](https://www.django-rest-framework.org/api-guide/permissions/).
 
 Permission checks are always run at the very start of the route function, 
@@ -19,11 +20,11 @@ allow full access to authenticated users,
 but allow read-only access to unauthenticated users. 
 This corresponds to the `IsAuthenticatedOrReadOnly` class in **Django Ninja Extra**.
 
-### Limitations of object level permissions
+### **Limitations of object level permissions**
 During route function call, we can only `has_permission` in permissions list are called automatic. 
 But since we don't have the object, we can't invoke `has_object_permission`. It has to be done manually
 
-## Custom permissions
+## **Custom permissions**
 
 To implement a custom permission, override `BasePermission` and implement either, or both, of the following methods:
 
@@ -44,7 +45,7 @@ class PermissionController(APIController):
     def must_be_authenticated(self, word: str):
         return dict(says=word)
 ```
-## Permissions Supported Operands
+## **Permissions Supported Operands**
 - & (and) eg: `permissions.IsAuthenticated & ReadOnly`
 - | (or) eg: `permissions.IsAuthenticated | ReadOnly`
 - ~ (not) eg: `!(permissions.IsAuthenticated & ReadOnly)`

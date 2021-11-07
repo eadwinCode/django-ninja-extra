@@ -1,10 +1,8 @@
-# Authentication
-
-## Intro
+# **Authentication**
 
 **Django Ninja Extra** provides the same API for authorization and authentication.
 
-## Automatic OpenAPI schema
+## **Automatic OpenAPI schema**
 
 Here's an example where the client, in order to authenticate, needs to pass a header:
 
@@ -26,7 +24,7 @@ class MyController(APIController):
 
 ```
 
-## Global authentication 
+## **Global authentication** 
 
 In case you need to secure **all** route methods defined in `api` and APIController, you can pass the `auth` argument to the `NinjaExtraAPI` constructor:
 
@@ -47,5 +45,5 @@ api = NinjaExtraAPI(auth=GlobalAuth())
 ```
 Read more on django-ninja [authentication](https://django-ninja.rest-framework.com/tutorial/authentication/)
 
-## JWT Authentication
+## **JWT Authentication**
 if you want to use JWT authentication. See [ninja-jwt](https://pypi.org/project/django-ninja-jwt/)

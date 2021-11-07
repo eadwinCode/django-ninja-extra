@@ -78,7 +78,7 @@ api.register_controllers(
 
 Now go to `urls.py` and add the following:
 
-```Python hl_lines="3 7"
+```Python
 ...
 from .api import api
 
@@ -94,6 +94,6 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
-![Swagger UI](../../docs/images/ui_swagger_preview_readme.gif)
+![Swagger UI](images/ui_swagger_preview_readme.gif)
 ## What next?
 - To support this project, please give star it on Github

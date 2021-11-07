@@ -1,7 +1,8 @@
-## APIController Route Decorator
-To define an APIController function as route, it needs to be decorated with `route`
-The `route` decorator is like `router` class in Django-Ninja but the behaviour is different.
-Its main purpose is to define `route function` in APIController.
+# **APIController Route Decorator**
+
+The `route` class used as a function decorator in APIController class, tells APIController class to expose a particular function as an endpoint.
+`route` decorator is like `router` class in Django-Ninja but the behaviour is different. 
+And they can't be used interchangeably.
 
 For example
 ```python
@@ -17,51 +18,66 @@ assert isinstance(MyController.test, RouteFunction) # true
 
 ```
 The `route` predefined method that helps create the following operations
- - GET
- - POST
- - PUT
- - DELETE
- - PATCH
- - GENERIC - for operation combination eg: `methods=['POST', 'PATCH']`
+- GET
+- POST
+- PUT
+- DELETE
+- PATCH
+- GENERIC - for operation combination eg: `methods=['POST', 'PATCH']`
 
-## Initialization Parameters
-###`path`
+## **Initialization Parameters**
+-  ### **`path`**
 it's a required uniques endpoint path string
-### `methods`
+ 
+-  ### **`methods`**
 it's required a collection of endpoint operational mode eg: `['POST', 'PUT']`
-### `auth`
+ 
+-  ### **`auth`**
 defines endpoint authentication method. default: `NOT_SET`
-### `response`
+ 
+-  ### **`response`**
 defines `dict[status_code, schema]` or `Schema`. It is used validated returned response. default: `NOT_SET`
-### `operation_id`
+ 
+-  ### **`operation_id`**
 it is an optional unique id that distinguishes `operations` in path view. default: `NOT_SET`
-### `summary`
+ 
+-  ### **`summary`**
 it is an optional summary that describes your endpoint. default: `None`
-### `description`
+ 
+-  ### **`description`**
 it is an optional description that describes your endpoint. default: `None`
-### `tags`
+ 
+-  ### **`tags`**
 It is a list of strings useful for endpoint grouping for documentation purpose. default: `None`
-### `deprecated`
+ 
+-  ### **`deprecated`**
 it is an optional boolean parameter that declares an endpoint deprecated. default: `None`
-### `by_alias`
+ 
+-  ### **`by_alias`**
 it is an optional parameter that is applied to filter `response` schema object. default: `False`
-### `exclude_unset`
+ 
+-  ### **`exclude_unset`**
 it is an optional parameter that is applied to filter `response` schema object. default: `False`
-### `exclude_defaults`
+ 
+-  ### **`exclude_defaults`**
 it is an optional parameter that is applied to filter `response` schema object. default: `False`
-### `exclude_none`
+ 
+-  ### **`exclude_none`**
 it is an optional parameter that is applied to filter `response` schema object. default: `False`
-### `include_in_schema`
+ 
+-  ### **`include_in_schema`**
 indicates whether an endpoint should appear on the swagger documentation. default: `True`
-### `url_name`
+ 
+-  ### **`url_name`**
 it gives a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
-### `permissions`
+ 
+-  ### **`permissions`**
 defines collection route permissions. default: `None`
 
 Most of these parameters are what is used in creating and endpoint in Django-Ninja, but it has been abstracted here to be for the same purpose on APIController class
 
 
-## Async Route Definition
+## **Async Route Definition**
 **Django-Ninja-Extra** `route` class also supports async endpoint definition.
 This is only available on Django > 3.0
 For Example

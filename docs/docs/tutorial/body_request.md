@@ -1,4 +1,4 @@
-# Request Body
+# **Request Body**
 
 Request bodies are typically used with “create” and “update” operations (POST, PUT, PATCH).
 For example, when creating a resource using POST or PUT, the request body usually contains the representation of the resource to be created.
@@ -8,7 +8,7 @@ To declare a **request body**, you need to use **Django Ninja `Schema`**.
 !!! info
     Read more on django-ninja **[body request](https://django-ninja.rest-framework.com/tutorial/body/)**
 
-## Create your data model
+## **Create your data model**
 
 Then you declare your data model as a class that inherits from `Schema`.
 

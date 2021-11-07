@@ -94,7 +94,7 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
-![Swagger UI](docs/images/ui_swagger_preview_readme.gif)
+![Swagger UI](docs/docs/images/ui_swagger_preview_readme.gif)
 ## What next?
 
 - Full documentation here - Still in progress

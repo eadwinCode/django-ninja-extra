@@ -33,7 +33,7 @@ plugins:
 
 nav:
 - Index: index.md
-- Reference:
+- Tutorial / Reference:
   - intro: tutorial/index.md
   - APIController: tutorial/api_controller.md
   - Controller Routes: tutorial/api_controller_route.md
@@ -44,5 +44,10 @@ nav:
   - Versoning: tutorial/versioning.md
   - Pagination: tutorial/pagination.md
   - Exception: tutorial/custom_exception.md
-- Service Module and Injector: service_module_injector.md
+- Dependency Injection: service_module_injector.md
 
+markdown_extensions:
+- markdown_include.include
+- codehilite
+- admonition
+- pymdownx.superfences

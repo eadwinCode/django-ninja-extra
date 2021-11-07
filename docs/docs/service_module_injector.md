@@ -1,9 +1,13 @@
-## Injector
+# Dependency Injection
 
 **Django Ninja Extra** APIController comes with dependency injector support.
-Dependencies to a APIController can be resolved at constructor level automatically.
+
+Dependencies to a APIController can be resolved at constructor level automatically with using `@inject` decorator.
 This is possible with python [**Injector** ](https://injector.readthedocs.io/en/latest/) library. 
 Also, APIController injector works well with [**django_injector**](https://github.com/blubber/django_injector)
+
+!!! info
+    Read more [**Python Injector** ](https://injector.readthedocs.io/en/latest/)
 
 ```python
 from ninja import File

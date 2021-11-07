@@ -1,9 +1,9 @@
-# Tutorial - Intro
+# **Tutorial / Reference**
 
 This tutorial shows you how to use **Django Ninja Extra** with most of its features. 
 And most especially assumes you know how to use **Django Ninja**
 
-## Installation
+## **Installation**
 
 ```
 pip install django-ninja-extra
@@ -19,7 +19,7 @@ INSTALLED_APPS = [
 ```
 
 
-## Create a Django project
+## **Create a Django project**
 
 (If you already have an existing Django project, skip to the next step).
 
@@ -30,7 +30,7 @@ django-admin startproject myproject
 ```
 
 
-## First steps
+## **First steps**
 
 Let's create a module for our API.  Create an **api.py** file in the same directory location as **urls.py**:
 
@@ -63,7 +63,7 @@ urlpatterns = [
 ]
 ```
 
-## Defining operation methods
+## **Defining operation methods**
 
 "Operation" can be one of the HTTP "methods":
 

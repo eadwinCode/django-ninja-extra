@@ -1,8 +1,9 @@
-## Custom Exception
+# **Custom Exception**
 
 If you are coming from DRF, then you are use to `APIException` class.
-**Django-Ninja-Extra** has something similar with the same and a has created
-a `handler` for it.
+
+**Django-Ninja-Extra** provides something similar and a has created
+a `handler` for it used by Django-Ninja to manager custom errors.
 
 ```python
 from ninja_extra.exceptions import APIException
@@ -25,4 +26,4 @@ class MyController(APIController):
 api = NinjaExtraAPI(title='Exception Test')
 api.register_controllers(MyController)
 ```
-![Preview](../../../docs/images/custom_exception.gif)
+![Preview](../images/custom_exception.gif)
