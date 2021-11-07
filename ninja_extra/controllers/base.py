@@ -7,6 +7,7 @@ from typing import (
     List,
     Optional,
     Type,
+    Union,
     cast,
     no_type_check,
 )
@@ -22,6 +23,7 @@ from ninja.types import DictStrAny
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.operation import PathView
 from ninja_extra.permissions import BasePermission
+from ninja_extra.permissions.base import OperandHolder
 from ninja_extra.shortcuts import fail_silently
 
 from .route.route_functions import RouteFunction
@@ -41,7 +43,7 @@ def compute_api_route_function(
         controller.add_operation_from_route_function(cls_route_function)
 
 
-class APIControllerModelSchemaMetaclass(ABCMeta):
+class APIControllerModelMetaclass(ABCMeta):
     @no_type_check
     def __new__(mcs, name: str, bases: tuple, namespace: dict):
         cls = super().__new__(mcs, name, bases, namespace)
@@ -69,7 +71,7 @@ class APIControllerModelSchemaMetaclass(ABCMeta):
         return cls
 
 
-class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
+class APIController(ABC, metaclass=APIControllerModelMetaclass):
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
     auto_import = (
@@ -83,12 +85,12 @@ class APIController(ABC, metaclass=APIControllerModelSchemaMetaclass):
 
     registered: bool
     _router: Optional[ControllerRouter] = None
-    permission_classes: List[Type[BasePermission]]
+    permission_classes: Union[List[Type[BasePermission]], List[OperandHolder[Any]]]
     request: Optional[HttpRequest] = None
     tags: List[str] = []
 
     @classmethod
-    def get_router(cls) -> Optional[ControllerRouter]:
+    def get_router(cls) -> ControllerRouter:
         if not cls._router:
             raise MissingRouterDecoratorException(
                 "Controller Router not found. "

@@ -1,5 +1,9 @@
-![Test](https://github.com/eadwinCode/django-ninja-extra/workflows/Test/badge.svg)
-[![PyPI version](https://badge.fury.io/py/django-ninja-extra.svg)](https://badge.fury.io/py/django-ninja-extra)
+![Test](https://github.com/eadwinCode/django-ninja-jwt/workflows/Test/badge.svg)
+[![PyPI version](https://badge.fury.io/py/django-ninja-extra.svg)](https://badge.fury.io/py/django-ninja-jwt)
+[![PyPI version](https://img.shields.io/pypi/v/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+[![PyPI version](https://img.shields.io/pypi/pyversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+[![PyPI version](https://img.shields.io/pypi/djversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+
 # Django Ninja Extra
 
 **Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It adds **DRF** batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) and they are really extensible for custom use-cases.
@@ -12,6 +16,8 @@ All Django-Ninja features are fully supported plus others below:
 - **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector)
 
 ---
+## Documentation
+Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
 ## Installation
 
@@ -34,7 +40,6 @@ In your django project next to urls.py create new `api.py` file:
 ```Python
 from ninja_extra import NinjaExtraAPI
 from ninja_extra import APIController, route, router
-from ninja_extra.permissions import AllowAny
 from ninja_extra.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from .models import UserProfile
@@ -73,7 +78,7 @@ api.register_controllers(
 
 Now go to `urls.py` and add the following:
 
-```Python hl_lines="3 7"
+```Python
 ...
 from .api import api
 
@@ -89,7 +94,7 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
-![Swagger UI](docs/images/ui_swagger_preview_readme.gif)
+![Swagger UI](docs/docs/images/ui_swagger_preview_readme.gif)
 ## What next?
 
 - Full documentation here - Still in progress

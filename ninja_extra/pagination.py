@@ -3,7 +3,7 @@ import logging
 import sys
 from collections import OrderedDict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Optional, Tuple, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast
 
 from django.core.paginator import InvalidPage, Page, Paginator
 from django.db.models import QuerySet
@@ -78,7 +78,7 @@ class PageNumberPaginationExtra(PaginationBase):
         return DynamicInput
 
     def paginate_queryset(
-        self, items: QuerySet, request: HttpRequest, **params: DictStrAny
+        self, items: QuerySet, request: HttpRequest, **params: Any
     ) -> Any:
 
         pagination_input = cast(PageNumberPaginationExtra.Input, params["pagination"])
@@ -106,7 +106,7 @@ class PageNumberPaginationExtra(PaginationBase):
         )
 
     @classmethod
-    def get_response_schema(cls, response_schema: Schema) -> Type[Schema]:
+    def get_response_schema(cls, response_schema: Type[Schema]) -> Type[Schema]:
         if sys.version_info >= (3, 8):
             return PaginatedResponseSchema[response_schema]
         return get_paginated_response_schema(response_schema)
@@ -135,9 +135,7 @@ class PageNumberPaginationExtra(PaginationBase):
         return self.page_size
 
 
-def paginate(
-    func_or_pgn_class: Any = NOT_SET, **paginator_params: DictStrAny
-) -> Callable:
+def paginate(func_or_pgn_class: Any = NOT_SET, **paginator_params: Any) -> Callable:
     isfunction = inspect.isfunction(func_or_pgn_class)
     isnotset = func_or_pgn_class == NOT_SET
 
@@ -158,7 +156,7 @@ def paginate(
 def _inject_pagination(
     func: Callable,
     paginator_class: Type[PaginationBase],
-    **paginator_params: DictStrAny,
+    **paginator_params: Any,
 ) -> Callable:
     func_modified = cast(Any, func)
     func_modified.has_kwargs = True
@@ -172,9 +170,7 @@ def _inject_pagination(
     paginator_kwargs_name = "pagination"
 
     @wraps(func_modified)
-    def view_with_pagination(
-        controller: "APIController", *args: Tuple[Any], **kw: DictStrAny
-    ) -> Any:
+    def view_with_pagination(controller: "APIController", *args: Any, **kw: Any) -> Any:
         func_kwargs = dict(kw)
         if not func_modified.has_kwargs:
             func_kwargs.pop(paginator_kwargs_name)
