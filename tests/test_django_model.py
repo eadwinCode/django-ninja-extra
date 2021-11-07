@@ -12,7 +12,7 @@ def test_with_client(client: Client):
     test_item = {"start_date": "2020-01-01", "end_date": "2020-01-02", "title": "test"}
 
     response = client.post("/api/events/create", **json_payload(test_item))
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert Event.objects.count() == 1
 
     response = client.get("/api/events")
