@@ -2,7 +2,7 @@ from typing import Any, List
 
 from django.conf import settings as django_settings
 from django.test.signals import setting_changed
-from ninja_schema import Schema
+from ninja import Schema
 from pydantic import Field, root_validator, validator
 
 from ninja_extra.lazy import LazyStrImport
