@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-from injector import Binder, Module
 
 from ninja_extra import APIController, NinjaExtraAPI, route, router
 from ninja_extra.controllers.router import ControllerRegistry
@@ -12,11 +11,6 @@ from ninja_extra.controllers.router import ControllerRegistry
 class SomeAPIController(APIController):
     @route.get("/example")
     def example(self):
-        pass
-
-
-class MyServiceModule(Module):
-    def configure(self, binder: Binder) -> None:
         pass
 
 
@@ -60,13 +54,6 @@ def test_api_auto_discover_controller():
         auto_import = False
 
     assert str(SomeAPI2Controller) not in ControllerRegistry.get_controllers()
-
-
-def test_api_register_injector_modules_works():
-    ninja_extra_api = NinjaExtraAPI()
-    with mock.patch.object(MyServiceModule, "configure") as mock_configure:
-        ninja_extra_api.register_injector_modules(MyServiceModule)
-        assert mock_configure.call_count == 1
 
 
 def test_api_register_controller_works():

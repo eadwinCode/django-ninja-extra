@@ -8,15 +8,14 @@ from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast
 from django.core.paginator import InvalidPage, Page, Paginator
 from django.db.models import QuerySet
 from django.http import HttpRequest
-from django.utils.module_loading import import_string
 from ninja import Schema
-from ninja.conf import settings
 from ninja.constants import NOT_SET
 from ninja.pagination import LimitOffsetPagination, PageNumberPagination, PaginationBase
 from ninja.signature import has_kwargs
 from ninja.types import DictStrAny
 from pydantic import Field
 
+from ninja_extra.conf import settings
 from ninja_extra.exceptions import NotFound
 from ninja_extra.schemas import PaginatedResponseSchema, get_paginated_response_schema
 from ninja_extra.urls import remove_query_param, replace_query_param
@@ -139,7 +138,7 @@ def paginate(func_or_pgn_class: Any = NOT_SET, **paginator_params: Any) -> Calla
     isfunction = inspect.isfunction(func_or_pgn_class)
     isnotset = func_or_pgn_class == NOT_SET
 
-    pagination_class: Type[PaginationBase] = import_string(settings.PAGINATION_CLASS)
+    pagination_class: Type[PaginationBase] = settings.PAGINATION_CLASS
 
     if isfunction:
         return _inject_pagination(func_or_pgn_class, pagination_class)

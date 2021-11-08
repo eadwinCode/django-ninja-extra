@@ -33,17 +33,18 @@ plugins:
 
 nav:
 - Index: index.md
-- Tutorial / Reference:
-  - intro: tutorial/index.md
+- Usage:
+  - Quick Tutorial: tutorial/index.md
   - APIController: tutorial/api_controller.md
   - Controller Routes: tutorial/api_controller_route.md
   - Controller Permissions: tutorial/api_controller_permission.md
   - Controller Router: tutorial/api_controller_router.md
   - Authentication: tutorial/authentication.md
   - Body Request: tutorial/body_request.md
-  - Versoning: tutorial/versioning.md
+  - Settings: tutorial/settings.md
   - Pagination: tutorial/pagination.md
   - Exception: tutorial/custom_exception.md
+  - Versoning: tutorial/versioning.md
   - Testing: tutorial/testing.md
 - Dependency Injection: service_module_injector.md
 - Ninja Schema: ninja_schema.md

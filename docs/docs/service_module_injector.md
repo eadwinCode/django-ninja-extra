@@ -42,13 +42,13 @@ api.register_controllers(UserProfileController)
 
 ## **Module Registration**
 You can also register an injector module. And Inject the service to the APIController constructor
+
+### Create a module
+create a `modules.py` with the code below in your django-project
+
 ```python
 import logging
 import os
-
-from ninja import File
-from ninja.files import UploadedFile
-from ninja_extra import NinjaExtraAPI, APIController, route, router
 
 from typing import Any, cast
 from django.conf import Settings
@@ -96,6 +96,14 @@ class FileServiceModule(Module):
         binder.bind(BucketFileUpload, to=InMemoryBucketFileUpload, scope=singleton)
 
 
+```
+
+Create a `controller.py` with the code below
+```python
+from ninja import File
+from ninja.files import UploadedFile
+from ninja_extra import NinjaExtraAPI, APIController, route, router
+from .modules import BucketFileUpload, InMemoryBucketFileUpload
 
 @router('/user_profile')
 class UserProfileController(APIController):
@@ -111,5 +119,26 @@ class UserProfileController(APIController):
     
 api = NinjaExtraAPI(title='Injector Test')
 api.register_controllers(UserProfileController)
-api.register_injector_modules(FileServiceModule)
+```
+### Register your Module
+In your django `settings.py`, add your `FileServiceModule` module to the `NinjaExtra` settings
+
+```python
+...
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+NinjaExtra = {
+    'INJECTOR_MODULES': [
+        'myproject.modules.FileServiceModule'
+    ]
+}
+...
 ```

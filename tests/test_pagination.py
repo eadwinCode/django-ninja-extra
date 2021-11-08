@@ -47,7 +47,7 @@ class SomeAPIController(APIController):
 
     @route.get("/items_5")
     @paginate(PageNumberPagination, page_size=10)
-    def items_5(self):
+    def items_5_without_kwargs(self):
         return ITEMS
 
 

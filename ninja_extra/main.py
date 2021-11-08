@@ -4,7 +4,6 @@ from typing import Callable, Optional, Sequence, Type, Union
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
 from django.utils.module_loading import module_has_submodule
-from injector import Module
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.parser import Parser
@@ -12,7 +11,6 @@ from ninja.renderers import BaseRenderer
 
 from ninja_extra.controllers.base import APIController
 from ninja_extra.controllers.router import ControllerRegistry, ControllerRouter
-from ninja_extra.dependency_resolver import get_injector
 from ninja_extra.exceptions import APIException
 
 __all__ = [
@@ -88,14 +86,6 @@ class NinjaExtraAPI(NinjaAPI):
                     f"{router.__class__.__name__} has no controller"
                 )
             self.register_controllers(router.controller)
-
-    @classmethod
-    def register_injector_modules(cls, *modules: Union[Module, Type[Module]]) -> None:
-        for module in modules:
-            injector = get_injector()
-            if isinstance(module, type) and issubclass(module, Module):
-                module = module()
-            injector.binder.install(module)
 
     def auto_discover_controllers(self) -> None:
         from django.apps import apps
