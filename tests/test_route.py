@@ -5,7 +5,12 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, User
 
 from ninja_extra import APIController, permissions, route, router
-from ninja_extra.controllers import AsyncRouteFunction, Route, RouteFunction
+from ninja_extra.controllers import (
+    AsyncRouteFunction,
+    Route,
+    RouteFunction,
+    RouteInvalidParameterException,
+)
 from ninja_extra.exceptions import PermissionDenied
 
 anonymous_request = Mock()
@@ -81,6 +86,69 @@ class TestControllerRoutes:
 
     def test_controller_route_should_right_view_func_type(self):
         assert isinstance(SomeTestController.example, RouteFunction)
+
+    def test_route_generic_invalid_parameters(self):
+        with pytest.raises(RouteInvalidParameterException) as ex:
+
+            @route.generic("/example/list", methods=["SOMETHING", "GET"])
+            def example_list_create(self, ex_id: str):
+                pass
+
+        assert "SOMETHING" in str(ex)
+
+        with pytest.raises(RouteInvalidParameterException) as ex:
+
+            @route.generic("/example/list", methods="SOMETHING")
+            def example_list_create(self, ex_id: str):
+                pass
+
+        assert "methods must be a list" in str(ex)
+
+    @pytest.mark.parametrize(
+        "func, methods, kwargs",
+        [
+            (
+                "get",
+                ["GET"],
+                dict(
+                    auth="Something",
+                    response=dict(),
+                    operation_id="operation_id",
+                ),
+            ),
+            (
+                "post",
+                ["POST"],
+                dict(summary="summary", description="description", tags=["dsd"]),
+            ),
+            (
+                "delete",
+                ["DELETE"],
+                dict(by_alias=True, exclude_unset=True, exclude_defaults=True),
+            ),
+            ("patch", ["PATCH"], dict(url_name="url_name", include_in_schema=True)),
+            ("put", ["PUT"], dict(deprecated=True, exclude_none=True)),
+            (
+                "generic",
+                ["PUT", "PATCH"],
+                dict(
+                    auth="Something",
+                    response=dict(),
+                    operation_id="operation_id",
+                ),
+            ),
+        ],
+    )
+    def test_route_generates_required_route_definitions(self, func, methods, kwargs):
+        route_method = getattr(route, func)
+        route_instance: Route = (
+            route_method("/", methods=methods, **kwargs)
+            if func == "generic"
+            else route_method("/", **kwargs)
+        )
+        assert route_instance.route_params.methods == methods
+        for k, v in kwargs.items():
+            assert getattr(route_instance.route_params, k) == v
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
