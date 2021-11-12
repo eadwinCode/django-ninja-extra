@@ -15,7 +15,7 @@ PUT = "PUT"
 PATCH = "PATCH"
 DELETE = "DELETE"
 GET = "GET"
-ROUTE_METHODS = [POST, PUT, DELETE, GET]
+ROUTE_METHODS = [POST, PUT, PATCH, DELETE, GET]
 
 
 class RouteInvalidParameterException(Exception):
@@ -299,9 +299,11 @@ class Route(object):
             raise RouteInvalidParameterException("methods must be a list")
 
         methods = list(map(lambda m: m.upper(), methods))
-        for _method in methods:
-            if _method not in ROUTE_METHODS:
-                raise RouteInvalidParameterException(f"Method {_method} not allowed")
+        not_valid_methods = list(set(methods) - set(ROUTE_METHODS))
+        if not_valid_methods:
+            raise RouteInvalidParameterException(
+                f"Method {','.join(not_valid_methods)} not allowed"
+            )
 
         return Route(
             path,
