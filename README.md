@@ -38,14 +38,9 @@ INSTALLED_APPS = [
 In your django project next to urls.py create new `api.py` file:
 
 ```Python
-from ninja_extra import NinjaExtraAPI
-from ninja_extra import APIController, route, router
-from ninja_extra.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
-from .models import UserProfile
+from ninja_extra import NinjaExtraAPI, APIController, route, router
 
 api = NinjaExtraAPI()
-user_model = get_user_model()
 
 # function based definition
 @api.get("/add", tags=['Math'])
