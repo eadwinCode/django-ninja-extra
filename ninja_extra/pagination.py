@@ -161,8 +161,8 @@ def _inject_pagination(
     func_modified.has_kwargs = True
     if not has_kwargs(func_modified):
         func_modified.has_kwargs = False
-        logger.warning(
-            f"function {func_modified.__name__} should have **kwargs argument to be used with pagination"
+        logger.debug(
+            f"function {func_modified.__name__} should have **kwargs if you want to use pagination parameters"
         )
 
     paginator: PaginationBase = paginator_class(**paginator_params)
