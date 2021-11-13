@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast, no_type_check
+from typing import Any, Optional, Type, cast, no_type_check
 
 from django.db.models import Model, QuerySet
 from ninja.types import DictStrAny, TCallable
@@ -16,7 +16,7 @@ def fail_silently(func: TCallable, *args: Any, **kwargs: Any) -> Optional[Any]:
 
 
 @no_type_check
-def _get_queryset(klass: Model) -> QuerySet:
+def _get_queryset(klass: Type[Model]) -> QuerySet:
     # If it is a model class or anything else with ._default_manager
     if hasattr(klass, "_default_manager"):
         return cast(QuerySet, klass._default_manager.all())
@@ -25,10 +25,10 @@ def _get_queryset(klass: Model) -> QuerySet:
 
 @no_type_check
 def get_object_or_exception(
-    klass: Model,
+    klass: Type[Model],
     error_message: str = None,
-    exception: APIException = NotFound,
-    **kwargs: DictStrAny
+    exception: Type[APIException] = NotFound,
+    **kwargs: Any
 ) -> Any:
     queryset = _get_queryset(klass)
     _validate_queryset(klass, queryset)
@@ -52,7 +52,7 @@ def _format_dict(table: DictStrAny) -> str:
 
 
 @no_type_check
-def get_object_or_none(klass: Model, **kwargs) -> Optional[Any]:
+def get_object_or_none(klass: Type[Model], **kwargs: Any) -> Optional[Any]:
     queryset = _get_queryset(klass)
     _validate_queryset(klass, queryset)
     try:
@@ -62,7 +62,7 @@ def get_object_or_none(klass: Model, **kwargs) -> Optional[Any]:
 
 
 @no_type_check
-def _validate_queryset(klass: Model, queryset: Any) -> None:
+def _validate_queryset(klass: Type[Model], queryset: Any) -> None:
     if not hasattr(queryset, "get"):
         klass__name = (
             klass.__name__ if isinstance(klass, type) else klass.__class__.__name__
