@@ -61,7 +61,7 @@ class RouteFunction(object):
         for parameter in sig_inspect.parameters.values():
             if parameter.name not in skip_parameters:
                 sig_parameter.append(parameter)
-            if parameter.name == "request":
+            elif parameter.name == "request":
                 self.has_request_param = True
         return sig_inspect, sig_parameter
 

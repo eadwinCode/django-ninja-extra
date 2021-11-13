@@ -66,14 +66,19 @@ class Route(object):
             response = cast(ControllerResponse, response)
             _response = {response.status_code: response.get_schema()}
         elif isinstance(response, list):
-            _response = dict()
+            _response_computed = dict()
             for item in response:
                 if (
-                    inspect.isclass(response) and issubclass(item, ControllerResponse)
+                    inspect.isclass(item) and issubclass(item, ControllerResponse)
                 ) or isinstance(item, ControllerResponse):
-                    _response.update({item.status_code: item.get_schema()})
+                    _response_computed.update({item.status_code: item.get_schema()})
                 elif isinstance(item, dict):
-                    _response.update(**item)
+                    _response_computed.update(item)
+            if not _response_computed:
+                raise RouteInvalidParameterException(
+                    f"Invalid response configuration: {response}"
+                )
+            _response = _response_computed
 
         ninja_route_params = RouteParameter(
             path=path,

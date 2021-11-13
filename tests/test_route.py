@@ -3,11 +3,14 @@ from unittest.mock import Mock
 import django
 import pytest
 from django.contrib.auth.models import AnonymousUser, User
+from ninja import Schema
 
 from ninja_extra import APIController, permissions, route, router
 from ninja_extra.controllers import (
     AsyncRouteFunction,
     Detail,
+    Id,
+    Ok,
     Route,
     RouteFunction,
     RouteInvalidParameterException,
@@ -104,6 +107,34 @@ class TestControllerRoutes:
                 pass
 
         assert "methods must be a list" in str(ex)
+
+    def test_route_response_invalid_parameters(self):
+        with pytest.raises(RouteInvalidParameterException) as ex:
+
+            @route.get("/example/list", response=[dict(), ""])
+            def example_list_create(self, ex_id: str):
+                pass
+
+        assert "Invalid response configuration" in str(ex)
+
+    def test_route_response_parameters_computed_correctly(self):
+        unique_response = [Ok, Id, {302: Schema}]
+        non_unique_response = [
+            Ok,
+            Id,
+            {201: Schema},
+        ]  # Id status_code == 201 so it should be replaced by the dict response
+
+        @route.get("/example/list", response=unique_response)
+        def example_unique_response(self, ex_id: str):
+            pass
+
+        @route.get("/example/list", response=non_unique_response)
+        def example_non_unique_response(self, ex_id: str):
+            pass
+
+        assert len(example_unique_response.route.route_params.response) == 3
+        assert len(example_non_unique_response.route.route_params.response) == 2
 
     @pytest.mark.parametrize(
         "func, methods, kwargs",
