@@ -1,10 +1,12 @@
+import inspect
 import uuid
-from typing import Any, List, Optional, Type
+from typing import Any, List, Optional, Type, Union, cast
 
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
 from ninja.types import TCallable
 
+from ninja_extra.controllers.response import ControllerResponse
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
 
@@ -31,7 +33,7 @@ class Route(object):
         methods: List[str],
         *,
         auth: Any = NOT_SET,
-        response: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
         description: Optional[str] = None,
@@ -45,11 +47,39 @@ class Route(object):
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
     ) -> None:
+
+        if not isinstance(methods, list):
+            raise RouteInvalidParameterException("methods must be a list")
+
+        methods = list(map(lambda m: m.upper(), methods))
+        not_valid_methods = list(set(methods) - set(ROUTE_METHODS))
+        if not_valid_methods:
+            raise RouteInvalidParameterException(
+                f"Method {','.join(not_valid_methods)} not allowed"
+            )
+
+        _response = response
+        if (
+            inspect.isclass(response)
+            and issubclass(response, ControllerResponse)  # type:ignore
+        ) or isinstance(response, ControllerResponse):
+            response = cast(ControllerResponse, response)
+            _response = {response.status_code: response.get_schema()}
+        elif isinstance(response, list):
+            _response = dict()
+            for item in response:
+                if (
+                    inspect.isclass(response) and issubclass(item, ControllerResponse)
+                ) or isinstance(item, ControllerResponse):
+                    _response.update({item.status_code: item.get_schema()})
+                elif isinstance(item, dict):
+                    _response.update(**item)
+
         ninja_route_params = RouteParameter(
             path=path,
             methods=methods,
             auth=auth,
-            response=response,
+            response=_response,
             operation_id=operation_id,
             summary=summary,
             description=description,
@@ -84,7 +114,7 @@ class Route(object):
         path: str,
         *,
         auth: Any = NOT_SET,
-        response: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
         description: Optional[str] = None,
@@ -123,7 +153,7 @@ class Route(object):
         path: str,
         *,
         auth: Any = NOT_SET,
-        response: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
         description: Optional[str] = None,
@@ -162,7 +192,7 @@ class Route(object):
         path: str,
         *,
         auth: Any = NOT_SET,
-        response: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
         description: Optional[str] = None,
@@ -201,7 +231,7 @@ class Route(object):
         path: str,
         *,
         auth: Any = NOT_SET,
-        response: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
         description: Optional[str] = None,
@@ -240,7 +270,7 @@ class Route(object):
         path: str,
         *,
         auth: Any = NOT_SET,
-        response: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
         description: Optional[str] = None,
@@ -280,7 +310,7 @@ class Route(object):
         *,
         methods: List[str],
         auth: Any = NOT_SET,
-        response: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
         description: Optional[str] = None,
@@ -294,17 +324,6 @@ class Route(object):
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
     ) -> "Route":
-
-        if not isinstance(methods, list):
-            raise RouteInvalidParameterException("methods must be a list")
-
-        methods = list(map(lambda m: m.upper(), methods))
-        not_valid_methods = list(set(methods) - set(ROUTE_METHODS))
-        if not_valid_methods:
-            raise RouteInvalidParameterException(
-                f"Method {','.join(not_valid_methods)} not allowed"
-            )
-
         return Route(
             path,
             methods,

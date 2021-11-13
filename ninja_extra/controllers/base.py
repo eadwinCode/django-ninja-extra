@@ -26,6 +26,7 @@ from ninja_extra.permissions import BasePermission
 from ninja_extra.permissions.base import OperandHolder
 from ninja_extra.shortcuts import fail_silently
 
+from .response import ControllerResponse, Detail, Id, Ok
 from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 
@@ -88,6 +89,10 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
     permission_classes: Union[List[Type[BasePermission]], List[OperandHolder[Any]]]
     request: Optional[HttpRequest] = None
     tags: List[str] = []
+
+    Ok = Ok
+    Id = Id
+    Detail = Detail
 
     @classmethod
     def get_router(cls) -> ControllerRouter:
@@ -194,3 +199,8 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
                 request=self.request, controller=self, obj=obj
             ):
                 self.permission_denied(permission)
+
+    def create_response(
+        self, message: Any, status_code: int = 200
+    ) -> ControllerResponse:
+        return self.Detail(message=message, status_code=status_code)

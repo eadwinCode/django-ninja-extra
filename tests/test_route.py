@@ -7,6 +7,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from ninja_extra import APIController, permissions, route, router
 from ninja_extra.controllers import (
     AsyncRouteFunction,
+    Detail,
     Route,
     RouteFunction,
     RouteInvalidParameterException,
@@ -220,6 +221,19 @@ class TestRouteFunction:
         assert controller_instance.args == ("arg1", "arg2")
         assert controller_instance.kwargs == {"extra": "extra"}
         assert controller_instance.request == anonymous_request
+
+    def test_process_view_function_result_return_tuple_or_input(self):
+        route_function: RouteFunction = SomeTestController.example
+        mock_result = Detail("Some Message", status_code=302)
+        response = route_function._process_view_function_result(mock_result)
+        assert isinstance(response, tuple)
+        assert response[1] == mock_result.convert_to_schema()
+        assert response[0] == mock_result.status_code
+
+        mock_result = dict(status=302, message="Some Message")
+        response = route_function._process_view_function_result(mock_result)
+        assert not isinstance(response, tuple)
+        assert response == mock_result
 
 
 @pytest.mark.django_db

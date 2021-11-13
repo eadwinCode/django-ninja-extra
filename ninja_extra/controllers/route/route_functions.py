@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
+from ninja_extra.controllers.response import ControllerResponse
+
 from ...dependency_resolver import get_injector
 
 if TYPE_CHECKING:
@@ -52,9 +54,21 @@ class RouteFunction(object):
 
             if self.has_request_param:
                 api_func_kwargs.update(request=request)
-            return self.route.view_func(controller_instance, *args, **api_func_kwargs)
+            return self._process_view_function_result(
+                self.route.view_func(controller_instance, *args, **api_func_kwargs)
+            )
 
         return as_view
+
+    def _process_view_function_result(self, result: Any) -> Any:
+        """
+        This process any an returned value from view_func
+        and creates an api response if result is ControllerResponseSchema
+        """
+
+        if result and isinstance(result, ControllerResponse):
+            return result.status_code, result.convert_to_schema()
+        return result
 
     def _get_controller_instance(
         self, request: HttpRequest, *args: Any, **kwargs: Any
@@ -104,9 +118,10 @@ class AsyncRouteFunction(RouteFunction):
             api_func_kwargs = dict(**kwargs)
             if self.has_request_param:
                 api_func_kwargs.update(request=request)
-            return await self.route.view_func(
+            result = await self.route.view_func(
                 controller_instance, *args, **api_func_kwargs
             )
+            return self._process_view_function_result(result=result)
 
         return as_view
 
