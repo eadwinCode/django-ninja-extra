@@ -6,7 +6,7 @@
 
 # Django Ninja Extra
 
-**Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It adds **DRF** batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) and they are really extensible for custom use-cases.
+**Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It brings alot batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) which are also extensible for customization.
 
 **Key features:**
 
