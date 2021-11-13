@@ -20,12 +20,12 @@ All **Django-Ninja** features :
 Plus **Extra**:
 - **Class Based**: Design your APIs in a class based fashion.
 - **Route Permissions**: Protect endpoint(s) at ease with defined permissions. It could be specific to a route or general to all routes
-- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector)
+- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector). API dependable services can be injected to the controller class constructor and utility where needed
 
 ---
 
 ## Django-Ninja Benchmark
-Django-Ninja and Django-Ninja-Extra shares the same benchmark
+Both Django-Ninja and Django-Ninja-Extra shares the same benchmark because **Django-Ninja-Extra** operational core is **Django-Ninja**
 ![Django Ninja REST Framework](docs/docs/images/benchmark.png)
 
 Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
