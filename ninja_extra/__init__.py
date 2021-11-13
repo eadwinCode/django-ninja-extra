@@ -1,6 +1,6 @@
 """Django Ninja Extra - Class Based Utility and more for Django Ninja(Fast Django REST framework)"""
 
-__version__ = "0.12.0"
+__version__ = "0.12.1"
 
 from ninja_extra.controllers import APIController
 from ninja_extra.controllers.route import route
