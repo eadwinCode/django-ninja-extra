@@ -218,9 +218,9 @@ class TestRouteFunction:
             anonymous_request, "arg1", "arg2", extra="extra"
         )
         assert isinstance(controller_instance, SomeTestController)
-        assert controller_instance.args == ("arg1", "arg2")
-        assert controller_instance.kwargs == {"extra": "extra"}
-        assert controller_instance.request == anonymous_request
+        assert controller_instance.context.args == ("arg1", "arg2")
+        assert controller_instance.context.kwargs == {"extra": "extra"}
+        assert controller_instance.context.request == anonymous_request
 
     def test_process_view_function_result_return_tuple_or_input(self):
         route_function: RouteFunction = SomeTestController.example

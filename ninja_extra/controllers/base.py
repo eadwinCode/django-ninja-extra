@@ -12,7 +12,6 @@ from typing import (
     no_type_check,
 )
 
-from django.http.request import HttpRequest
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
@@ -27,7 +26,7 @@ from ninja_extra.permissions.base import OperandHolder
 from ninja_extra.shortcuts import fail_silently
 
 from .response import ControllerResponse, Detail, Id, Ok
-from .route.route_functions import RouteFunction
+from .route.route_functions import RouteFunction, RouteFunctionContext
 from .router import ControllerRouter
 
 
@@ -78,17 +77,26 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
     auto_import = (
         True  # set to false and it would be ignored when api.auto_discover is called
     )
-    _path_operations: Dict[str, PathView]
-    api: Optional[NinjaAPI] = None
-    args: List[Any] = []
-    kwargs: DictStrAny = dict()
-    auth: Optional[AuthBase] = None
 
+    # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
+    _path_operations: Dict[str, PathView]
+    # `api` a reference to NinjaExtraAPI on APIController registration
+    api: Optional[NinjaAPI] = None
+    # `auth` primarily defines APIController route function global authentication method.
+    auth: Optional[AuthBase] = None
+    # `registered` prevents controllers from being register twice or exist in two different `api` instances
     registered: bool
+    # `_router` a reference to ControllerRouter of any APIController with a ControllerRouter decorator
     _router: Optional[ControllerRouter] = None
+    # `permission_classes` primarily holds permission defined by the ControllerRouter and its used as
+    # a fallback if route functions has no permissions definition
     permission_classes: Union[List[Type[BasePermission]], List[OperandHolder[Any]]]
-    request: Optional[HttpRequest] = None
+    # `tags` is a property for grouping endpoint in Swagger API docs
     tags: List[str] = []
+
+    # `context` variable will change based on the route function called on the APIController
+    # that way we can get some specific items things that belong the route function during execution
+    context: RouteFunctionContext = RouteFunctionContext()
 
     Ok = Ok
     Id = Id
@@ -109,6 +117,7 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
 
     @classmethod
     def add_operation_from_route_function(cls, route_function: RouteFunction) -> None:
+        # converts route functions to Operation model
         cls.add_api_operation(
             view_func=route_function.as_view, **route_function.route.route_params.dict()
         )
@@ -174,7 +183,7 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        for permission_class in self.permission_classes:
+        for permission_class in self.context.permission_classes:
             permission_instance = permission_class()
             yield permission_instance
 
@@ -184,8 +193,8 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if self.request and not permission.has_permission(
-                request=self.request, controller=self
+            if self.context.request and not permission.has_permission(
+                request=self.context.request, controller=self
             ):
                 self.permission_denied(permission)
 
@@ -195,8 +204,8 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if self.request and not permission.has_object_permission(
-                request=self.request, controller=self, obj=obj
+            if self.context.request and not permission.has_object_permission(
+                request=self.context.request, controller=self, obj=obj
             ):
                 self.permission_denied(permission)
 

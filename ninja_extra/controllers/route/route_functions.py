@@ -1,16 +1,44 @@
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpRequest
+from django.http.request import HttpRequest
+from ninja.types import DictStrAny
 
 from ninja_extra.controllers.response import ControllerResponse
+from ninja_extra.permissions import BasePermission
+from ninja_extra.permissions.base import OperandHolder
 
 from ...dependency_resolver import get_injector
 
 if TYPE_CHECKING:
     from ...controllers import APIController, Route
+
+
+class RouteFunctionContext:
+    permission_classes: Union[
+        List[Type[BasePermission]], List[OperandHolder[Any]], List
+    ] = []
+    request: Optional[HttpRequest] = None
+    args: List[Any] = []
+    kwargs: DictStrAny = dict()
+
+    def __init__(self, **kwargs: Any) -> None:
+        self.permission_classes = kwargs.get("permission_classes", [])
+        self.request = kwargs.get("request")
+        self.args = kwargs.get("args", [])
+        self.kwargs = kwargs.get("kwargs", dict())
 
 
 class RouteFunction(object):
@@ -79,9 +107,7 @@ class RouteFunction(object):
         assert self.controller
         controller_instance: "APIController" = injector.create_object(self.controller)
 
-        for k, v in init_kwargs.items():
-            if hasattr(controller_instance, k):
-                setattr(controller_instance, k, v)
+        controller_instance.context = RouteFunctionContext(**init_kwargs)
         return controller_instance
 
     def _get_controller_init_kwargs(
