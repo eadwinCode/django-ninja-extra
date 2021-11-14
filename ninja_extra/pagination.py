@@ -105,7 +105,9 @@ class PageNumberPaginationExtra(PaginationBase):
         )
 
     @classmethod
-    def get_response_schema(cls, response_schema: Type[Schema]) -> Type[Schema]:
+    def get_response_schema(
+        cls, response_schema: Union[Schema, Type[Schema]]
+    ) -> Type[Schema]:
         if sys.version_info >= (3, 8):
             return PaginatedResponseSchema[response_schema]
         return get_paginated_response_schema(response_schema)
