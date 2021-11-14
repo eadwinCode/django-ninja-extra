@@ -24,6 +24,12 @@ Plus **Extra**:
 
 ---
 
+### Requirements
+- Python >= 3.6
+- django >= 2.1 
+- pydantic >= 1.6 
+- Django-Ninja >= 0.16.1
+
 ## Django-Ninja Benchmark
 Both Django-Ninja and Django-Ninja-Extra shares the same benchmark because **Django-Ninja-Extra** operational core is **Django-Ninja**
 ![Django Ninja REST Framework](docs/docs/images/benchmark.png)

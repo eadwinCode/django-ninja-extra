@@ -1,8 +1,9 @@
 # **Testing APIController**
 
-**Django Ninja Extra** has a TestClient that provides seamless testing of APIController classes.
+**Django Ninja Extra** has a TestClient that provides seamless testing of APIController classes with `pytest`
 
 There are two test clients
+
 - `TestClient`: for synchronous route functions
 - `TestClientAsync`: for asynchronous route functions
 
@@ -32,6 +33,7 @@ class MyMathController(APIController):
     def multiple(self, a: int, b: int):
         """Multiples a with b"""
         return {"result": a * b}
+
 
 class TestMyMathController:
     def test_add_endpoint_works(self):

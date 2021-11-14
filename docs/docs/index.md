@@ -4,7 +4,27 @@
 [![PyPI version](https://img.shields.io/pypi/pyversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![PyPI version](https://img.shields.io/pypi/djversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 
-**Django Ninja Extra** is a utility library built on top of [**Django Ninja**](https://django-ninja.rest-framework.com) for building and setting up APIs at incredible speed and performance. 
+# Django Ninja Extra
+
+**Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It brings alot batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) which are also extensible for customization.
+
+**Key features:**
+
+All **Django-Ninja** features:
+
+- **Easy**: Designed to be easy to use and intuitive.
+- **FAST execution**: Very high performance thanks to **<a href="https://pydantic-docs.helpmanual.io" target="_blank">Pydantic</a>** and **<a href="/async-support/">async support</a>**.
+- **Fast to code**: Type hints and automatic docs lets you focus only on business logic.
+- **Standards-based**: Based on the open standards for APIs: **OpenAPI** (previously known as Swagger) and **JSON Schema**.
+- **Django friendly**: (obviously) has good integration with the Django core and ORM.
+
+Plus **Extra**:
+
+- **Class Based**: Design your APIs in a class based fashion.
+- **Permissions**: Protect endpoint(s) at ease with defined permissions and authorizations at route level or controller level.
+- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector). Giving you the ability to inject API dependable services at the controller class constructor and utilizing them where needed
+
+---
 
 ### Requirements
 - Python >= 3.6
@@ -12,15 +32,11 @@
 - pydantic >= 1.6 
 - Django-Ninja >= 0.16.1
 
----
+## Django-Ninja Benchmark
+Both Django-Ninja and Django-Ninja-Extra shares the same benchmark because **Django-Ninja-Extra** operational core is **Django-Ninja**
+![Django Ninja REST Framework](images/benchmark.png)
 
-### Key Features
-All Django-Ninja features are fully supported plus others below:
-
-- **Class Based**: Design your APIs in a class based fashion.
-- **Permissions**: Protect endpoint(s) at ease, specific or general
-- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector)
-
+Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
 ## Installation
 
@@ -36,14 +52,12 @@ INSTALLED_APPS = [
 ]
 ```
 
-## Quick Example
+## Usage
 
 In your django project next to urls.py create new `api.py` file:
 
 ```Python
-from ninja_extra import NinjaExtraAPI
-from ninja_extra import APIController, route, router
-from ninja_extra.permissions import AllowAny
+from ninja_extra import NinjaExtraAPI, APIController, route, router
 
 api = NinjaExtraAPI()
 
@@ -53,8 +67,8 @@ def add(request, a: int, b: int):
     return {"result": a + b}
 
 #class based definition
-@router('', tags=['Math'], permissions=[AllowAny])
-class MyController(APIController):
+@router('/', tags=['Math'], permissions=[])
+class MathAPI(APIController):
 
     @route.get('/subtract',)
     def subtract(self, a: int, b: int):
@@ -72,7 +86,7 @@ class MyController(APIController):
         return {"result": a * b}
     
 api.register_controllers(
-    MyController
+    MathAPI
 )
 ```
 
@@ -90,7 +104,7 @@ urlpatterns = [
 
 ### Interactive API docs
 
-Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.0.1:8000/api/docs </a>
+Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.0.1:8000/api/docs</a>
 
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 

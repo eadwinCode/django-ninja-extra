@@ -1,10 +1,9 @@
 # **Custom Exception**
+**Django-Ninja** provide a flask way of handling custom exceptions by registering its exception handlers.
 
-If you are coming from DRF, then you are use to `APIException` class.
+**Django-Ninja-Extra** creates an `APIException` class which provides similar functionalities, for those use to DRF `APIException`.
 
-**Django-Ninja-Extra** provides something similar and a has created
-a `handler` for it used by Django-Ninja to manager custom errors.
-
+For Example: 
 ```python
 from ninja_extra.exceptions import APIException
 from ninja_extra import status

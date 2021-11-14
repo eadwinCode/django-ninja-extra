@@ -1,6 +1,6 @@
 # **Pagination**
 
-**Django Ninja Extra** Pagination decorator gives you more pagination information, and it is very extensible.
+**Django Ninja Extra** provides an intuitive pagination model.
 
 ## **Usage**
 ```python

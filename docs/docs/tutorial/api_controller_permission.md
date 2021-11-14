@@ -2,22 +2,15 @@
 
 The concept of these permission system came from Django [DRF](https://www.django-rest-framework.org/api-guide/permissions/).
 
-Permission checks are always run at the very start of the route function, 
-before any other code is allowed to proceed. 
-Permission checks will typically use the authentication information 
-in the `request.user` and `request.auth` properties to determine 
-if the incoming request should be permitted.
+Permission checks are always run at the very start of the route function, before any other code is allowed to proceed. 
+Permission checks will typically use the authentication information in the `request.user` and `request.auth` properties to determine if the incoming request should be permitted.
 
-Permissions are used to grant or deny access for 
-different classes of users to different parts of the API.
+Permissions are used to grant or deny access for different classes of users to different parts of the API.
 
-The simplest style of permission would be to allow access 
-to any authenticated user, and deny access to any unauthenticated user. 
+The simplest style of permission would be to allow access to any authenticated user, and deny access to any unauthenticated user. 
 This corresponds to the `IsAuthenticated` class in **Django Ninja Extra**.
 
-A slightly less strict style of permission would be to 
-allow full access to authenticated users, 
-but allow read-only access to unauthenticated users. 
+A slightly less strict style of permission would be to allow full access to authenticated users, but allow read-only access to unauthenticated users. 
 This corresponds to the `IsAuthenticatedOrReadOnly` class in **Django Ninja Extra**.
 
 ### **Limitations of object level permissions**

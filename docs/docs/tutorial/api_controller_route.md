@@ -1,8 +1,12 @@
 # **APIController Route Decorator**
 
-The `route` class used as a function decorator in APIController class, tells APIController class to expose a particular function as an endpoint.
-`route` decorator is like `router` class in Django-Ninja but the behaviour is different. 
-And they can't be used interchangeably.
+The `route` class used as a function decorator in APIController class as you have since in APIController doc.
+It tells APIController class to expose a particular function as an endpoint.
+`route` decorator is more like **django-ninja** `router` class instance. 
+The difference is `route` only defines controller endpoints and can only be used in APIController at the moment.
+
+!!! info
+    `ControllerRoute` which is `route` and **django-ninja** `router` can't be used interchangeably
 
 For example
 ```python

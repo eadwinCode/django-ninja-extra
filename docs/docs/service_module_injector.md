@@ -1,13 +1,20 @@
 # Dependency Injection
 
-**Django Ninja Extra** APIController support dependency injection.
+**Django Ninja Extra** APIController support dependency injection is one of the core features of the library.
 
-Dependencies to a APIController can be resolved at constructor level automatically with using `@inject` decorator.
-This is possible with python [**Injector** ](https://injector.readthedocs.io/en/latest/) library. 
-Also, APIController injector works well with [**django_injector**](https://github.com/blubber/django_injector)
+Having the ability to inject services to the controller is as simple as
+overriding your controller constructor and defining a parameter with a type. APIController will take care of the rest.
+This is possible using python [**Injector** ](https://injector.readthedocs.io/en/latest/) library. 
 
-!!! info
+During APIController class initialization, injector instance is used to resolve the APIController instance, and parameters with annotations will be resolved automatically.
+
+If you have [**django_injector**](https://github.com/blubber/django_injector) in your project, **Django-Ninja-Extra** supports it as well. 
+There is no extra configuration
+
+!!! warning
+    You are not only allowed to override your APIController constructor with **parameter** that don't have **annotations**
     Read more [**Python Injector** ](https://injector.readthedocs.io/en/latest/)
+
 
 ```python
 from ninja import File

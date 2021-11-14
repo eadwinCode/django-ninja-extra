@@ -11,22 +11,27 @@ clean: ## Removing cached python compiled files
 	find . -name __pycache__  | xargs  rm -rfv
 
 install: ## Install dependencies
+	make clean
 	flit install --deps develop --symlink
 
 lint: ## Run code linters
+	make clean
 	black --check ninja_extra tests
 	isort --check ninja_extra tests
 	flake8 ninja_extra tests
 	mypy ninja_extra
 
 fmt format: ## Run code formatters
+	make clean
 	black ninja_extra tests
 	isort ninja_extra tests
 
 test: ## Run tests
+	make clean
 	pytest .
 
 test-cov: ## Run tests with coverage
+	make clean
 	pytest --cov=ninja_extra --cov-report term-missing tests
 
 doc-deploy: ## Run Deploy Documentation
