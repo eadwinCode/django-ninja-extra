@@ -57,7 +57,7 @@ class TestAPIController:
         api = NinjaExtraAPI()
         assert SomeController.tags == ["some"]
         assert SomeController._path_operations == {}
-        assert SomeController.permission_classes is None
+        assert SomeController.permission_classes == [AllowAny]
         assert SomeController._router is None
         assert SomeController.api is None
         assert SomeController.registered is False
