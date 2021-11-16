@@ -14,9 +14,11 @@ class NinjaExtraConfig(AppConfig):
     name = "ninja_extra"
     verbose_name = _("Django Ninja Extra")
     injector: Injector
+    ninja_extra_module = None
 
     def ready(self) -> None:
-        self.injector = Injector([NinjaExtraModule])
+        self.ninja_extra_module = NinjaExtraModule()
+        self.injector = Injector([self.ninja_extra_module])
         # get django_injector is available or registered
         django_injector_app = fail_silently(
             apps.get_app_config, app_label="django_injector"

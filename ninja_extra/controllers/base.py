@@ -7,7 +7,6 @@ from typing import (
     List,
     Optional,
     Type,
-    Union,
     cast,
     no_type_check,
 )
@@ -21,12 +20,13 @@ from ninja.types import DictStrAny
 
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.operation import PathView
-from ninja_extra.permissions import BasePermission
-from ninja_extra.permissions.base import OperandHolder
+from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.shortcuts import fail_silently
+from ninja_extra.types import PermissionType
 
 from .response import ControllerResponse, Detail, Id, Ok
-from .route.route_functions import RouteFunction, RouteFunctionContext
+from .route.context import RouteContext
+from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 
 
@@ -54,7 +54,6 @@ class APIControllerModelMetaclass(ABCMeta):
         cls._path_operations = {}
         cls.api = namespace.get("api", None)
         cls.registered = False
-        cls.permission_classes = None
 
         if not namespace.get("tags"):
             tag = str(cls.__name__).lower().replace("controller", "")
@@ -90,13 +89,13 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
     _router: Optional[ControllerRouter] = None
     # `permission_classes` primarily holds permission defined by the ControllerRouter and its used as
     # a fallback if route functions has no permissions definition
-    permission_classes: Union[List[Type[BasePermission]], List[OperandHolder[Any]]]
+    permission_classes: PermissionType = [AllowAny]  # type: ignore
     # `tags` is a property for grouping endpoint in Swagger API docs
     tags: List[str] = []
 
     # `context` variable will change based on the route function called on the APIController
     # that way we can get some specific items things that belong the route function during execution
-    context: RouteFunctionContext = RouteFunctionContext()
+    context: Optional[RouteContext] = None
 
     Ok = Ok
     Id = Id
@@ -183,6 +182,9 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
+        if not self.context:
+            return
+
         for permission_class in self.context.permission_classes:
             permission_instance = permission_class()
             yield permission_instance
@@ -193,8 +195,12 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if self.context.request and not permission.has_permission(
-                request=self.context.request, controller=self
+            if (
+                self.context
+                and self.context.request
+                and not permission.has_permission(
+                    request=self.context.request, controller=self
+                )
             ):
                 self.permission_denied(permission)
 
@@ -204,8 +210,12 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         Raises an appropriate exception if the request is not permitted.
         """
         for permission in self.get_permissions():
-            if self.context.request and not permission.has_object_permission(
-                request=self.context.request, controller=self, obj=obj
+            if (
+                self.context
+                and self.context.request
+                and not permission.has_object_permission(
+                    request=self.context.request, controller=self, obj=obj
+                )
             ):
                 self.permission_denied(permission)
 

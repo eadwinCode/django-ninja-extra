@@ -15,7 +15,10 @@ from ninja_extra.controllers import (
     RouteFunction,
     RouteInvalidParameterException,
 )
+from ninja_extra.controllers.route.context import RouteContext
 from ninja_extra.exceptions import PermissionDenied
+from ninja_extra.permissions import AllowAny
+from tests.utils import mock_signal_call
 
 anonymous_request = Mock()
 anonymous_request.user = AnonymousUser()
@@ -233,25 +236,22 @@ class TestRouteFunction:
     def test_get_controller_init_kwargs(self):
         route_function = route.get("")(self.api_func)
         route_function.controller = Mock()
-        route_function.controller.permission_classes = []
+        route_function.controller.permission_classes = [AllowAny]
 
-        controller_init_kwargs = route_function._get_controller_init_kwargs(
+        route_context = route_function._get_controller_route_context(
             anonymous_request, "arg1", "arg2", extra="extra"
         )
-        assert isinstance(controller_init_kwargs, dict)
+        assert isinstance(route_context, RouteContext)
         expected_keywords = ("permission_classes", "request", "args", "kwargs")
         for key in expected_keywords:
-            assert key in controller_init_kwargs
+            assert getattr(route_context, key)
 
     def test_get_controller_instance_return_controller_instance(self):
         route_function: RouteFunction = SomeTestController.example
-        controller_instance = route_function._get_controller_instance(
-            anonymous_request, "arg1", "arg2", extra="extra"
-        )
+        controller_instance = route_function._get_controller_instance()
         assert isinstance(controller_instance, SomeTestController)
-        assert controller_instance.context.args == ("arg1", "arg2")
-        assert controller_instance.context.kwargs == {"extra": "extra"}
-        assert controller_instance.context.request == anonymous_request
+        assert isinstance(controller_instance, SomeTestController)
+        assert controller_instance.context is None
 
     def test_process_view_function_result_return_tuple_or_input(self):
         route_function: RouteFunction = SomeTestController.example
@@ -296,3 +296,30 @@ class TestAPIControllerRoutePermission:
     def test_route_is_protected_by_its_permissions(self):
         response = PermissionController.example_allow_any(anonymous_request)
         assert response == {"message": "OK"}
+
+    @mock_signal_call("route_context_started")
+    @mock_signal_call("route_context_finished")
+    def test_route_prep_controller_route_execution_context_works(self):
+        route_function: RouteFunction = SomeTestController.example
+        with route_function._prep_controller_route_execution_context(
+            request=anonymous_request
+        ) as ctx:
+            assert isinstance(ctx.controller_instance, SomeTestController)
+            assert ctx.controller_instance.context
+        assert ctx.controller_instance.context is None
+
+    @mock_signal_call("route_context_started")
+    @mock_signal_call("route_context_finished")
+    def test_route_prep_controller_route_execution_context_cleans_controller_after_route_execution(
+        self,
+    ):
+        route_function: RouteFunction = SomeTestController.example
+        with pytest.raises(Exception):
+            with route_function._prep_controller_route_execution_context(
+                request=anonymous_request
+            ) as ctx:
+                assert isinstance(ctx.controller_instance, SomeTestController)
+                assert ctx.controller_instance.context
+                raise Exception("Should raise an exception")
+
+        assert ctx.controller_instance.context is None

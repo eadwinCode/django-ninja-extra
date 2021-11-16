@@ -177,7 +177,9 @@ def _inject_pagination(
             func_kwargs.pop(paginator_kwargs_name)
 
         items = func(controller, *args, **func_kwargs)
-        assert controller.context.request, "Request object is None"
+        assert (
+            controller.context and controller.context.request
+        ), "Request object is None"
         return paginator.paginate_queryset(items, controller.context.request, **kw)
 
     view_with_pagination._ninja_contribute_args = [  # type: ignore

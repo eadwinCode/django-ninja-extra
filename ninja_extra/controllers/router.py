@@ -17,13 +17,12 @@ from ninja.types import DictStrAny
 from ninja.utils import normalize_path
 
 from ninja_extra.controllers.route.route_functions import RouteFunction
-from ninja_extra.permissions import BasePermission
 from ninja_extra.permissions.common import AllowAny
 
 if TYPE_CHECKING:
     from ninja_extra import NinjaExtraAPI
     from ninja_extra.controllers.base import APIController
-    from ninja_extra.permissions.base import OperandHolder
+    from ninja_extra.types import PermissionType
 
 
 class ControllerBorg:
@@ -36,7 +35,7 @@ class ControllerBorg:
 
     def add_controller(self, controller: Type["APIController"]) -> None:
         if controller.auto_import:
-            self._shared_state_["controllers"].update(**{str(controller): controller})
+            self._shared_state_["controllers"].update({str(controller): controller})
 
     def remove_controller(
         self, controller: Type["APIController"]
@@ -68,9 +67,7 @@ class ControllerRouter:
         *,
         auth: Any = NOT_SET,
         tags: Optional[List[str]] = None,
-        permissions: Optional[
-            Union[List[Type[BasePermission]], List["OperandHolder[Any]"]]
-        ] = None,
+        permissions: Optional["PermissionType"] = None,
         controller: Optional[Type["APIController"]] = None,
     ) -> None:
         self.prefix = prefix
