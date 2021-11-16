@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, Type
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http.request import HttpRequest
-from django.utils.log import request_logger
+from ninja_extra.logger import request_logger
 
 from ninja_extra.controllers.response import ControllerResponse
 from ninja_extra.signals import route_context_finished, route_context_started
