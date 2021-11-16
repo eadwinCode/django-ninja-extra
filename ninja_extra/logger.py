@@ -1,3 +1,3 @@
 import logging
 
-request_logger = logging.getLogger('django.request')
+request_logger = logging.getLogger("django.request")
