@@ -1,5 +1,6 @@
-import pytest
 import django
+import pytest
+
 from ninja_extra import APIController, route, router
 from ninja_extra.testing import TestAsyncClient, TestClient
 
@@ -38,6 +39,7 @@ class TestOperation:
 @pytest.mark.asyncio
 class TestAsyncOperations:
     if not django.VERSION < (3, 1):
+
         @router("")
         class SomeTestController(APIController):
             @route.get("/example")
