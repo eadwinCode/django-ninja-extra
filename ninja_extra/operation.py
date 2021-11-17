@@ -45,7 +45,7 @@ class Operation(NinjaOperation):
             )
             msg = (
                 f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
-                f'{route_function.__class__.__name__}[{self.view_func.__name__}] {request.path}" '
+                f'{route_function.controller.__class__.__name__}[{self.view_func.__name__}] {request.path}" '
                 f"{duration if duration else str(ex)}"
             )
             logger(msg, **kwargs)
