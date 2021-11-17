@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple, Type, Union, cast
+from typing import List, Optional, Tuple, Type, TypeVar, Union, cast
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
@@ -8,6 +8,8 @@ from ninja_extra.apps import NinjaExtraConfig
 from ninja_extra.shortcuts import fail_silently
 
 __all__ = ["service_resolver", "get_injector", "register_injector_modules"]
+
+T = TypeVar("T")
 
 
 def get_injector() -> Injector:
@@ -23,17 +25,17 @@ def get_injector() -> Injector:
     return injector
 
 
-def service_resolver(*services: type) -> Union[Tuple[Any], Any]:
-    assert services, "Service can not be empty"
+def service_resolver(*interfaces: Type[T]) -> Union[Tuple[T, ...], T]:
+    assert interfaces, "Service can not be empty"
 
     injector = get_injector()
 
-    if len(services) > 1:
-        services_resolved: List[Any] = []
-        for service in services:
+    if len(interfaces) > 1:
+        services_resolved: List[T] = []
+        for service in interfaces:
             services_resolved.append(injector.get(service))
         return tuple(services_resolved)
-    return injector.get(services[0])
+    return injector.get(interfaces[0])
 
 
 def register_injector_modules(*modules: Union[Module, Type[Module]]) -> None:

@@ -1,5 +1,6 @@
 from abc import ABC, ABCMeta
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -25,9 +26,11 @@ from ninja_extra.shortcuts import fail_silently
 from ninja_extra.types import PermissionType
 
 from .response import ControllerResponse, Detail, Id, Ok
-from .route.context import RouteContext
 from .route.route_functions import RouteFunction
 from .router import ControllerRouter
+
+if TYPE_CHECKING:
+    from .route.context import RouteContext
 
 
 class MissingRouterDecoratorException(Exception):
@@ -95,7 +98,7 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
 
     # `context` variable will change based on the route function called on the APIController
     # that way we can get some specific items things that belong the route function during execution
-    context: Optional[RouteContext] = None
+    context: Optional["RouteContext"] = None
 
     Ok = Ok
     Id = Id
