@@ -107,7 +107,8 @@ class Operation(NinjaOperation):
             with self._prep_run(request, **kw) as ctx:
                 values, context = ctx
                 result = self.view_func(context=context, **values)
-            return self._result_to_response(request, result)
+                _processed_results = self._result_to_response(request, result)
+            return _processed_results
         except Exception as e:
             if isinstance(e, TypeError) and "required positional argument" in str(e):
                 msg = "Did you fail to use functools.wraps() in a decorator?"
@@ -125,7 +126,8 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             with self._prep_run(request, **kw) as ctx:
                 values, context = ctx
                 result = await self.view_func(context=context, **values)
-            return self._result_to_response(request, result)
+                _processed_results = self._result_to_response(request, result)
+            return _processed_results
         except Exception as e:
             return self.api.on_exception(request, e)
 
