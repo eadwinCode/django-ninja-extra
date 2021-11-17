@@ -20,7 +20,7 @@ All **Django-Ninja** features :
 Plus **Extra**:
 - **Class Based**: Design your APIs in a class based fashion.
 - **Permissions**: Protect endpoint(s) at ease with defined permissions and authorizations at route level or controller level.
-- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector). Giving you the ability to inject API dependable services at the controller class constructor and utilizing them where needed
+- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector). Giving you the ability to inject API dependable services to APIController class and utilizing them where needed
 
 ---
 
