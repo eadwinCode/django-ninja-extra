@@ -43,9 +43,10 @@ class Operation(NinjaOperation):
             route_function: "RouteFunction" = (
                 self.view_func.get_route_function()  # type:ignore
             )
+            assert route_function.controller
             msg = (
                 f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
-                f'{route_function.controller.__class__.__name__}[{self.view_func.__name__}] {request.path}" '
+                f'{route_function.controller.__name__}[{self.view_func.__name__}] {request.path}" '
                 f"{duration if duration else str(ex)}"
             )
             logger(msg, **kwargs)

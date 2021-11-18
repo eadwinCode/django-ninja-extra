@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Generic, List, Optional, Type, TypeVar
 
 from ninja import Schema
 from ninja.constants import NOT_SET
@@ -7,9 +7,9 @@ from pydantic.generics import GenericModel
 from pydantic.main import BaseModel
 from pydantic.networks import AnyHttpUrl
 
-T = TypeVar("T")
+from ninja_extra.generic import GenericType
 
-PaginatedResponseSchema = None
+T = TypeVar("T")
 
 
 class BasePaginatedResponseSchema(Schema):
@@ -19,23 +19,23 @@ class BasePaginatedResponseSchema(Schema):
     results: List[Any]
 
 
+class PaginatedResponseSchema(GenericType):
+    def get_generic_type(self, wrap_type: Any) -> Type[BasePaginatedResponseSchema]:
+        class ListResponseSchema(BasePaginatedResponseSchema):
+            results: List[wrap_type]  # type: ignore
+
+        ListResponseSchema.__name__ = (
+            f"{self.__class__.__name__}[{str(wrap_type.__name__).capitalize()}]"
+        )
+        return ListResponseSchema
+
+
 if sys.version_info >= (3, 8):
 
     class PaginatedResponseSchema(
         GenericModel, Generic[T], BasePaginatedResponseSchema
     ):
         results: List[T]
-
-
-def get_paginated_response_schema(
-    item_schema: Union[Schema, Type[Schema]],
-) -> Type[BasePaginatedResponseSchema]:
-    # fix for paginatedResponseSchema for python 3.6 and 3.7 which doesn't support generic typing
-    class ListResponseSchema(BasePaginatedResponseSchema):
-        results: List[item_schema]  # type: ignore
-
-    ListResponseSchema.__name__ = f"List{str(item_schema.__name__).capitalize()}"  # type: ignore
-    return ListResponseSchema
 
 
 class RouteParameter(BaseModel):

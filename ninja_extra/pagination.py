@@ -1,9 +1,8 @@
 import inspect
 import logging
-import sys
 from collections import OrderedDict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast, overload
 
 from django.core.paginator import InvalidPage, Page, Paginator
 from django.db.models import QuerySet
@@ -17,7 +16,7 @@ from pydantic import Field
 
 from ninja_extra.conf import settings
 from ninja_extra.exceptions import NotFound
-from ninja_extra.schemas import PaginatedResponseSchema, get_paginated_response_schema
+from ninja_extra.schemas import PaginatedResponseSchema
 from ninja_extra.urls import remove_query_param, replace_query_param
 
 logger = logging.getLogger()
@@ -31,6 +30,7 @@ __all__ = [
     "PaginationBase",
     "LimitOffsetPagination",
     "paginate",
+    "PaginatedResponseSchema",
 ]
 
 
@@ -106,11 +106,9 @@ class PageNumberPaginationExtra(PaginationBase):
 
     @classmethod
     def get_response_schema(
-        cls, response_schema: Union[Schema, Type[Schema]]
-    ) -> Type[Schema]:
-        if sys.version_info >= (3, 8):
-            return PaginatedResponseSchema[response_schema]
-        return get_paginated_response_schema(response_schema)
+        cls, response_schema: Union[Schema, Type[Schema], Any]
+    ) -> Any:
+        return PaginatedResponseSchema[response_schema]
 
     def get_next_link(self, url: str, page: Page) -> Optional[str]:
         if not page.has_next():
@@ -136,7 +134,21 @@ class PageNumberPaginationExtra(PaginationBase):
         return self.page_size
 
 
-def paginate(func_or_pgn_class: Any = NOT_SET, **paginator_params: Any) -> Callable:
+@overload
+def paginate() -> Callable[..., Any]:
+    ...
+
+
+@overload
+def paginate(
+    func_or_pgn_class: Any = NOT_SET, **paginator_params: Any
+) -> Callable[..., Any]:
+    ...
+
+
+def paginate(
+    func_or_pgn_class: Any = NOT_SET, **paginator_params: Any
+) -> Callable[..., Any]:
     isfunction = inspect.isfunction(func_or_pgn_class)
     isnotset = func_or_pgn_class == NOT_SET
 
@@ -148,32 +160,31 @@ def paginate(func_or_pgn_class: Any = NOT_SET, **paginator_params: Any) -> Calla
     if not isnotset:
         pagination_class = func_or_pgn_class
 
-    def wrapper(func: Callable) -> Any:
+    def wrapper(func: Callable[..., Any]) -> Any:
         return _inject_pagination(func, pagination_class, **paginator_params)
 
     return wrapper
 
 
 def _inject_pagination(
-    func: Callable,
+    func: Callable[..., Any],
     paginator_class: Type[PaginationBase],
     **paginator_params: Any,
-) -> Callable:
-    func_modified = cast(Any, func)
-    func_modified.has_kwargs = True
-    if not has_kwargs(func_modified):
-        func_modified.has_kwargs = False
+) -> Callable[..., Any]:
+    func.has_kwargs = True  # type: ignore
+    if not has_kwargs(func):
+        func.has_kwargs = False  # type: ignore
         logger.debug(
-            f"function {func_modified.__name__} should have **kwargs if you want to use pagination parameters"
+            f"function {func.__name__} should have **kwargs if you want to use pagination parameters"
         )
 
     paginator: PaginationBase = paginator_class(**paginator_params)
     paginator_kwargs_name = "pagination"
 
-    @wraps(func_modified)
+    @wraps(func)
     def view_with_pagination(controller: "APIController", *args: Any, **kw: Any) -> Any:
         func_kwargs = dict(kw)
-        if not func_modified.has_kwargs:
+        if not func.has_kwargs:  # type: ignore
             func_kwargs.pop(paginator_kwargs_name)
 
         items = func(controller, *args, **func_kwargs)

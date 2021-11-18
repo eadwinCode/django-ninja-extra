@@ -1,7 +1,3 @@
-from .response import (
-    PaginatedResponseSchema,
-    RouteParameter,
-    get_paginated_response_schema,
-)
+from .response import PaginatedResponseSchema, RouteParameter
 
-__all__ = ["PaginatedResponseSchema", "get_paginated_response_schema", "RouteParameter"]
+__all__ = ["PaginatedResponseSchema", "RouteParameter"]
