@@ -13,6 +13,7 @@ from typing import (
 
 from django.http import HttpRequest
 from django.http.response import HttpResponse, HttpResponseBase
+from django.utils.encoding import force_str
 from ninja.constants import NOT_SET
 from ninja.operation import (
     AsyncOperation as NinjaAsyncOperation,
@@ -21,6 +22,7 @@ from ninja.operation import (
 )
 from ninja.signature import is_async
 
+from ninja_extra.exceptions import APIException
 from ninja_extra.logger import request_logger
 from ninja_extra.signals import route_context_finished, route_context_started
 
@@ -47,11 +49,18 @@ class Operation(NinjaOperation):
             msg = (
                 f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
                 f'{route_function.controller.__name__}[{self.view_func.__name__}] {request.path}" '
-                f"{duration if duration else str(ex)}"
+                f"{duration if duration else ''}"
             )
+            if ex:
+                msg += (
+                    f"{ex.status_code}"
+                    if isinstance(ex, APIException)
+                    else f"{force_str(ex.args)}"
+                )
+
             logger(msg, **kwargs)
-        except (Exception,):
-            pass
+        except (Exception,) as dd:
+            print(dd)
 
     def get_execution_context(
         self, request: HttpRequest, *args: Any, **kwargs: Any

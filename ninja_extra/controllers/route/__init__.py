@@ -74,6 +74,8 @@ class Route(object):
                     _response_computed.update({item.status_code: item.get_schema()})
                 elif isinstance(item, dict):
                     _response_computed.update(item)
+                elif isinstance(item, tuple):
+                    _response_computed.update({item[0]: item[1]})
             if not _response_computed:
                 raise RouteInvalidParameterException(
                     f"Invalid response configuration: {response}"

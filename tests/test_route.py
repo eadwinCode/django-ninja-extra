@@ -126,7 +126,7 @@ class TestControllerRoutes:
         assert "Invalid response configuration" in str(ex)
 
     def test_route_response_parameters_computed_correctly(self):
-        unique_response = [Ok, Id, {302: Schema}]
+        unique_response = [Ok, Id, {302: Schema}, (401, Schema)]
         non_unique_response = [
             Ok,
             Id,
@@ -141,7 +141,7 @@ class TestControllerRoutes:
         def example_non_unique_response(self, ex_id: str):
             pass
 
-        assert len(example_unique_response.route.route_params.response) == 3
+        assert len(example_unique_response.route.route_params.response) == 4
         assert len(example_non_unique_response.route.route_params.response) == 2
 
     @pytest.mark.parametrize(

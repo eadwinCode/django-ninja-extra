@@ -7,7 +7,7 @@ from ninja import Schema
 from ninja_extra import APIController, NinjaExtraAPI, route, router
 from ninja_extra.controllers import RouteFunction
 from ninja_extra.controllers.base import MissingRouterDecoratorException
-from ninja_extra.controllers.response import ControllerResponse, Detail, Id, Ok
+from ninja_extra.controllers.response import Detail, Id, Ok
 from ninja_extra.controllers.router import ControllerRouter
 from ninja_extra.permissions.common import AllowAny
 
@@ -100,25 +100,6 @@ class TestAPIController:
 
 
 class TestAPIControllerResponse:
-    class CustomResponse(ControllerResponse):
-        status_code = 502
-
-        def __init__(self, email: str, name: str):
-            super().__init__()
-            self.email = email
-            self.name = name
-
-        class CustomSchema(Schema):
-            email: str
-            name: str
-
-        @classmethod
-        def get_schema(cls) -> Union[Schema, Type[Schema], Any]:
-            return cls.CustomSchema
-
-        def convert_to_schema(self) -> Any:
-            return self.CustomSchema.from_orm(self)
-
     ok_response = Ok("OK")
     id_response = Id("ID")
     detail_response = Detail(dict(errors=[dict(test="passed")]), status_code=302)
@@ -138,13 +119,6 @@ class TestAPIControllerResponse:
             message=dict(errors=[dict(test="passed")])
         )
         assert self.id_response.status_code != Detail.status_code
-        # CustomResponse Response
-        custom_response = self.CustomResponse(email="some_email", name="some_name")
-        assert custom_response.get_schema() == self.CustomResponse.get_schema()
-        assert custom_response.convert_to_schema() == self.CustomResponse.get_schema()(
-            email="some_email", name="some_name"
-        )
-        assert custom_response.status_code == self.CustomResponse.status_code
 
     def test_controller_response_works(self):
         detail = Detail("5242", status_code=302)
