@@ -33,6 +33,10 @@ if TYPE_CHECKING:
 
 
 class Operation(NinjaOperation):
+    def __init__(self, *args: Any, url_name: Optional[str], **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.url_name = url_name
+
     def _log_action(
         self,
         logger: Callable[..., Any],
@@ -83,10 +87,11 @@ class Operation(NinjaOperation):
     def _prep_run(self, request: HttpRequest, **kw: Any) -> Iterator:
         try:
             start_time = time.time()
-            values = self._get_values(request, kw)
-            context = self.get_execution_context(request, **values)
+            context = self.get_execution_context(request, **kw)
             # send route_context_started signal
             route_context_started.send(RouteContext, route_context=context)
+            values = self._get_values(request, kw)
+            context.kwargs = values
 
             yield values, context
             self._log_action(
@@ -193,6 +198,7 @@ class PathView(NinjaPathView):
             exclude_defaults=exclude_defaults,
             exclude_none=exclude_none,
             include_in_schema=include_in_schema,
+            url_name=url_name,
         )
 
         self.operations.append(operation)
