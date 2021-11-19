@@ -20,7 +20,7 @@ class TestEventController:
     def test_create_event_works(self):
         client = TestClient(EventController)
         response = client.post(
-            "/create",
+            "",
             json=dict(
                 title="TestEvent1Title",
                 start_date=str(datetime.now().date()),

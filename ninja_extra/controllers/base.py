@@ -4,14 +4,17 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Iterator,
+    Iterable,
     List,
     Optional,
     Type,
+    Union,
     cast,
     no_type_check,
 )
 
+from django.db.models import Model, QuerySet
+from django.http import HttpResponse
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
@@ -19,13 +22,17 @@ from ninja.operation import Operation
 from ninja.security.base import AuthBase
 from ninja.types import DictStrAny
 
-from ninja_extra.exceptions import PermissionDenied
+from ninja_extra.exceptions import APIException, NotFound, PermissionDenied
 from ninja_extra.operation import PathView
 from ninja_extra.permissions import AllowAny, BasePermission
-from ninja_extra.shortcuts import fail_silently
+from ninja_extra.shortcuts import (
+    fail_silently,
+    get_object_or_exception,
+    get_object_or_none,
+)
 from ninja_extra.types import PermissionType
 
-from .response import ControllerResponse, Detail, Id, Ok
+from .response import Detail, Id, Ok
 from .route.route_functions import RouteFunction
 from .router import ControllerRouter
 
@@ -171,7 +178,7 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         return operation
 
     @classmethod
-    def get_route_functions(cls) -> Iterator[RouteFunction]:
+    def get_route_functions(cls) -> Iterable[RouteFunction]:
         for method in cls.__dict__.values():
             if isinstance(method, RouteFunction):
                 yield method
@@ -181,7 +188,28 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         message = getattr(permission, "message", None)
         raise PermissionDenied(message)
 
-    def get_permissions(self) -> Iterator[BasePermission]:
+    def get_object_or_exception(
+        self,
+        klass: Union[Type[Model], QuerySet],
+        error_message: str = None,
+        exception: Type[APIException] = NotFound,
+        **kwargs: Any,
+    ) -> Any:
+        obj = get_object_or_exception(
+            klass=klass, error_message=error_message, exception=exception, **kwargs
+        )
+        self.check_object_permissions(obj)
+        return obj
+
+    def get_object_or_none(
+        self, klass: Union[Type[Model], QuerySet], **kwargs: Any
+    ) -> Optional[Any]:
+        obj = get_object_or_none(klass=klass, **kwargs)
+        if obj:
+            self.check_object_permissions(obj)
+        return obj
+
+    def _get_permissions(self) -> Iterable[BasePermission]:
         """
         Instantiates and returns the list of permissions that this view requires.
         """
@@ -197,7 +225,7 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         Check if the request should be permitted.
         Raises an appropriate exception if the request is not permitted.
         """
-        for permission in self.get_permissions():
+        for permission in self._get_permissions():
             if (
                 self.context
                 and self.context.request
@@ -207,12 +235,12 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
             ):
                 self.permission_denied(permission)
 
-    def check_object_permissions(self, obj: Any) -> None:
+    def check_object_permissions(self, obj: Union[Any, Model]) -> None:
         """
         Check if the request should be permitted for a given object.
         Raises an appropriate exception if the request is not permitted.
         """
-        for permission in self.get_permissions():
+        for permission in self._get_permissions():
             if (
                 self.context
                 and self.context.request
@@ -222,7 +250,11 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
             ):
                 self.permission_denied(permission)
 
-    def create_response(
-        self, message: Any, status_code: int = 200
-    ) -> ControllerResponse:
-        return self.Detail(message=message, status_code=status_code)
+    def create_response(self, message: Any, status_code: int = 200) -> HttpResponse:
+        response = self.Detail(message=message, status_code=status_code)
+        assert self.context and self.context.request and self.api
+        return self.api.create_response(
+            request=self.context.request,
+            data=response.convert_to_schema().dict(),
+            status=response.status_code,
+        )

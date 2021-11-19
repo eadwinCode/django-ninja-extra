@@ -129,10 +129,10 @@ class ControllerRouter:
             # to skip lot of checks we simply treat double slash as a mistake:
             route = normalize_path(route)
             route = route.lstrip("/")
-
-            yield django_path(
-                route, path_view.get_view(), name=cast(str, path_view.url_name)
-            )
+            for op in path_view.operations:
+                yield django_path(
+                    route, path_view.get_view(), name=cast(str, op.url_name)
+                )
 
     def __repr__(self) -> str:
         return f"<controller - {self._controller.__name__}>"

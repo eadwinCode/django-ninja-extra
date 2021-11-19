@@ -1,11 +1,10 @@
-from typing import Any, Type, Union
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
-from ninja import Schema
+from django.contrib.auth.models import Group
 
-from ninja_extra import APIController, NinjaExtraAPI, route, router
-from ninja_extra.controllers import RouteFunction
+from ninja_extra import APIController, NinjaExtraAPI, exceptions, route, router, testing
+from ninja_extra.controllers import RouteContext, RouteFunction
 from ninja_extra.controllers.base import MissingRouterDecoratorException
 from ninja_extra.controllers.response import Detail, Id, Ok
 from ninja_extra.controllers.router import ControllerRouter
@@ -98,6 +97,52 @@ class TestAPIController:
         for route_definition in SomeControllerWithRoute.get_route_functions():
             assert isinstance(route_definition, RouteFunction)
 
+    @pytest.mark.django_db
+    def test_controller_get_object_or_exception_works(self):
+        group_instance = Group.objects.create(name="_groupowner")
+
+        controller_object = SomeController()
+        context = RouteContext(request=Mock(), permission_classes=[AllowAny])
+        controller_object.context = context
+        with patch.object(
+            AllowAny, "has_object_permission", return_value=True
+        ) as c_cop:
+            group = controller_object.get_object_or_exception(
+                Group, id=group_instance.id
+            )
+            c_cop.assert_called()
+            assert group == group_instance
+
+        with pytest.raises(Exception) as ex:
+            controller_object.get_object_or_exception(Group, id=1000)
+            assert isinstance(ex, exceptions.NotFound)
+
+        with pytest.raises(Exception) as ex:
+            with patch.object(AllowAny, "has_object_permission", return_value=False):
+                controller_object.get_object_or_exception(Group, id=group_instance.id)
+                assert isinstance(ex, exceptions.PermissionDenied)
+
+    @pytest.mark.django_db
+    def test_controller_get_object_or_none_works(self):
+        group_instance = Group.objects.create(name="_groupowner2")
+
+        controller_object = SomeController()
+        context = RouteContext(request=Mock(), permission_classes=[AllowAny])
+        controller_object.context = context
+        with patch.object(
+            AllowAny, "has_object_permission", return_value=True
+        ) as c_cop:
+            group = controller_object.get_object_or_none(Group, id=group_instance.id)
+            c_cop.assert_called()
+            assert group == group_instance
+
+        assert controller_object.get_object_or_none(Group, id=1000) is None
+
+        with pytest.raises(Exception) as ex:
+            with patch.object(AllowAny, "has_object_permission", return_value=False):
+                controller_object.get_object_or_none(Group, id=group_instance.id)
+                assert isinstance(ex, exceptions.PermissionDenied)
+
 
 class TestAPIControllerResponse:
     ok_response = Ok("OK")
@@ -122,10 +167,11 @@ class TestAPIControllerResponse:
 
     def test_controller_response_works(self):
         detail = Detail("5242", status_code=302)
-        result = SomeControllerWithRouter.example2(request=Mock(), ex_id="5242")
-        assert isinstance(result, tuple)
-        assert result[1] == detail.convert_to_schema()
-        assert result[0] == detail.status_code
+        client = testing.TestClient(SomeControllerWithRouter)
+        response = client.get("/example/5242")
+
+        assert response.status_code == 302
+        assert detail.convert_to_schema().dict() == response.json()
 
         ok_response = Ok("5242")
         result = SomeControllerWithRouter.example_with_ok_response(
