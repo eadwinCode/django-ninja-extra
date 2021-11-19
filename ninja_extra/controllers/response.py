@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Optional, Type, Union
+from typing import Any, Dict, Optional, Type, Union
 
 from ninja import Schema
 from pydantic.types import UUID1, UUID3, UUID4, UUID5
@@ -62,7 +62,7 @@ class Ok(ControllerResponse):
 
 class Detail(ControllerResponse):
     status_code: int = status.HTTP_200_OK
-    message: Any = dict()
+    message: Union[str, Dict] = dict()
 
     def __init__(
         self, message: Optional[Any] = None, status_code: int = status.HTTP_200_OK
@@ -72,7 +72,7 @@ class Detail(ControllerResponse):
         self.status_code = status_code or self.status_code
 
     class Detail(Schema):
-        message: Any
+        message: Union[str, Dict]
 
     def convert_to_schema(self) -> Any:
         return self.Detail.from_orm(self)
