@@ -1,4 +1,4 @@
-from typing import Any, Optional, Type, cast, no_type_check
+from typing import Any, Optional, Type, Union, cast, no_type_check
 
 from django.db.models import Model, QuerySet
 from ninja.types import DictStrAny, TCallable
@@ -25,7 +25,7 @@ def _get_queryset(klass: Type[Model]) -> QuerySet:
 
 @no_type_check
 def get_object_or_exception(
-    klass: Type[Model],
+    klass: Union[Type[Model], QuerySet],
     error_message: str = None,
     exception: Type[APIException] = NotFound,
     **kwargs: Any
@@ -52,7 +52,9 @@ def _format_dict(table: DictStrAny) -> str:
 
 
 @no_type_check
-def get_object_or_none(klass: Type[Model], **kwargs: Any) -> Optional[Any]:
+def get_object_or_none(
+    klass: Union[Type[Model], QuerySet], **kwargs: Any
+) -> Optional[Any]:
     queryset = _get_queryset(klass)
     _validate_queryset(klass, queryset)
     try:
