@@ -41,7 +41,7 @@ def get_object_or_exception(
             message = "{} with {} was not found".format(
                 queryset.model._meta.object_name, _format_dict(kwargs)
             )
-        raise exception(message=message) from ex
+        raise exception(detail=message) from ex
 
 
 def _format_dict(table: DictStrAny) -> str:

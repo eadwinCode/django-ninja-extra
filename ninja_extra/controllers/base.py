@@ -22,7 +22,7 @@ from ninja.operation import Operation
 from ninja.security.base import AuthBase
 from ninja.types import DictStrAny
 
-from ninja_extra.exceptions import APIException, NotFound, PermissionDenied
+from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
 from ninja_extra.operation import PathView
 from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.shortcuts import (
@@ -69,10 +69,9 @@ class APIControllerModelMetaclass(ABCMeta):
             tag = str(cls.__name__).lower().replace("controller", "")
             cls.tags = [tag]
 
-        if len(bases) > 1:
-            for base_cls in reversed(bases):
-                if issubclass(base_cls, APIController):
-                    compute_api_route_function(base_cls, cls)
+        for base_cls in reversed(bases):
+            if base_cls is not APIController and issubclass(base_cls, APIController):
+                compute_api_route_function(base_cls, cls)
 
         compute_api_route_function(cls)
         if not is_decorated_with_inject(cls.__init__):
@@ -110,6 +109,7 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
     Ok = Ok
     Id = Id
     Detail = Detail
+    bad_request = bad_request
 
     @classmethod
     def get_router(cls) -> ControllerRouter:

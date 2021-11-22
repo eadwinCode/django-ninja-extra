@@ -296,7 +296,7 @@ class TestAPIControllerRoutePermission:
         with pytest.raises(PermissionDenied) as pex:
             PermissionController.example(anonymous_request)
         assert "You do not have permission to perform this action." in str(
-            pex.value.message
+            pex.value.detail
         )
 
     def test_route_protected_by_global_controller_permission_works(self):

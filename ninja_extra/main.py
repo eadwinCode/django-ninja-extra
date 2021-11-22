@@ -1,17 +1,18 @@
 from importlib import import_module
-from typing import Callable, Optional, Sequence, Type, Union
+from typing import Callable, List, Optional, Sequence, Tuple, Type, Union
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
+from django.urls import URLPattern, URLResolver
 from django.utils.module_loading import module_has_submodule
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
 
+from ninja_extra import exceptions
 from ninja_extra.controllers.base import APIController
 from ninja_extra.controllers.router import ControllerRegistry, ControllerRouter
-from ninja_extra.exceptions import APIException
 
 __all__ = [
     "NinjaExtraAPI",
@@ -32,6 +33,7 @@ class NinjaExtraAPI(NinjaAPI):
         auth: Union[Sequence[Callable], Callable, object] = NOT_SET,
         renderer: Optional[BaseRenderer] = None,
         parser: Optional[Parser] = None,
+        app_name: str = "ninja",
     ) -> None:
         super(NinjaExtraAPI, self).__init__(
             title=title,
@@ -45,21 +47,27 @@ class NinjaExtraAPI(NinjaAPI):
             renderer=renderer,
             parser=parser,
         )
+        self.app_name = app_name
+        self.exception_handler(exceptions.APIException)(self.api_exception_handler)
 
-        @self.exception_handler(APIException)
-        def api_exception_handler(
-            request: HttpRequest, exc: APIException
-        ) -> HttpResponse:
-            message = (
-                {"message": exc.message}
-                if not isinstance(exc.message, dict)
-                else exc.message
-            )
-            return self.create_response(
-                request,
-                message,
-                status=exc.status_code,
-            )
+    def api_exception_handler(
+        self, request: HttpRequest, exc: exceptions.APIException
+    ) -> HttpResponse:
+        if isinstance(exc.detail, (list, dict)):
+            data = exc.detail
+        else:
+            data = {"detail": exc.detail}
+
+        return self.create_response(request, data, status=exc.status_code)
+
+    @property
+    def urls(self) -> Tuple[List[Union[URLResolver, URLPattern]], str, str]:
+        _url_tuple = super().urls
+        return (
+            _url_tuple[0],
+            self.app_name,
+            str(_url_tuple[len(_url_tuple) - 1]),
+        )
 
     def register_controllers(self, *controllers: Type[APIController]) -> None:
         for controller in controllers:
