@@ -36,6 +36,9 @@ Both Django-Ninja and Django-Ninja-Extra shares the same benchmark because **Dja
 
 Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
+## Sample Project
+Django-Ninja-Tutorial Project, [visit](https://github.com/eadwinCode/bookstoreapi)
+
 ## Installation
 
 ```
