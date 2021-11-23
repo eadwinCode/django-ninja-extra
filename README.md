@@ -3,10 +3,12 @@
 [![PyPI version](https://img.shields.io/pypi/v/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![PyPI version](https://img.shields.io/pypi/pyversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![PyPI version](https://img.shields.io/pypi/djversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+[![Codecov](https://img.shields.io/codecov/c/gh/eadwinCode/django-ninja-extra)](https://codecov.io/gh/eadwinCode/django-ninja-extra)
 
 # Django Ninja Extra
 
-**Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It brings alot batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) which are also extensible for customization.
+**Django Ninja Extra** is a complete class-based fashion of building and setting up APIs at incredible speed with incredible performance.
+It utilizes [**Django Ninja**](https://django-ninja.rest-framework.com) core features without compromising speed.
 
 **Key features:**
 
