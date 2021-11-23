@@ -133,7 +133,7 @@ class Operation(NinjaOperation):
 
 
 class AsyncOperation(Operation, NinjaAsyncOperation):
-    async def run(self, request: HttpRequest, **kw: Any) ->  HttpResponseBase:  # type: ignore
+    async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
         error = self._run_checks(request)
         if error:
             return error
