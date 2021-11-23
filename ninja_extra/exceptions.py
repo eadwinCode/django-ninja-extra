@@ -88,7 +88,7 @@ class ErrorDetail(str):
 
 class APIException(HttpError):
     """
-    Base class for REST framework exceptions.
+    Base class for Django-Ninja-Extra exceptions.
     Subclasses should provide `.status_code` and `.default_detail` properties.
     """
 
@@ -128,12 +128,12 @@ class APIException(HttpError):
         return _get_full_details(self.detail)  # type: ignore
 
 
-# The recommended style for using `ValidationError` is to keep it namespaced
-# under `serializers`, in order to minimize potential confusion with Django's
+# The recommended style for using `ValidationError`,
+# in order to minimize potential confusion with Django's
 # built in `ValidationError`. For example:
 #
-# from rest_framework import serializers
-# raise serializers.ValidationError('Value was invalid')
+# from ninja_extra import exceptions
+# raise exceptions.ValidationError('Value was invalid')
 
 
 class ValidationError(APIException):
