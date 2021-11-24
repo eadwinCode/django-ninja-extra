@@ -33,7 +33,7 @@ Plus **Extra**:
 - Django-Ninja >= 0.16.1
 
 ## Django-Ninja Benchmark
-Both Django-Ninja and Django-Ninja-Extra shares the same benchmark because **Django-Ninja-Extra** operational core is **Django-Ninja**
+**Django-Ninja-Extra** uses **Django-Ninja** under the hood, it can be assumed that Django-Ninja-Extra has the same benchmark with Django-Ninja
 ![Django Ninja REST Framework](docs/docs/images/benchmark.png)
 
 Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
