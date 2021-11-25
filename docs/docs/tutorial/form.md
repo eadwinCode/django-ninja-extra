@@ -4,7 +4,7 @@ Django-Ninja already covers most of the use cases [here](https://django-ninja.re
 
 ### Form Data as Params
 
-```python hl_lines="1 6"
+```python hl_lines="7 8"
 from ninja import Form, constants
 from ninja_extra import APIController, route, router
 

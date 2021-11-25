@@ -3,7 +3,7 @@ Django-Ninja assumes function parameters that are not among path parameters as q
 
 For example:
 
-```python hl_lines="5 8"
+```python hl_lines="7 10"
 from ninja import constants
 from ninja_extra import APIController, route, router
 
