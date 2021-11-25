@@ -1,13 +1,13 @@
 # **Custom Exception**
-**Django-Ninja** provide a flask way of handling custom exceptions by registering its exception handlers.
+**Django-Ninja** provides an intuitive way of handling custom exceptions by registering a function(handler) against an Exception type, just like it's done in a Flask app.
 
-**Django-Ninja-Extra** creates an `APIException` class which provides similar functionalities, for those use to DRF `APIException`.
+So in that sense, **Django-Ninja-Extra** has an `APIException` exception type which provides similar functionalities, for those use to DRF `APIException`.
 
 For Example: 
 ```python
 from ninja_extra.exceptions import APIException
-from ninja_extra import status
-from ninja_extra import router, APIController, route, NinjaExtraAPI
+from ninja_extra import router, APIController, route, NinjaExtraAPI, status
+from ninja import constants
 
 
 class CustomAPIException(APIException):
@@ -15,13 +15,13 @@ class CustomAPIException(APIException):
     message = 'UnAuthorized'
 
     
-@router('/users', tags=["exception"])
+@router('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
 class MyController(APIController):
     @route.get('/exception')
     def custom_exception(self):
         raise CustomAPIException()
 
-    
+
 api = NinjaExtraAPI(title='Exception Test')
 api.register_controllers(MyController)
 ```

@@ -1,6 +1,6 @@
 # **Authentication**
 
-**Django Ninja Extra** provides the same API for authorization and authentication.
+**Django Ninja Extra** provides the same API for authorization and authentication as in **Django-Ninja**.
 
 ## **Automatic OpenAPI schema**
 
@@ -10,13 +10,16 @@ Here's an example where the client, in order to authenticate, needs to pass a he
 
 ```Python
 from ninja.security import HttpBearer
-from ninja_extra import APIController, route
+from ninja_extra import APIController, route, router
+from ninja.constants import NOT_SET
+
 
 class AuthBearer(HttpBearer):
     def authenticate(self, request, token):
         if token == "supersecret":
             return token
 
+@router('', tags=['My Operations'], auth=NOT_SET, permissions=[])
 class MyController(APIController):
     @route.get("/bearer", auth=AuthBearer())
     def bearer(self):

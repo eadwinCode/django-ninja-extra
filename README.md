@@ -97,6 +97,7 @@ Now go to `urls.py` and add the following:
 
 ```Python
 ...
+from django.urls import path
 from .api import api
 
 urlpatterns = [

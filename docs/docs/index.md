@@ -3,14 +3,16 @@
 [![PyPI version](https://img.shields.io/pypi/v/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![PyPI version](https://img.shields.io/pypi/pyversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![PyPI version](https://img.shields.io/pypi/djversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
+[![Codecov](https://img.shields.io/codecov/c/gh/eadwinCode/django-ninja-extra)](https://codecov.io/gh/eadwinCode/django-ninja-extra)
 
 # Django Ninja Extra
 
-**Django Ninja Extra** is a utility library built on top of **Django Ninja** for building and setting up APIs at incredible speed and performance. It brings alot batteries to [**Django Ninja**](https://django-ninja.rest-framework.com) which are also extensible for customization.
+**Django Ninja Extra** is a complete class-based fashion of building and setting up APIs at incredible speed with incredible performance.
+It utilizes [**Django Ninja**](https://django-ninja.rest-framework.com) core features without compromising speed.
 
 **Key features:**
 
-All **Django-Ninja** features:
+All **Django-Ninja** features :
 
 - **Easy**: Designed to be easy to use and intuitive.
 - **FAST execution**: Very high performance thanks to **<a href="https://pydantic-docs.helpmanual.io" target="_blank">Pydantic</a>** and **<a href="/async-support/">async support</a>**.
@@ -22,7 +24,7 @@ Plus **Extra**:
 
 - **Class Based**: Design your APIs in a class based fashion.
 - **Permissions**: Protect endpoint(s) at ease with defined permissions and authorizations at route level or controller level.
-- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector). Giving you the ability to inject API dependable services at the controller class constructor and utilizing them where needed
+- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector). Giving you the ability to inject API dependable services to APIController class and utilizing them where needed
 
 ---
 
@@ -33,10 +35,13 @@ Plus **Extra**:
 - Django-Ninja >= 0.16.1
 
 ## Django-Ninja Benchmark
-Both Django-Ninja and Django-Ninja-Extra shares the same benchmark because **Django-Ninja-Extra** operational core is **Django-Ninja**
+**Django-Ninja-Extra** uses **Django-Ninja** under the hood, it can be assumed that Django-Ninja-Extra has the same benchmark with Django-Ninja
 ![Django Ninja REST Framework](images/benchmark.png)
 
 Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
+
+## Sample Project
+Django-Ninja-Tutorial Project, [visit](https://github.com/eadwinCode/bookstoreapi)
 
 ## Installation
 
@@ -94,6 +99,7 @@ Now go to `urls.py` and add the following:
 
 ```Python
 ...
+from django.urls import path
 from .api import api
 
 urlpatterns = [
@@ -111,3 +117,4 @@ You will see the automatic interactive API documentation (provided by <a href="h
 ![Swagger UI](images/ui_swagger_preview_readme.gif)
 ## What next?
 - To support this project, please give star it on Github
+- API Throttling

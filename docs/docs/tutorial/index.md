@@ -3,6 +3,10 @@
 This tutorial shows you how to use **Django Ninja Extra** with most of its features. 
 And most especially assumes you know how to use **Django Ninja**
 
+
+!!! info
+    A lot of content here is drawn from Django-Ninja. So a lot would make sense if you understand the Django-Ninja framework first.
+
 ## **Installation**
 
 ```
@@ -43,6 +47,7 @@ from ninja_extra import NinjaExtraAPI, route, APIController, router
 
 api = NinjaExtraAPI()
 
+# function definition using Django-Ninja default router
 @api.get("/hello")
 def hello(request):
     return "Hello world"
@@ -64,7 +69,6 @@ urlpatterns = [
 ```
 
 ## **Defining operation methods**
-
 "Operation" can be one of the HTTP "methods":
 
  - GET
@@ -74,14 +78,11 @@ urlpatterns = [
  - PATCH
  - ... and more.
 
-These are Django-Ninja defined operations on the `api` or Django-Ninja `router`. 
-The same operation functionalities are available on `route` class for APIController class
+These are Django-Ninja defined operations on the API or Django-Ninja router. 
+The same operation is exposed to APIControllers with the `route` class. 
+The `route` class is an extra decorator that converts APIController instance methods to route function or endpoint.
 
-**Django Ninja Extra** `route` function is an extra decorator for defining route function in your controller class.
-
-The `router` here is a short form of `ControllerRouter`, an Adapter class to Django-Ninja `router` but without operational functions. 
-It also provides global control of all routes defined in any APIController class.
-
+On the other hand, the `router` here is a short form of the `ControllerRouter` class,  an adapter class, which is an that only adapts APIController to the Django-Ninja router. It also provides global control of all routes defined in any APIController class.
 ```Python
 @router('', tags=['My Operations'], auth=NOT_SET, permissions=[])
 class MyAPIController(APIController):

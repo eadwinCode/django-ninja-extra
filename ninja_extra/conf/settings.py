@@ -29,7 +29,7 @@ class NinjaExtraSettings(Schema):
         validate_assignment = True
 
     PAGINATION_CLASS: Any = Field(
-        "ninja_extra.pagination.PageNumberPaginationExtra",
+        "ninja_extra.pagination.LimitOffsetPagination",
     )
     PAGINATION_PER_PAGE: int = Field(100)
     INJECTOR_MODULES: List[Any] = []

@@ -3,10 +3,9 @@
 Request bodies are typically used with “create” and “update” operations (POST, PUT, PATCH).
 For example, when creating a resource using POST or PUT, the request body usually contains the representation of the resource to be created.
 
-To declare a **request body**, you need to use **Django Ninja `Schema`**.
+To declare a **request body**, you need to use **Django Ninja `Schema`** or any Pydantic Schema that suits your need.
 
-!!! info
-    Read more on django-ninja **[body request](https://django-ninja.rest-framework.com/tutorial/body/)**
+I recommend [Ninja-Schema](https://pypi.org/project/ninja-schema/)
 
 ## **Create your data model**
 
@@ -14,9 +13,9 @@ Then you declare your data model as a class that inherits from `Schema`.
 
 Use standard Python types for all the attributes:
 
-```Python 
-from ninja import Schema
-from ninja_extra import APIController, route
+```Python
+from ninja import Schema, constants
+from ninja_extra import APIController, route, router
 
 
 class Item(Schema):
@@ -25,10 +24,11 @@ class Item(Schema):
     price: float
     quantity: int
 
-
-class ItemController(APIController):
+    
+@router('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
+class MyAPIController(APIController):
     @route.post("/items")
-    def create(request, item: Item):
+    def create(self, item: Item):
         return item
 
 ```

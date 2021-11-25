@@ -2,7 +2,7 @@
 
 ## **Different API version numbers**
 
-With **Django Ninja Extra** it's very much easy to run multiple API versions from a single Django project.
+With **Django Ninja Extra**, it's very much easy to run multiple API versions from a single Django project.
 
 All you have to do is create two or more NinjaAPI instances with different `version` arguments:
 
@@ -29,6 +29,7 @@ api.register_controllers(MyV1Controller)
 
 
 api_**v2**.py:
+You can reuse your APIControllers and make modifications to specific routes.
 
 ```Python
 from ninja_extra import NinjaExtraAPI, route, router

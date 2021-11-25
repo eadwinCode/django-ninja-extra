@@ -1,20 +1,16 @@
 # Dependency Injection
 
-**Django Ninja Extra** APIController support dependency injection is one of the core features of the library.
+One of the core features of **Django Ninja Extra** APIController is its support dependency injection. 
 
 Having the ability to inject services to the controller is as simple as
-overriding your controller constructor and defining a parameter with a type. APIController will take care of the rest.
-This is possible using python [**Injector** ](https://injector.readthedocs.io/en/latest/) library. 
+overriding your controller constructor and defining a parameter with its type annotation. 
 
-During APIController class initialization, injector instance is used to resolve the APIController instance, and parameters with annotations will be resolved automatically.
+Under the hood, APIController `__init__` is wrapped with python [**Injector** ](https://injector.readthedocs.io/en/latest/) library `inject` function. By so doing, it's easy to resolve APIController dependencies. 
 
-If you have [**django_injector**](https://github.com/blubber/django_injector) in your project, **Django-Ninja-Extra** supports it as well. 
-There is no extra configuration
+During APIController class initialization, the injector instance is used to resolve the APIController instance, and parameters with annotations will be resolved automatically.
 
-!!! warning
-    You are not only allowed to override your APIController constructor with **parameter** that don't have **annotations**
-    Read more [**Python Injector** ](https://injector.readthedocs.io/en/latest/)
-
+!!! info
+    Django-Ninja-Extra supports [**django_injector**](https://github.com/blubber/django_injector). There is no extra configuration needed.
 
 ```python
 from ninja import File
@@ -48,7 +44,19 @@ api.register_controllers(UserProfileController)
 ```
 
 ## **Module Registration**
-You can also register an injector module. And Inject the service to the APIController constructor
+There are different ways of registering injector Modules in a Django app. 
+
+- **django_injector**: if you are using django_inject, it has documentation on how to register a module.
+- **ninja_extra**: you can provide module string path in `INJECTOR_MODULES` in `NINJA_EXTRA` field as shown below:
+
+```python
+NinjaExtra = {
+    'INJECTOR_MODULES': [
+        'myproject.app1.modules.SomeModule',
+        'myproject.app2.modules.SomeAppModule',
+    ]
+}
+```
 
 ### Create a module
 create a `modules.py` with the code below in your django-project
@@ -149,3 +157,7 @@ NinjaExtra = {
 }
 ...
 ```
+
+!!! warning
+    You are not only allowed to override your APIController constructor with **parameter** that don't have **annotations**
+    Read more [**Python Injector** ](https://injector.readthedocs.io/en/latest/)
