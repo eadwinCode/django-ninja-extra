@@ -5,59 +5,16 @@ APIController is a borrowed term from the C# ASP.NET environment which is an MVC
 Django-Ninja-Extra APIController is modelled after C# ASP.NET ApiController, giving all OOP sense in creating your controller models and adapting recent software design patterns in your Django project. 
 
 ### Why APIController in Django.
-I have worked with many API tools out there in python: DRF, FastAPI, Flask-Restful. Don't get me wrong, these are great libraries. I am a super fan of FastAPI and DRF. In fact, some features of Django-Ninja-Extra came from DRF
+I come from a background where we model anything in class based object, and I have worked with many API tools out there in python: DRF, FastAPI, Flask-Restful. It is either function based or class tailored to function based.
+Don't get me wrong, there are still great libraries. In fact, some features of Django-Ninja-Extra came from DRF. So I am a big fan. I needed more.
 
-I enjoyed Django ORM and Django-Ninja is a saving grace. It brought FastAPI to Django in one piece. I also value speed which Django-Ninja is best known for.
+I enjoyed Django ORM and I missed it while working with FastAPI but Django-Ninja became a saving grace. It brought FastAPI to Django in one piece. And it's super fast.
 
-APIController was born to extend Django-Ninja to class-based and be more flexible to adapt to recent software design patterns.
-If you enjoy class-based controls for building API, welcome aboard.
+So I designed APIController to extend Django-Ninja to class-based and have something more flexible to adapt to recent software design patterns out there.
 
+So if you enjoy class-based controls for building API, welcome aboard.
 
-
-```python
-class APIController(ABC, metaclass=APIControllerModelMetaclass):
-    ...
-```
-
-## **Model Properties**
--  ### **`permission_classes`**
-List of default permission classes defined in a controller `router`
-
--  ### **`auth`**
-List of default Authentication instances. As described in Django-Ninja [Authentication](https://django-ninja.rest-framework.com/tutorial/authentication/). default: `[]`
-
--  ### **`api`**
-Instance of NinjaExtraAPI at runtime. default:`None`
-
--  ### **`auto_import`**
-states whether APIController should added to auto_controller import list. default: `True`
-
--  ### **`get_router(cls)`**
-return controller to router instance if present and raises Exception is absent.
-
--  ### **`get_path_operations(cls)`**
-container `dict` of route definition which are pass to Django-Ninja at runtime
-
--  ### **`add_operation_from_route_function(cls, route_function: RouteFunction)`**
-A method overload for `add_api_operation` 
-
--  ### **`add_api_operation(cls, ...)`**
-Adds APIController route definitions to path operation
-
--  ### **`get_route_functions(cls)`**
-Gets all registered route in an APIController
-
--  ### **`get_permissions(self)`**
-Returns list of `permission_classes` instances
-
--  ### **`check_permissions(self)`**
-Check permission when route function is invoked
-
--  ### **`check_object_permissions(self, obj: Any)`**
-Checks object permissions. This is not automated. However, when called, it triggers all `permission_classes` `has_object_permission` function, just like in DRF
-
-
-## Usage
+## Quick Example
 Let's create an APIController to manage Django user model
 
 ```python
@@ -111,3 +68,45 @@ class UsersController(APIController):
             return user
         raise exceptions.NotFound(f'User with id: `{user_id}` not found')
 ```
+
+```python
+class APIController(ABC, metaclass=APIControllerModelMetaclass):
+    ...
+```
+
+## **Model Properties**
+-  ### **`permission_classes`**
+List of default permission classes defined in a controller `router`
+
+-  ### **`auth`**
+List of default Authentication instances. As described in Django-Ninja [Authentication](https://django-ninja.rest-framework.com/tutorial/authentication/). default: `[]`
+
+-  ### **`api`**
+Instance of NinjaExtraAPI at runtime. default:`None`
+
+-  ### **`auto_import`**
+states whether APIController should added to auto_controller import list. default: `True`
+
+-  ### **`get_router(cls)`**
+return controller to router instance if present and raises Exception is absent.
+
+-  ### **`get_path_operations(cls)`**
+container `dict` of route definition which are pass to Django-Ninja at runtime
+
+-  ### **`add_operation_from_route_function(cls, route_function: RouteFunction)`**
+A method overload for `add_api_operation` 
+
+-  ### **`add_api_operation(cls, ...)`**
+Adds APIController route definitions to path operation
+
+-  ### **`get_route_functions(cls)`**
+Gets all registered route in an APIController
+
+-  ### **`get_permissions(self)`**
+Returns list of `permission_classes` instances
+
+-  ### **`check_permissions(self)`**
+Check permission when route function is invoked
+
+-  ### **`check_object_permissions(self, obj: Any)`**
+Checks object permissions. This is not automated. However, when called, it triggers all `permission_classes` `has_object_permission` function, just like in DRF
