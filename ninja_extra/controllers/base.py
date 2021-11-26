@@ -250,7 +250,9 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
             ):
                 self.permission_denied(permission)
 
-    def create_response(self, message: Union[str, List[Dict], List[str], Dict], status_code: int = 200) -> HttpResponse:
+    def create_response(
+        self, message: Union[str, List[Dict], List[str], Dict], status_code: int = 200
+    ) -> HttpResponse:
         response = self.Detail(message, status_code=status_code)
         assert self.context and self.context.request and self.api
         return self.api.create_response(

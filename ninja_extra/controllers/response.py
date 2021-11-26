@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Dict, Optional, Type, Union, List
+from typing import Any, Dict, List, Optional, Type, Union
 
 from ninja import Schema
 from pydantic.types import UUID1, UUID3, UUID4, UUID5
@@ -31,6 +31,7 @@ class Id(ControllerResponse):
     Example:
            Id(423) ==> 201, {id: 423}
     """
+
     status_code: int = status.HTTP_201_CREATED
     id: Union[int, str, UUID4, UUID1, UUID3, UUID5, Any]
 
@@ -51,15 +52,16 @@ class Id(ControllerResponse):
 
 class Ok(ControllerResponse):
     """
-        Create a 200 response with a detail information.
-        {
-            detail: str| List[Dict] | List[str] | Dict,
-        }
+    Create a 200 response with a detail information.
+    {
+        detail: str| List[Dict] | List[str] | Dict,
+    }
 
-        Example:
-           Ok('Saved Successfully') ==> 200, {detail: 'Saved Successfully'}
+    Example:
+       Ok('Saved Successfully') ==> 200, {detail: 'Saved Successfully'}
 
     """
+
     status_code: int = status.HTTP_200_OK
     detail: Union[str, List[Dict], List[str], Dict] = "Action was successful"
 
@@ -87,6 +89,7 @@ class Detail(ControllerResponse):
     Example:
        Detail('Invalid Request', 404) ==> 404, {detail: 'Invalid Request'}
     """
+
     status_code: int = status.HTTP_200_OK
     detail: Union[str, List[Dict], List[str], Dict] = dict()
 
