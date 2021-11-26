@@ -152,7 +152,7 @@ class TestAPIControllerResponse:
     def test_controller_response(self):
         # OK Response
         assert self.ok_response.get_schema() == Ok.get_schema()
-        assert self.ok_response.convert_to_schema() == Ok.get_schema()(message="OK")
+        assert self.ok_response.convert_to_schema() == Ok.get_schema()(detail="OK")
         assert self.ok_response.status_code == Ok.status_code
         # ID Response
         assert self.id_response.get_schema() == Id.get_schema()
@@ -161,7 +161,7 @@ class TestAPIControllerResponse:
         # Detail Response
         assert self.detail_response.get_schema() == Detail.get_schema()
         assert self.detail_response.convert_to_schema() == Detail.get_schema()(
-            message=dict(errors=[dict(test="passed")])
+            detail=dict(errors=[dict(test="passed")])
         )
         assert self.id_response.status_code != Detail.status_code
 

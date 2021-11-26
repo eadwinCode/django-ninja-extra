@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Type, Union, List
 
 from ninja import Schema
 from pydantic.types import UUID1, UUID3, UUID4, UUID5
@@ -23,6 +23,14 @@ class ControllerResponse(abc.ABC):
 
 
 class Id(ControllerResponse):
+    """
+    Create a 201 response with id information
+    {
+        id: int| str| UUID4| UUID1| UUID3| UUID5,
+    }
+    Example:
+           Id(423) ==> 201, {id: 423}
+    """
     status_code: int = status.HTTP_201_CREATED
     id: Union[int, str, UUID4, UUID1, UUID3, UUID5, Any]
 
@@ -42,15 +50,25 @@ class Id(ControllerResponse):
 
 
 class Ok(ControllerResponse):
+    """
+        Create a 200 response with a detail information.
+        {
+            detail: str| List[Dict] | List[str] | Dict,
+        }
+
+        Example:
+           Ok('Saved Successfully') ==> 200, {detail: 'Saved Successfully'}
+
+    """
     status_code: int = status.HTTP_200_OK
-    message: Any = "Action was successful"
+    detail: Union[str, List[Dict], List[str], Dict] = "Action was successful"
 
     def __init__(self, message: Optional[Any] = None) -> None:
         super(Ok, self).__init__()
-        self.message = message or self.message
+        self.detail = message or self.detail
 
     class Ok(Schema):
-        message: Any
+        detail: Union[str, List[Dict], List[str], Dict]
 
     def convert_to_schema(self) -> Any:
         return self.Ok.from_orm(self)
@@ -61,18 +79,26 @@ class Ok(ControllerResponse):
 
 
 class Detail(ControllerResponse):
+    """
+    Creates a custom response with detail information
+    {
+        detail: str| List[Dict] | List[str] | Dict,
+    }
+    Example:
+       Detail('Invalid Request', 404) ==> 404, {detail: 'Invalid Request'}
+    """
     status_code: int = status.HTTP_200_OK
-    message: Union[str, Dict] = dict()
+    detail: Union[str, List[Dict], List[str], Dict] = dict()
 
     def __init__(
         self, message: Optional[Any] = None, status_code: int = status.HTTP_200_OK
     ) -> None:
         super(Detail, self).__init__()
-        self.message = message or self.message
+        self.detail = message or self.detail
         self.status_code = status_code or self.status_code
 
     class Detail(Schema):
-        message: Union[str, Dict]
+        detail: Union[str, List[Dict], List[str], Dict]
 
     def convert_to_schema(self) -> Any:
         return self.Detail.from_orm(self)
