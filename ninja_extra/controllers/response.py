@@ -24,7 +24,7 @@ class ControllerResponse(abc.ABC):
 
 class Id(ControllerResponse):
     """
-    Create a 201 response with id information
+    Creates a 201 response with id information
     {
         id: int| str| UUID4| UUID1| UUID3| UUID5,
     }
@@ -52,7 +52,7 @@ class Id(ControllerResponse):
 
 class Ok(ControllerResponse):
     """
-    Create a 200 response with a detail information.
+    Creates a 200 response with a detail information.
     {
         detail: str| List[Dict] | List[str] | Dict,
     }
