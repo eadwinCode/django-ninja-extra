@@ -3,12 +3,12 @@ Route path _parameters_ are declared in python format-strings.
 for example:
 
 ```python hl_lines="7 8"
-from ninja_extra import APIController, route, router
+from ninja_extra import api_controller, route
 from ninja import constants
 
 
-@router('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
-class MyAPIController(APIController):
+@api_controller('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
+class MyAPIController:
     @route.get('/users/{user_id}')
     def get_user_by_id(self, user_id: int):
         return {'user_id': user_id}

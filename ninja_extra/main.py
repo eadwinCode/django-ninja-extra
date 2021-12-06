@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Callable, List, Optional, Sequence, Tuple, Type, Union
+from typing import Callable, List, Optional, Sequence, Tuple, Type, Union, Any
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
@@ -11,8 +11,8 @@ from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
 
 from ninja_extra import exceptions
-from ninja_extra.controllers.base import APIController
-from ninja_extra.controllers.router import ControllerRegistry, ControllerRouter
+from ninja_extra.controllers.base import APIController, ControllerBase
+from ninja_extra.controllers.registry import ControllerRegistry
 
 __all__ = [
     "NinjaExtraAPI",
@@ -69,31 +69,26 @@ class NinjaExtraAPI(NinjaAPI):
             str(_url_tuple[len(_url_tuple) - 1]),
         )
 
-    def register_controllers(self, *controllers: Type[APIController]) -> None:
+    # def create_response(
+    #     self, request: HttpRequest, data: Any, *, status_code: int = 200, headers: DictStrAny = {}
+    # ) -> HttpResponse:
+    #     content = self.renderer.render(request, data, response_status=status_code)
+    #     content_type = "{}; charset={}".format(
+    #         self.renderer.media_type, self.renderer.charset
+    #     )
+    #     return HttpResponse(content, status=status_code, content_type=content_type, headers=headers)
+
+    def register_controllers(self, *controllers: Union[Type[ControllerBase], Type]) -> None:
         for controller in controllers:
-            if not issubclass(controller, APIController):
+            if not issubclass(controller, ControllerBase):
                 raise ImproperlyConfigured(
                     f"{controller.__class__.__name__} class is not a controller"
                 )
-            controller_ninja_router = controller.get_router()
-            if not controller.registered and controller_ninja_router:
-                self._routers.extend(controller_ninja_router.build_routers())  # type: ignore
-                controller_ninja_router.set_api_instance(self)
-                controller.registered = True
-
-    def add_controller_router(
-        self, *routers: Union[ControllerRouter, Type[ControllerRouter]]
-    ) -> None:
-        for router in routers:
-            if not isinstance(router, ControllerRouter):
-                raise ImproperlyConfigured(
-                    f"{router.__class__.__name__} class is not a ControllerRouter"
-                )
-            if not router.controller:
-                raise ImproperlyConfigured(
-                    f"{router.__class__.__name__} has no controller"
-                )
-            self.register_controllers(router.controller)
+            api_controller: APIController = controller.get_api_controller()
+            if not api_controller.registered:
+                self._routers.extend(api_controller.build_routers())  # type: ignore
+                api_controller.set_api_instance(self)
+                api_controller.registered = True
 
     def auto_discover_controllers(self) -> None:
         from django.apps import apps

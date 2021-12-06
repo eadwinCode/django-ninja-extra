@@ -1,6 +1,6 @@
 from ninja import Schema
 
-from ninja_extra import APIController, NinjaExtraAPI, route, router
+from ninja_extra import api_controller, NinjaExtraAPI, route
 from ninja_extra.pagination import (
     PageNumberPagination,
     PageNumberPaginationExtra,
@@ -22,8 +22,8 @@ class CustomPagination(PaginationBase):
         return items[skip : skip + 5]
 
 
-@router("")
-class SomeAPIController(APIController):
+@api_controller
+class SomeAPIController:
     @route.get("/items_1")
     @paginate  # WITHOUT brackets (should use default pagination)
     def items_1(self, **kwargs):

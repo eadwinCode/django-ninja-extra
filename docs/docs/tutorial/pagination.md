@@ -27,7 +27,7 @@ from typing import List
 from ninja_extra.pagination import (
     paginate, PageNumberPaginationExtra, PaginatedResponseSchema
 )
-from ninja_extra import router, APIController, route, NinjaExtraAPI
+from ninja_extra import api_controller, route, NinjaExtraAPI
 from ninja import ModelSchema
 from django.contrib.auth import get_user_model
 
@@ -40,8 +40,8 @@ class UserSchema(ModelSchema):
         model_fields = ['username', 'email']
 
         
-@router('/users')
-class UserController(APIController):
+@api_controller('/users')
+class UserController:
     @route.get('', response=PaginatedResponseSchema[UserSchema])
     @paginate(PageNumberPaginationExtra, page_size=50)
     def get_users(self):

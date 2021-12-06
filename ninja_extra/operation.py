@@ -29,7 +29,7 @@ from ninja_extra.signals import route_context_finished, route_context_started
 from .controllers.route.context import RouteContext
 
 if TYPE_CHECKING:
-    from .controllers import RouteFunction
+    from .controllers.route import RouteFunction  # pragma: no cover
 
 
 class Operation(NinjaOperation):
@@ -49,10 +49,11 @@ class Operation(NinjaOperation):
             route_function: "RouteFunction" = (
                 self.view_func.get_route_function()  # type:ignore
             )
-            assert route_function.controller
+            api_controller = route_function.get_api_controller()
+
             msg = (
                 f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
-                f'{route_function.controller.__name__}[{self.view_func.__name__}] {request.path}" '
+                f'{api_controller.controller_class.__name__}[{self.view_func.__name__}] {request.path}" '
                 f"{duration if duration else ''}"
             )
             if ex:

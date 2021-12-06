@@ -5,7 +5,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, User
 from ninja import Schema
 
-from ninja_extra import APIController, permissions, route, router
+from ninja_extra import api_controller, permissions, route, http_get, http_post, http_delete, http_generic, http_put, http_patch
 from ninja_extra.controllers import (
     AsyncRouteFunction,
     Detail,
@@ -16,6 +16,7 @@ from ninja_extra.controllers import (
     RouteInvalidParameterException,
 )
 from ninja_extra.controllers.route.context import RouteContext
+from ninja_extra.controllers.base import get_route_functions
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions import AllowAny
 
@@ -23,46 +24,47 @@ anonymous_request = Mock()
 anonymous_request.user = AnonymousUser()
 
 
-@router(
+@api_controller(
     "permission", permissions=[permissions.IsAuthenticated & permissions.IsAdminUser]
 )
-class PermissionController(APIController):
-    @route.get("/example")
+class PermissionController:
+    @http_post("/example_post")
     def example(self):
         return {"message": "OK"}
 
-    @route.get("/example", permissions=[permissions.AllowAny])
+    @http_get("/example_get", permissions=[permissions.AllowAny])
     def example_allow_any(self):
         return {"message": "OK"}
 
 
-class SomeTestController(APIController):
-    @route.get("/example")
+@api_controller
+class SomeTestController:
+    @http_get("/example")
     def example(self):
         pass
 
-    @route.post("/example")
+    @http_post("/example")
     def example_post(self):
         pass
 
-    @route.get("/example/{ex_id}")
-    def example_get(self, ex_id: str):
+    @http_patch("/example/{ex_id}")
+    def example_patch(self, ex_id: str):
         pass
 
-    @route.put("/example/{ex_id}")
+    @http_patch("/example/{ex_id}")
     def example_put(self, ex_id: str):
         pass
 
-    @route.delete("/example/{ex_id}")
+    @http_delete("/example/{ex_id}")
     def example_delete(self, ex_id: str):
         pass
 
-    @route.generic("/example/list", methods=["POST", "GET"])
+    @http_generic("/example/list", methods=["POST", "GET"])
     def example_list_create(self, ex_id: str):
         pass
 
 
-class TestControllerRoutes:
+class TestControllerRoute:
     @pytest.mark.parametrize(
         "path,operation_count",
         [
@@ -71,14 +73,15 @@ class TestControllerRoutes:
             ("/example/list", 1),
         ],
     )
-    def test_controller_route_build_accurate_operations_list(
+    def test_api_controller_builds_accurate_operations_list(
         self, path, operation_count
     ):
-        path_view = SomeTestController.get_path_operations().get(path)
+        api_controller_instance = SomeTestController.get_api_controller()
+        path_view = api_controller_instance.path_operations.get(path)
         assert len(path_view.operations) == operation_count
 
     def test_controller_route_should_have_an_operation(self):
-        for route_func in SomeTestController.get_route_functions():
+        for route_func in get_route_functions(SomeTestController):
             path_view = SomeTestController.get_path_operations().get(str(route_func))
             operations = list(
                 filter(
@@ -246,8 +249,12 @@ class TestRouteFunction:
 
     def test_get_route_execution_context(self):
         route_function = route.get("")(self.api_func)
-        route_function.controller = Mock()
-        route_function.controller.permission_classes = [AllowAny]
+        with pytest.raises(Exception):
+            route_function.get_route_execution_context(
+                anonymous_request, "arg1", "arg2", extra="extra"
+            )
+        route_function.api_controller = Mock()
+        route_function.api_controller.permission_classes = [AllowAny]
 
         route_context = route_function.get_route_execution_context(
             anonymous_request, "arg1", "arg2", extra="extra"

@@ -43,7 +43,7 @@ Let's create a module for our API.  Create an **api.py** file in the same direct
 
 
 ```Python
-from ninja_extra import NinjaExtraAPI, route, APIController, router
+from ninja_extra import NinjaExtraAPI
 
 api = NinjaExtraAPI()
 
@@ -84,30 +84,36 @@ The `route` class is an extra decorator that converts APIController instance met
 
 On the other hand, the `router` here is a short form of the `ControllerRouter` class,  an adapter class, which is an that only adapts APIController to the Django-Ninja router. It also provides global control of all routes defined in any APIController class.
 ```Python
-@router('', tags=['My Operations'], auth=NOT_SET, permissions=[])
-class MyAPIController(APIController):
-    @route.get("/path")
+from ninja_extra import (
+    api_controller, 
+    http_get, http_post, http_put, http_delete, http_patch, http_generic
+)
+from ninja.constants import NOT_SET
+
+@api_controller('', tags=['My Operations'], auth=NOT_SET, permissions=[])
+class MyAPIController:
+    @http_get("/path")
     def get_operation(self):
         ...
     
-    @route.post("/path")
+    @http_post("/path")
     def post_operation(self):
         ...
     
-    @route.put("/path")
+    @http_put("/path")
     def put_operation(self):
         ...
     
-    @route.delete("/path")
+    @http_delete("/path")
     def delete_operation(self):
         ...
     
-    @route.patch("/path")
+    @http_patch("/path")
     def patch_operation(self):
         ...
     
     # If you need to handle multiple methods with a single function, you can use the `generic` method as shown above
-    @route.generic(["POST", "PATCH"]) 
+    @http_generic(["POST", "PATCH"]) 
     def mixed(request):
         ...
 

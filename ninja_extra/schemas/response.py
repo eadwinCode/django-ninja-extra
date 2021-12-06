@@ -20,7 +20,7 @@ class BasePaginatedResponseSchema(Schema):
 
 
 class PaginatedResponseSchema(GenericType):
-    def get_generic_type(self, wrap_type: Any) -> Type[BasePaginatedResponseSchema]:
+    def get_generic_type(self, wrap_type: Any) -> Type[BasePaginatedResponseSchema]: # pragma: no cover
         class ListResponseSchema(BasePaginatedResponseSchema):
             results: List[wrap_type]  # type: ignore
 
@@ -30,7 +30,7 @@ class PaginatedResponseSchema(GenericType):
         return ListResponseSchema
 
 
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 8): # pragma: no cover
 
     class PaginatedResponseSchema(
         GenericModel, Generic[T], BasePaginatedResponseSchema

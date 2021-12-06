@@ -15,7 +15,7 @@ Use standard Python types for all the attributes:
 
 ```Python
 from ninja import Schema, constants
-from ninja_extra import APIController, route, router
+from ninja_extra import api_controller, route
 
 
 class Item(Schema):
@@ -25,8 +25,8 @@ class Item(Schema):
     quantity: int
 
     
-@router('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
-class MyAPIController(APIController):
+@api_controller(tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
+class MyAPIController:
     @route.post("/items")
     def create(self, item: Item):
         return item

@@ -21,7 +21,10 @@ Let's create an APIController to manage Django user model
 import uuid
 from typing import List
 from ninja import ModelSchema
-from ninja_extra import APIController, route, router, exceptions, status
+from ninja_extra import (
+    http_get, http_post, http_generic, http_delete,
+    api_controller, exceptions, status
+)
 from ninja_extra.controllers.response import Detail
 from django.contrib.auth import get_user_model
 
@@ -32,16 +35,16 @@ class UserSchema(ModelSchema):
         model_fields = ['username', 'email', 'first_name']
 
 
-@router('/users')
-class UsersController(APIController):
+@api_controller('/users')
+class UsersController:
     user_model = get_user_model()
 
-    @route.post('')
+    @http_post('')
     def create_user(self, user: UserSchema):
         # just simulating created user
         return self.Id(uuid.uuid4())
 
-    @route.generic('/{int:user_id}', methods=['put', 'patch'], response=UserSchema)
+    @http_generic('/{int:user_id}', methods=['put', 'patch'], response=UserSchema)
     def update_user(self, user_id: int):
         """ Django Ninja will serialize Django ORM model to schema provided as `response`"""
         user = self.user_model.objects.filter(id=user_id).first()
@@ -49,7 +52,7 @@ class UsersController(APIController):
             return user
         raise exceptions.NotFound(f'User with id: `{user_id}` not found')
 
-    @route.delete('/{int:user_id}', response=Detail(status_code=status.HTTP_204_NO_CONTENT))
+    @http_delete('/{int:user_id}', response=Detail(status_code=status.HTTP_204_NO_CONTENT))
     def delete_user(self, user_id: int):
         user = self.user_model.objects.filter(id=user_id).first()
         if user:
@@ -57,11 +60,11 @@ class UsersController(APIController):
             return self.create_response('', status_code=status.HTTP_204_NO_CONTENT)
         raise exceptions.NotFound(f'User with id: `{user_id}` not found')
     
-    @route.get('', response=List[UserSchema])
+    @http_get('', response=List[UserSchema])
     def list_user(self):
         return self.user_model.objects.all()
 
-    @route.get('/{user_id}', response=UserSchema)
+    @http_get('/{user_id}', response=UserSchema)
     def get_user_by_id(self, user_id: int):
         user = self.user_model.objects.filter(id=user_id).first()
         if user:
@@ -70,7 +73,7 @@ class UsersController(APIController):
 ```
 
 ```python
-class APIController(ABC, metaclass=APIControllerModelMetaclass):
+class ControllerBase:
     ...
 ```
 

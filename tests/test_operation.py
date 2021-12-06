@@ -1,15 +1,15 @@
 import django
 import pytest
 
-from ninja_extra import APIController, route, router
+from ninja_extra import api_controller, route
 from ninja_extra.testing import TestAsyncClient, TestClient
 
 from .utils import mock_log_call, mock_signal_call
 
 
 class TestOperation:
-    @router("")
-    class SomeTestController(APIController):
+    @api_controller
+    class SomeTestController:
         @route.get("/example")
         def example(self):
             return {"message": "example"}
@@ -40,8 +40,8 @@ class TestOperation:
 class TestAsyncOperations:
     if not django.VERSION < (3, 1):
 
-        @router("")
-        class SomeTestController(APIController):
+        @api_controller
+        class SomeTestController:
             @route.get("/example")
             async def example(self):
                 return {"message": "example"}

@@ -26,15 +26,15 @@ To implement a custom permission, override `BasePermission` and implement either
 Example
 
 ```python
-from ninja_extra import permissions, APIController, router, route
+from ninja_extra import permissions, api_controller, http_get
 
 class ReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS
 
-@router("", permissions=[permissions.IsAuthenticated | ReadOnly])
-class PermissionController(APIController):
-    @route.get('/must_be_authenticated', permissions=[permissions.IsAuthenticated])
+@api_controller(permissions=[permissions.IsAuthenticated | ReadOnly])
+class PermissionController:
+    @http_get('/must_be_authenticated', permissions=[permissions.IsAuthenticated])
     def must_be_authenticated(self, word: str):
         return dict(says=word)
 ```

@@ -20,6 +20,28 @@ class TestPermissionsCompositions:
         _request.user = user
         return _request
 
+    @pytest.mark.parametrize(
+        'method, auth, result',
+        [
+            ('GET', '', True),
+            ('HEAD', '', True),
+            ('OPTIONS', '', True),
+            ('POST', '', False),
+            ('PUT', '', False),
+            ('PATCH', '', False),
+            ('DELETE', '', False),
+            ('POST', 'Auth', True),
+        ]
+    )
+    @pytest.mark.django_db
+    def test_is_authenticated_and_read_only(self, method, auth, result):
+        request = Mock()
+        request.user = AnonymousUser()
+        if auth:
+            request = self.get_real_user_request()
+        request.method = method
+        assert permissions.IsAuthenticatedOrReadOnly().has_permission(request, Mock()) == result
+
     def test_and_false(self):
         composed_perm = permissions.IsAuthenticated & permissions.AllowAny
         assert composed_perm().has_permission(anonymous_request, None) is False

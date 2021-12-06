@@ -7,10 +7,11 @@ The `route` class is a function decorator, used to mark an instance function of 
 
 For example
 ```python
-from ninja_extra import route, APIController
+from ninja_extra import route, api_controller
 from ninja_extra.controllers import RouteFunction
 
-class MyController(APIController):
+@api_controller
+class MyController:
     @route.get('/test')
     def test(self):
         return {'message': 'test'}
@@ -87,11 +88,12 @@ For Example
 
 ```python
 import asyncio
-from ninja_extra import route, APIController
+from ninja_extra import http_get, api_controller
 from ninja_extra.controllers import AsyncRouteFunction
 
-class MyController(APIController):
-    @route.get("/say-after")
+@api_controller
+class MyController:
+    @http_get("/say-after")
     async def say_after(self, delay: int, word: str):
         await asyncio.sleep(delay)
         return {'saying': word}

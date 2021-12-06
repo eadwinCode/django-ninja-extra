@@ -10,7 +10,7 @@ Here's an example where the client, in order to authenticate, needs to pass a he
 
 ```Python
 from ninja.security import HttpBearer
-from ninja_extra import APIController, route, router
+from ninja_extra import api_controller, route
 from ninja.constants import NOT_SET
 
 
@@ -19,8 +19,8 @@ class AuthBearer(HttpBearer):
         if token == "supersecret":
             return token
 
-@router('', tags=['My Operations'], auth=NOT_SET, permissions=[])
-class MyController(APIController):
+@api_controller(tags=['My Operations'], auth=NOT_SET, permissions=[])
+class MyController:
     @route.get("/bearer", auth=AuthBearer())
     def bearer(self):
         return {"token": self.request.auth}

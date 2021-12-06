@@ -15,7 +15,7 @@ During APIController class initialization, the injector instance is used to reso
 ```python
 from ninja import File
 from ninja.files import UploadedFile
-from ninja_extra import NinjaExtraAPI, APIController, route, router
+from ninja_extra import NinjaExtraAPI, api_controller, http_post
 
 class BucketFileUploadService:
     def upload_file_to_s3(self, file, bucket_name=None, acl="public-read", file_key=None):
@@ -28,12 +28,12 @@ class BucketFileUploadService:
         pass
 
 
-@router('/user_profile')
-class UserProfileController(APIController):
+@api_controller('/user_profile')
+class UserProfileController:
     def __init__(self, upload_service: BucketFileUploadService):
         self.upload_service = upload_service
     
-    @route.post('/upload')
+    @http_post('/upload')
     def upload_profile_pic(self, file: UploadedFile = File(...)):
         self.upload_service.upload_file_to_s3(file=file)
         return {'message', 'uploaded successfully'}
@@ -117,15 +117,15 @@ Create a `controller.py` with the code below
 ```python
 from ninja import File
 from ninja.files import UploadedFile
-from ninja_extra import NinjaExtraAPI, APIController, route, router
+from ninja_extra import NinjaExtraAPI, api_controller, http_post
 from .modules import BucketFileUpload, InMemoryBucketFileUpload
 
-@router('/user_profile')
-class UserProfileController(APIController):
+@api_controller('/user_profile')
+class UserProfileController:
     def __init__(self, upload_service: BucketFileUpload):
         self.upload_service = upload_service
     
-    @route.post('/upload')
+    @http_post('/upload')
     def upload_profile_pic(self, file: UploadedFile = File(...)):
         self.upload_service.upload_file_to_s3(file=file)
         assert isinstance(self.upload_service, InMemoryBucketFileUpload) # True

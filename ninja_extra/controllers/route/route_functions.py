@@ -12,12 +12,12 @@ from ...dependency_resolver import get_injector
 from .context import RouteContext
 
 if TYPE_CHECKING:
-    from ...controllers import APIController, Route
+    from ...controllers import APIController, ControllerBase, Route
 
 
 class RouteFunctionContext:
     def __init__(
-        self, controller_instance: "APIController", **view_func_kwargs: Any
+        self, controller_instance: "ControllerBase", **view_func_kwargs: Any
     ) -> None:
         self.controller_instance = controller_instance
         self.view_func_kwargs = view_func_kwargs
@@ -25,11 +25,11 @@ class RouteFunctionContext:
 
 class RouteFunction(object):
     def __init__(
-        self, route: "Route", controller: Optional[Type["APIController"]] = None
+        self, route: "Route", api_controller: Optional["APIController"] = None
     ):
         self.route = route
         self.has_request_param = False
-        self.controller: Optional[Type["APIController"]] = controller
+        self.api_controller = api_controller
         self.as_view = wraps(route.view_func)(self.get_view_function())
         self._resolve_api_func_signature_(self.as_view)
 
@@ -47,6 +47,9 @@ class RouteFunction(object):
             elif parameter.name == "request":
                 self.has_request_param = True
         return sig_inspect, sig_parameter
+
+    def get_api_controller(self) -> 'APIController':
+        return self.api_controller
 
     def _resolve_api_func_signature_(self, context_func: Callable) -> Callable:
         # Override signature
@@ -77,23 +80,23 @@ class RouteFunction(object):
             return result.status_code, result.convert_to_schema()
         return result
 
-    def _get_controller_instance(self) -> "APIController":
+    def _get_controller_instance(self) -> "ControllerBase":
         injector = get_injector()
-        assert self.controller
+        assert self.api_controller
 
-        controller_instance: "APIController" = injector.create_object(self.controller)
+        controller_instance: "ControllerBase" = injector.create_object(self.api_controller.controller_class)
         return controller_instance
 
     def get_route_execution_context(
         self, request: HttpRequest, *args: Any, **kwargs: Any
     ) -> RouteContext:
 
-        if not self.controller:
-            raise ImproperlyConfigured("Controller object is required")
+        if not self.api_controller:
+            raise ImproperlyConfigured("api_controller object is required")
 
         init_kwargs = dict(
             permission_classes=self.route.permissions
-            or self.controller.permission_classes,
+            or self.api_controller.permission_classes,
             request=request,
             kwargs=kwargs,
             args=args,
@@ -124,9 +127,9 @@ class RouteFunction(object):
         return self.route.route_params.path
 
     def __repr__(self) -> str:
-        if not self.controller:
+        if not self.api_controller:
             return f"<RouteFunction, controller: No Controller Found, path: {self.__str__()}>"
-        return f"<RouteFunction, controller: {self.controller.__name__}, path: {self.__str__()}>"
+        return f"<RouteFunction, controller: {self.api_controller.controller_class.__name__}, path: {self.__str__()}>"
 
 
 class AsyncRouteFunction(RouteFunction):
@@ -143,9 +146,9 @@ class AsyncRouteFunction(RouteFunction):
         return as_view
 
     def __repr__(self) -> str:
-        if not self.controller:
+        if not self.api_controller:
             return f"<AsyncRouteFunction, controller: No Controller Found, path: {self.__str__()}>"
-        return f"<AsyncRouteFunction, controller: {self.controller.__name__}, path: {self.__str__()}>"
+        return f"<AsyncRouteFunction, controller: {self.api_controller.controller_class.__name__}, path: {self.__str__()}>"
 
     async def __call__(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
         context = self.get_route_execution_context(request, *args, **kwargs)
