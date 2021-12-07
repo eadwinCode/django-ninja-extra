@@ -5,13 +5,13 @@ from urllib.parse import urlencode
 
 from ninja.testing.client import NinjaClientBase, NinjaResponse
 
-from ninja_extra import NinjaExtraAPI, ControllerBase
+from ninja_extra import ControllerBase, NinjaExtraAPI
 
 
 class NinjaExtraClientBase(NinjaClientBase):
     def __init__(self, controller_class: Union[Type[ControllerBase], Type]) -> None:
         api = NinjaExtraAPI()
-        assert hasattr(controller_class, 'get_api_controller'), 'Not a valid object'
+        assert hasattr(controller_class, "get_api_controller"), "Not a valid object"
         controller_ninja_api_controller = controller_class.get_api_controller()
         assert controller_ninja_api_controller
         controller_ninja_api_controller.set_api_instance(api)

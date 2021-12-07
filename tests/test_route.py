@@ -5,7 +5,17 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, User
 from ninja import Schema
 
-from ninja_extra import api_controller, permissions, route, http_get, http_post, http_delete, http_generic, http_put, http_patch
+from ninja_extra import (
+    api_controller,
+    http_delete,
+    http_generic,
+    http_get,
+    http_patch,
+    http_post,
+    http_put,
+    permissions,
+    route,
+)
 from ninja_extra.controllers import (
     AsyncRouteFunction,
     Detail,
@@ -15,8 +25,8 @@ from ninja_extra.controllers import (
     RouteFunction,
     RouteInvalidParameterException,
 )
-from ninja_extra.controllers.route.context import RouteContext
 from ninja_extra.controllers.base import get_route_functions
+from ninja_extra.controllers.route.context import RouteContext
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions import AllowAny
 

@@ -1,22 +1,25 @@
 import inspect
 import uuid
-from abc import ABCMeta, ABC
+from abc import ABC
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
+    Tuple,
     Type,
     Union,
     cast,
-    no_type_check, Iterator, Tuple, overload,
+    overload,
 )
 
 from django.db.models import Model, QuerySet
 from django.http import HttpResponse
+from django.urls import URLPattern, path as django_path
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
@@ -35,21 +38,21 @@ from ninja_extra.shortcuts import (
 )
 from ninja_extra.types import PermissionType
 
-from django.urls import URLPattern, path as django_path
+from .registry import ControllerRegistry
 from .response import Detail, Id, Ok
 from .route.route_functions import RouteFunction
-from .registry import ControllerRegistry
 
 if TYPE_CHECKING:
+    from ninja_extra import NinjaExtraAPI  # pragma: no cover
+
     from .route.context import RouteContext  # pragma: no cover
-    from ninja_extra import NinjaExtraAPI   # pragma: no cover
 
 
 class MissingAPIControllerDecoratorException(Exception):
     pass
 
 
-def get_route_functions(cls) -> Iterable[RouteFunction]:
+def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
     for method in cls.__dict__.values():
         if isinstance(method, RouteFunction):
             yield method
@@ -66,13 +69,13 @@ def compute_api_route_function(
 class APIController:
     """
     A class decorator
-    
+
     Features
     --
     - Converts class to APIController
     - Forces class to inherit from `ControllerBase` if missing
     - Adapts class to Django-Ninja router
-    
+
     Usage:
     ---------
     ```python
@@ -83,15 +86,16 @@ class APIController:
         @http_get()
         def some_method_name(self):
             ...
-    
+
     @api_controller
     class AnotherController(ControllerBase):
         @http_post()
         def some_method_name(self):
             ...
     ```
-    
+
     """
+
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
 
@@ -102,29 +106,30 @@ class APIController:
         auth: Any = NOT_SET,
         tags: Union[Optional[List[str]], str] = None,
         permissions: Optional["PermissionType"] = None,
-        auto_import: bool = True
+        auto_import: bool = True,
     ) -> None:
 
         self.prefix = prefix
         # `auth` primarily defines APIController route function global authentication method.
         self.auth: Optional[AuthBase] = auth
 
-        self.tags = tags
+        self.tags = tags  # type: ignore
 
-        self.auto_import = (
-            auto_import  # set to false and it would be ignored when api.auto_discover is called
-        )
-        # `permission_classes` a collection of BasePermission Types
-        self.permission_classes = permissions or [AllowAny]
+        self.auto_import: bool = auto_import  # set to false and it would be ignored when api.auto_discover is called
         # `controller_class` target class that the APIController wraps
-        self.controller_class: Optional[Type['ControllerBase']] = None
+        self._controller_class: Optional[Type["ControllerBase"]] = None
         # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
         self._path_operations: Dict[str, PathView] = dict()
-        # `permission_classes` primarily holds permission defined by the ControllerRouter and its used as
+        # `permission_classes` a collection of BasePermission Types
         # a fallback if route functions has no permissions definition
-        self.permission_classes: PermissionType = permissions or [AllowAny]
+        self.permission_classes: PermissionType = permissions or [AllowAny]  # type: ignore
         # `registered` prevents controllers from being register twice or exist in two different `api` instances
         self.registered: bool = False
+
+    @property
+    def controller_class(self) -> Type["ControllerBase"]:
+        assert self._controller_class, "Controller Class is not available"
+        return self._controller_class
 
     @property
     def tags(self) -> Optional[List[str]]:
@@ -139,10 +144,10 @@ class APIController:
         self._tags = tag
 
     def __call__(self, cls: Type) -> Type["ControllerBase"]:
-        self.auto_import = getattr(cls, 'auto_import', self.auto_import)
+        self.auto_import = getattr(cls, "auto_import", self.auto_import)
         if not issubclass(cls, ControllerBase):
             # We force the cls to inherit from `ControllerBase` by creating another type.
-            cls = type(cls.__name__, (ControllerBase, cls), {'_api_controller': self})
+            cls = type(cls.__name__, (ControllerBase, cls), {"_api_controller": self})
         else:
             cls._api_controller = self
 
@@ -158,7 +163,7 @@ class APIController:
         if not is_decorated_with_inject(cls.__init__):
             fail_silently(inject, constructor_or_class=cls)
 
-        self.controller_class = cls
+        self._controller_class = cls
         ControllerRegistry().add_controller(cls)
         return cls
 
@@ -194,9 +199,7 @@ class APIController:
 
     def add_operation_from_route_function(self, route_function: RouteFunction) -> None:
         # converts route functions to Operation model
-        route_function.route.route_params.operation_id = (
-            f"{str(uuid.uuid4())[:8]}_controller_{route_function.route.view_func.__name__}"
-        )
+        route_function.route.route_params.operation_id = f"{str(uuid.uuid4())[:8]}_controller_{route_function.route.view_func.__name__}"
         self.add_api_operation(
             view_func=route_function.as_view, **route_function.route.route_params.dict()
         )
@@ -250,7 +253,7 @@ class APIController:
 class ControllerBase(ABC):
     """
     Abstract Controller Base implementation all Controller class should implement
-    
+
     Example:
     ---------
     ```python
@@ -273,6 +276,7 @@ class ControllerBase(ABC):
             ...
     ```
     """
+
     # `_api_controller` a reference to APIController instance
     _api_controller: Optional[APIController] = None
 
@@ -367,38 +371,55 @@ class ControllerBase(ABC):
     def create_response(
         self, message: Any, status_code: int = 200, headers: DictStrAny = {}
     ) -> HttpResponse:
-        content = self.api.renderer.render(self.context.request, message, response_status=status_code)
+        assert self.api and self.context and self.context.request
+        content = self.api.renderer.render(
+            self.context.request, message, response_status=status_code
+        )
         content_type = "{}; charset={}".format(
             self.api.renderer.media_type, self.api.renderer.charset
         )
-        return HttpResponse(content, status=status_code, content_type=content_type, headers=headers)
+        return HttpResponse(
+            content, status=status_code, content_type=content_type, headers=headers
+        )
 
 
 @overload
-def api_controller() -> Type[ControllerBase]:
+def api_controller() -> Type[ControllerBase]:  # type: ignore
     ...
 
 
 @overload
 def api_controller(
-    prefix: str = '',
+    prefix: str = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
-    auto_import: bool = True
+    auto_import: bool = True,
 ) -> APIController:
     ...
 
 
 def api_controller(
-    prefix: Union[str, Type] = '',
+    prefix: Union[str, Type] = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
-    auto_import: bool = True
+    auto_import: bool = True,
 ) -> Union[Type[ControllerBase], APIController]:
     if isinstance(prefix, type):
-        _api_controller = APIController(prefix='', auth=auth, tags=tags, permissions=permissions, auto_import=auto_import)
+        _api_controller = APIController(
+            prefix="",
+            auth=auth,
+            tags=tags,
+            permissions=permissions,
+            auto_import=auto_import,
+        )
         return _api_controller(prefix)
 
-    return APIController(prefix=prefix, auth=auth, tags=tags, permissions=permissions, auto_import=auto_import)
+    return APIController(
+        prefix=prefix,
+        auth=auth,
+        tags=tags,
+        permissions=permissions,
+        auto_import=auto_import,
+    )

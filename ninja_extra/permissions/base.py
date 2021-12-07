@@ -37,7 +37,7 @@ class BasePermissionMetaclass(OperationHolderMixin, ABCMeta):
     pass
 
 
-class BasePermission(ABC, metaclass=BasePermissionMetaclass): # pragma: no cover
+class BasePermission(ABC, metaclass=BasePermissionMetaclass):  # pragma: no cover
     """
     A base class from which all permission classes should inherit.
     """
@@ -45,7 +45,9 @@ class BasePermission(ABC, metaclass=BasePermissionMetaclass): # pragma: no cover
     message: Any = None
 
     @abstractmethod
-    def has_permission(self, request: HttpRequest, controller: "ControllerBase") -> bool:
+    def has_permission(
+        self, request: HttpRequest, controller: "ControllerBase"
+    ) -> bool:
         """
         Return `True` if permission is granted, `False` otherwise.
         """
@@ -95,7 +97,9 @@ class AND(BasePermission):
         self.op1 = op1
         self.op2 = op2
 
-    def has_permission(self, request: HttpRequest, controller: "ControllerBase") -> bool:
+    def has_permission(
+        self, request: HttpRequest, controller: "ControllerBase"
+    ) -> bool:
         return self.op1.has_permission(request, controller) and self.op2.has_permission(
             request, controller
         )
@@ -113,7 +117,9 @@ class OR(BasePermission):
         self.op1 = op1
         self.op2 = op2
 
-    def has_permission(self, request: HttpRequest, controller: "ControllerBase") -> bool:
+    def has_permission(
+        self, request: HttpRequest, controller: "ControllerBase"
+    ) -> bool:
         return self.op1.has_permission(request, controller) or self.op2.has_permission(
             request, controller
         )
@@ -130,7 +136,9 @@ class NOT(BasePermission):
     def __init__(self, op1: "BasePermission") -> None:
         self.op1 = op1
 
-    def has_permission(self, request: HttpRequest, controller: "ControllerBase") -> bool:
+    def has_permission(
+        self, request: HttpRequest, controller: "ControllerBase"
+    ) -> bool:
         return not self.op1.has_permission(request, controller)
 
     def has_object_permission(

@@ -2,10 +2,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 from django.contrib.auth.models import Group
-from ninja_extra.controllers.base import get_route_functions, compute_api_route_function
-from ninja_extra import api_controller, NinjaExtraAPI, exceptions, http_get, testing
-from ninja_extra.controllers import RouteContext, ControllerBase, RouteFunction
-from ninja_extra.controllers.base import MissingAPIControllerDecoratorException
+
+from ninja_extra import NinjaExtraAPI, api_controller, exceptions, http_get, testing
+from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
+from ninja_extra.controllers.base import (
+    MissingAPIControllerDecoratorException,
+    compute_api_route_function,
+    get_route_functions,
+)
 from ninja_extra.controllers.response import Detail, Id, Ok
 from ninja_extra.permissions.common import AllowAny
 
@@ -50,7 +54,7 @@ class TestAPIController:
         api_controller_instance = api_controller("prefix", tags="new_tag")
 
         assert api_controller_instance.prefix == "prefix"
-        assert api_controller_instance.tags == ['new_tag']
+        assert api_controller_instance.tags == ["new_tag"]
         assert api_controller_instance.permission_classes == [AllowAny]
         api_controller_instance = api_controller()
         assert api_controller_instance.prefix == ""
@@ -100,7 +104,9 @@ class TestAPIController:
 
         compute_api_route_function(AnyClassTypeWithRoute, _api_controller)
         assert len(_api_controller.path_operations) == 1
-        path_view = _api_controller.path_operations.get(str(AnyClassTypeWithRoute.example))
+        path_view = _api_controller.path_operations.get(
+            str(AnyClassTypeWithRoute.example)
+        )
         assert path_view
 
     @pytest.mark.django_db

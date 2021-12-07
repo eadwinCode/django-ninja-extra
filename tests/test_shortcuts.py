@@ -4,7 +4,12 @@ from django.db.models import QuerySet
 
 from ninja_extra import status
 from ninja_extra.exceptions import APIException, NotFound
-from ninja_extra.shortcuts import get_object_or_exception, get_object_or_none, _get_queryset, _validate_queryset
+from ninja_extra.shortcuts import (
+    _get_queryset,
+    _validate_queryset,
+    get_object_or_exception,
+    get_object_or_none,
+)
 
 
 class CustomException(APIException):

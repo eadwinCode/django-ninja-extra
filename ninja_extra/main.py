@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Callable, List, Optional, Sequence, Tuple, Type, Union, Any
+from typing import Callable, List, Optional, Sequence, Tuple, Type, Union
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
@@ -78,7 +78,9 @@ class NinjaExtraAPI(NinjaAPI):
     #     )
     #     return HttpResponse(content, status=status_code, content_type=content_type, headers=headers)
 
-    def register_controllers(self, *controllers: Union[Type[ControllerBase], Type]) -> None:
+    def register_controllers(
+        self, *controllers: Union[Type[ControllerBase], Type]
+    ) -> None:
         for controller in controllers:
             if not issubclass(controller, ControllerBase):
                 raise ImproperlyConfigured(

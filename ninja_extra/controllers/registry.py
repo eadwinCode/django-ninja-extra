@@ -1,9 +1,4 @@
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    Optional,
-    Type
-)
+from typing import TYPE_CHECKING, Dict, Optional, Type
 
 if TYPE_CHECKING:
     from ninja_extra.controllers.base import ControllerBase  # pragma: no cover
@@ -18,7 +13,10 @@ class ControllerBorg:
         self.__dict__ = self._shared_state_
 
     def add_controller(self, controller: Type["ControllerBase"]) -> None:
-        if hasattr(controller, 'get_api_controller') and controller.get_api_controller().auto_import:
+        if (
+            hasattr(controller, "get_api_controller")
+            and controller.get_api_controller().auto_import
+        ):
             self._shared_state_["controllers"].update({str(controller): controller})
 
     def remove_controller(

@@ -1,6 +1,6 @@
 from ninja import Schema
 
-from ninja_extra import api_controller, NinjaExtraAPI, route
+from ninja_extra import NinjaExtraAPI, api_controller, route
 from ninja_extra.pagination import (
     PageNumberPagination,
     PageNumberPaginationExtra,

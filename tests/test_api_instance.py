@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-from ninja_extra import api_controller, NinjaExtraAPI, http_get
+from ninja_extra import NinjaExtraAPI, api_controller, http_get
 from ninja_extra.controllers.registry import ControllerRegistry
 
 
@@ -44,10 +44,7 @@ def test_api_auto_discover_controller():
     ) as mock_register_controllers:
         ninja_extra_api.auto_discover_controllers()
     assert mock_register_controllers.call_count == 2
-    assert (
-        "<class 'abc.EventController'>"
-        in ControllerRegistry.get_controllers()
-    )
+    assert "<class 'abc.EventController'>" in ControllerRegistry.get_controllers()
 
     @api_controller
     class SomeAPI2Controller:

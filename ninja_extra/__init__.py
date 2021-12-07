@@ -2,7 +2,16 @@
 
 __version__ = "0.13.4"
 
-from ninja_extra.controllers import ControllerBase, api_controller, http_patch, http_get, http_put, http_delete, http_post, http_generic
+from ninja_extra.controllers import (
+    ControllerBase,
+    api_controller,
+    http_delete,
+    http_generic,
+    http_get,
+    http_patch,
+    http_post,
+    http_put,
+)
 from ninja_extra.controllers.route import route
 from ninja_extra.dependency_resolver import get_injector, service_resolver
 from ninja_extra.main import NinjaExtraAPI
@@ -14,12 +23,12 @@ __all__ = [
     "api_controller",
     "NinjaExtraAPI",
     "route",
-    'http_patch',
-    'http_get',
-    'http_put',
-    'http_post',
-    'http_delete',
-    'http_generic',
+    "http_patch",
+    "http_get",
+    "http_put",
+    "http_post",
+    "http_delete",
+    "http_generic",
     "permissions",
     "exceptions",
     "status",

@@ -29,7 +29,7 @@ from ninja_extra.signals import route_context_finished, route_context_started
 from .controllers.route.context import RouteContext
 
 if TYPE_CHECKING:
-    from .controllers.route import RouteFunction  # pragma: no cover
+    from .controllers.route.route_functions import RouteFunction  # pragma: no cover
 
 
 class Operation(NinjaOperation):

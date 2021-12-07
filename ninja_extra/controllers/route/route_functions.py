@@ -1,9 +1,8 @@
 import inspect
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple
 
-from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
 from ninja_extra.controllers.response import ControllerResponse
@@ -12,7 +11,8 @@ from ...dependency_resolver import get_injector
 from .context import RouteContext
 
 if TYPE_CHECKING:
-    from ...controllers import APIController, ControllerBase, Route
+    from ...controllers.base import APIController, ControllerBase
+    from ...controllers.route import Route
 
 
 class RouteFunctionContext:
@@ -48,7 +48,8 @@ class RouteFunction(object):
                 self.has_request_param = True
         return sig_inspect, sig_parameter
 
-    def get_api_controller(self) -> 'APIController':
+    def get_api_controller(self) -> "APIController":
+        assert self.api_controller, "APIController is required"
         return self.api_controller
 
     def _resolve_api_func_signature_(self, context_func: Callable) -> Callable:
@@ -82,21 +83,22 @@ class RouteFunction(object):
 
     def _get_controller_instance(self) -> "ControllerBase":
         injector = get_injector()
-        assert self.api_controller
+        _api_controller = self.get_api_controller()
 
-        controller_instance: "ControllerBase" = injector.create_object(self.api_controller.controller_class)
+        controller_instance: "ControllerBase" = injector.create_object(
+            _api_controller.controller_class
+        )
         return controller_instance
 
     def get_route_execution_context(
         self, request: HttpRequest, *args: Any, **kwargs: Any
     ) -> RouteContext:
 
-        if not self.api_controller:
-            raise ImproperlyConfigured("api_controller object is required")
+        _api_controller = self.get_api_controller()
 
         init_kwargs = dict(
             permission_classes=self.route.permissions
-            or self.api_controller.permission_classes,
+            or _api_controller.permission_classes,
             request=request,
             kwargs=kwargs,
             args=args,

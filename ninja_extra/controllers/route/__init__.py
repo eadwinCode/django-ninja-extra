@@ -24,22 +24,22 @@ class RouteInvalidParameterException(Exception):
 
 
 def http_get(
-        path: str= "",
-        *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
-        by_alias: bool = False,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        url_name: Optional[str] = None,
-        include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+    path: str = "",
+    *,
+    auth: Any = NOT_SET,
+    response: Union[Any, List[Any]] = NOT_SET,
+    operation_id: Optional[str] = None,
+    summary: Optional[str] = None,
+    description: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    deprecated: Optional[bool] = None,
+    by_alias: bool = False,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+    exclude_none: bool = False,
+    url_name: Optional[str] = None,
+    include_in_schema: bool = True,
+    permissions: Optional[List[Type[BasePermission]]] = None,
 ) -> "Route":
     return Route(
         path,
@@ -62,22 +62,22 @@ def http_get(
 
 
 def http_post(
-        path: str = "",
-        *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
-        by_alias: bool = False,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        url_name: Optional[str] = None,
-        include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+    path: str = "",
+    *,
+    auth: Any = NOT_SET,
+    response: Union[Any, List[Any]] = NOT_SET,
+    operation_id: Optional[str] = None,
+    summary: Optional[str] = None,
+    description: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    deprecated: Optional[bool] = None,
+    by_alias: bool = False,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+    exclude_none: bool = False,
+    url_name: Optional[str] = None,
+    include_in_schema: bool = True,
+    permissions: Optional[List[Type[BasePermission]]] = None,
 ) -> "Route":
     return Route(
         path,
@@ -100,22 +100,22 @@ def http_post(
 
 
 def http_delete(
-        path: str= "",
-        *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
-        by_alias: bool = False,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        url_name: Optional[str] = None,
-        include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+    path: str = "",
+    *,
+    auth: Any = NOT_SET,
+    response: Union[Any, List[Any]] = NOT_SET,
+    operation_id: Optional[str] = None,
+    summary: Optional[str] = None,
+    description: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    deprecated: Optional[bool] = None,
+    by_alias: bool = False,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+    exclude_none: bool = False,
+    url_name: Optional[str] = None,
+    include_in_schema: bool = True,
+    permissions: Optional[List[Type[BasePermission]]] = None,
 ) -> "Route":
     return Route(
         path,
@@ -138,22 +138,22 @@ def http_delete(
 
 
 def http_patch(
-        path: str= "",
-        *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
-        by_alias: bool = False,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        url_name: Optional[str] = None,
-        include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+    path: str = "",
+    *,
+    auth: Any = NOT_SET,
+    response: Union[Any, List[Any]] = NOT_SET,
+    operation_id: Optional[str] = None,
+    summary: Optional[str] = None,
+    description: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    deprecated: Optional[bool] = None,
+    by_alias: bool = False,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+    exclude_none: bool = False,
+    url_name: Optional[str] = None,
+    include_in_schema: bool = True,
+    permissions: Optional[List[Type[BasePermission]]] = None,
 ) -> "Route":
     return Route(
         path,
@@ -176,22 +176,22 @@ def http_patch(
 
 
 def http_put(
-        path: str= "",
-        *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
-        by_alias: bool = False,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-        url_name: Optional[str] = None,
-        include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+    path: str = "",
+    *,
+    auth: Any = NOT_SET,
+    response: Union[Any, List[Any]] = NOT_SET,
+    operation_id: Optional[str] = None,
+    summary: Optional[str] = None,
+    description: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    deprecated: Optional[bool] = None,
+    by_alias: bool = False,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+    exclude_none: bool = False,
+    url_name: Optional[str] = None,
+    include_in_schema: bool = True,
+    permissions: Optional[List[Type[BasePermission]]] = None,
 ) -> "Route":
     return Route(
         path,
@@ -214,7 +214,7 @@ def http_put(
 
 
 def http_generic(
-    path: str= "",
+    path: str = "",
     *,
     methods: List[str],
     auth: Any = NOT_SET,
@@ -262,24 +262,24 @@ class Route(object):
     generic = http_generic
 
     def __init__(
-            self,
-            path: str,
-            methods: List[str],
-            *,
-            auth: Any = NOT_SET,
-            response: Union[Any, List[Any]] = NOT_SET,
-            operation_id: Optional[str] = None,
-            summary: Optional[str] = None,
-            description: Optional[str] = None,
-            tags: Optional[List[str]] = None,
-            deprecated: Optional[bool] = None,
-            by_alias: bool = False,
-            exclude_unset: bool = False,
-            exclude_defaults: bool = False,
-            exclude_none: bool = False,
-            url_name: Optional[str] = None,
-            include_in_schema: bool = True,
-            permissions: Optional[List[Type[BasePermission]]] = None,
+        self,
+        path: str,
+        methods: List[str],
+        *,
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
     ) -> None:
 
         if not isinstance(methods, list):
@@ -294,8 +294,8 @@ class Route(object):
 
         _response = response
         if (
-                inspect.isclass(response)
-                and issubclass(response, ControllerResponse)  # type:ignore
+            inspect.isclass(response)
+            and issubclass(response, ControllerResponse)  # type:ignore
         ) or isinstance(response, ControllerResponse):
             response = cast(ControllerResponse, response)
             _response = {response.status_code: response.get_schema()}
@@ -303,7 +303,7 @@ class Route(object):
             _response_computed = dict()
             for item in response:
                 if (
-                        inspect.isclass(item) and issubclass(item, ControllerResponse)
+                    inspect.isclass(item) and issubclass(item, ControllerResponse)
                 ) or isinstance(item, ControllerResponse):
                     _response_computed.update({item.status_code: item.get_schema()})
                 elif isinstance(item, dict):

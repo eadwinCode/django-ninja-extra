@@ -182,7 +182,9 @@ def _inject_pagination(
     paginator_kwargs_name = "pagination"
 
     @wraps(func)
-    def view_with_pagination(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
+    def view_with_pagination(
+        controller: "ControllerBase", *args: Any, **kw: Any
+    ) -> Any:
         func_kwargs = dict(kw)
         if not func.has_kwargs:  # type: ignore
             func_kwargs.pop(paginator_kwargs_name)
