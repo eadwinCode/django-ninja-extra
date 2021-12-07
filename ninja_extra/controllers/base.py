@@ -63,45 +63,37 @@ def compute_api_route_function(
         api_controller_instance.add_operation_from_route_function(cls_route_function)
 
 
-# class APIControllerModelMetaclass(ABCMeta):
-#     @no_type_check
-#     def __new__(mcs, name: str, bases: tuple, namespace: dict):
-#         cls = super().__new__(mcs, name, bases, namespace)
-#         if name == "APIController" and ABC in bases:
-#             return cls
-#
-#         cls = cast(Type[APIController], cls)
-#         cls._path_operations = {}
-#         cls.api = namespace.get("api", None)
-#         cls.registered = False
-#
-#         if not namespace.get("tags"):
-#             tag = str(cls.__name__).lower().replace("controller", "")
-#             cls.tags = [tag]
-#
-#         for base_cls in reversed(bases):
-#             if base_cls is not APIController and issubclass(base_cls, APIController):
-#                 compute_api_route_function(base_cls, cls)
-#
-#         compute_api_route_function(cls)
-#         if not is_decorated_with_inject(cls.__init__):
-#             fail_silently(inject, constructor_or_class=cls)
-#         return cls
-
-class ControllerBaseModelMetaclass(ABCMeta):
-    @no_type_check
-    def __new__(mcs, name: str, bases: tuple, namespace: dict):
-        cls = super().__new__(mcs, name, bases, namespace)
-        if name == "ControllerBase" and ABC in bases:
-            return cls
-        cls._api_controller = namespace.get('_api_controller', None)
-        return cls
-
-
 class APIController:
+    """
+    A class decorator
+    
+    Features
+    --
+    - Converts class to APIController
+    - Forces class to inherit from `ControllerBase` if missing
+    - Adapts class to Django-Ninja router
+    
+    Usage:
+    ---------
+    ```python
+    from ninja_extra import api_controller, ControllerBase, http_post, http_get
+
+    @api_controller
+    class SomeController:
+        @http_get()
+        def some_method_name(self):
+            ...
+    
+    @api_controller
+    class AnotherController(ControllerBase):
+        @http_post()
+        def some_method_name(self):
+            ...
+    ```
+    
+    """
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
-    controller_class: Optional[Type['ControllerBase']] = None
 
     def __init__(
         self,
@@ -122,8 +114,10 @@ class APIController:
         self.auto_import = (
             auto_import  # set to false and it would be ignored when api.auto_discover is called
         )
+        # `permission_classes` a collection of BasePermission Types
         self.permission_classes = permissions or [AllowAny]
-        self.controller_class = None
+        # `controller_class` target class that the APIController wraps
+        self.controller_class: Optional[Type['ControllerBase']] = None
         # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
         self._path_operations: Dict[str, PathView] = dict()
         # `permission_classes` primarily holds permission defined by the ControllerRouter and its used as
@@ -147,6 +141,7 @@ class APIController:
     def __call__(self, cls: Type) -> Type["ControllerBase"]:
         self.auto_import = getattr(cls, 'auto_import', self.auto_import)
         if not issubclass(cls, ControllerBase):
+            # We force the cls to inherit from `ControllerBase` by creating another type.
             cls = type(cls.__name__, (ControllerBase, cls), {'_api_controller': self})
         else:
             cls._api_controller = self
@@ -252,7 +247,32 @@ class APIController:
         return operation
 
 
-class ControllerBase(ABC, metaclass=ControllerBaseModelMetaclass):
+class ControllerBase(ABC):
+    """
+    Abstract Controller Base implementation all Controller class should implement
+    
+    Example:
+    ---------
+    ```python
+    from ninja_extra import api_controller, ControllerBase, http_get
+
+    @api_controller
+    class SomeController(ControllerBase):
+        @http_get()
+        def some_method_name(self):
+            ...
+    ```
+    Inheritance Example
+    -------------------
+    ```python
+
+    @api_controller
+    class AnotherController(SomeController):
+        @http_get()
+        def some_method_name(self):
+            ...
+    ```
+    """
     # `_api_controller` a reference to APIController instance
     _api_controller: Optional[APIController] = None
 

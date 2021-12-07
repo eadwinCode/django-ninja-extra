@@ -1,5 +1,4 @@
 import inspect
-import uuid
 from typing import Any, List, Optional, Type, Union, cast
 
 from ninja.constants import NOT_SET
@@ -25,7 +24,7 @@ class RouteInvalidParameterException(Exception):
 
 
 def http_get(
-        path: str,
+        path: str= "",
         *,
         auth: Any = NOT_SET,
         response: Union[Any, List[Any]] = NOT_SET,
@@ -63,7 +62,7 @@ def http_get(
 
 
 def http_post(
-        path: str,
+        path: str = "",
         *,
         auth: Any = NOT_SET,
         response: Union[Any, List[Any]] = NOT_SET,
@@ -101,7 +100,7 @@ def http_post(
 
 
 def http_delete(
-        path: str,
+        path: str= "",
         *,
         auth: Any = NOT_SET,
         response: Union[Any, List[Any]] = NOT_SET,
@@ -139,7 +138,7 @@ def http_delete(
 
 
 def http_patch(
-        path: str,
+        path: str= "",
         *,
         auth: Any = NOT_SET,
         response: Union[Any, List[Any]] = NOT_SET,
@@ -177,7 +176,7 @@ def http_patch(
 
 
 def http_put(
-        path: str,
+        path: str= "",
         *,
         auth: Any = NOT_SET,
         response: Union[Any, List[Any]] = NOT_SET,
@@ -215,7 +214,7 @@ def http_put(
 
 
 def http_generic(
-    path: str,
+    path: str= "",
     *,
     methods: List[str],
     auth: Any = NOT_SET,
