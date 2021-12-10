@@ -1,9 +1,15 @@
 import pytest
 from django.contrib.auth.models import Group, Permission
+from django.db.models import QuerySet
 
 from ninja_extra import status
 from ninja_extra.exceptions import APIException, NotFound
-from ninja_extra.shortcuts import get_object_or_exception, get_object_or_none
+from ninja_extra.shortcuts import (
+    _get_queryset,
+    _validate_queryset,
+    get_object_or_exception,
+    get_object_or_none,
+)
 
 
 class CustomException(APIException):
@@ -43,3 +49,20 @@ class TestModelUtils:
     def test_get_object_or_none_with_error_message(self):
         obj = get_object_or_none(Permission, id=0)
         assert obj is None
+
+    @pytest.mark.django_db
+    def test__get_queryset(self):
+        query_set = _get_queryset(Permission)
+        assert isinstance(query_set, QuerySet)
+        query_set_new = _get_queryset(query_set)
+        assert query_set_new == query_set
+
+    @pytest.mark.django_db
+    def test__validate_queryset(self):
+        class FakeQuerySet:
+            pass
+
+        query_set = _get_queryset(Permission)
+        assert _validate_queryset(Permission, query_set) is None
+        with pytest.raises(Exception):
+            _validate_queryset(Permission, FakeQuerySet)

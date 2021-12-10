@@ -24,12 +24,12 @@ class NinjaExtraConfig(AppConfig):
             apps.get_app_config, app_label="django_injector"
         )
         app = cast(Any, django_injector_app)
-        if app:
+        if app:  # pragma: no cover
             app.ready()
             self.injector = app.injector
         self.register_injector_modules()
 
-    def register_injector_modules(self) -> None:
+    def register_injector_modules(self) -> None:  # pragma: no cover
         for module in settings.INJECTOR_MODULES:
             if isinstance(module, type) and issubclass(module, Module):
                 module = module()

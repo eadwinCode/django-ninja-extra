@@ -5,11 +5,11 @@ For example:
 
 ```python hl_lines="7 10"
 from ninja import constants
-from ninja_extra import APIController, route, router
+from ninja_extra import api_controller, route
 
 
-@router('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
-class MyAPIController(APIController):
+@api_controller('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
+class MyAPIController:
     weapons = ["Ninjato", "Shuriken", "Katana", "Kama", "Kunai", "Naginata", "Yari"]
     
     @route.get("/weapons")

@@ -6,7 +6,7 @@ So in that sense, **Django-Ninja-Extra** has an `APIException` exception type wh
 For Example: 
 ```python
 from ninja_extra.exceptions import APIException
-from ninja_extra import router, APIController, route, NinjaExtraAPI, status
+from ninja_extra import api_controller, route, NinjaExtraAPI, status
 from ninja import constants
 
 
@@ -15,8 +15,8 @@ class CustomAPIException(APIException):
     message = 'UnAuthorized'
 
     
-@router('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
-class MyController(APIController):
+@api_controller('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
+class MyController:
     @route.get('/exception')
     def custom_exception(self):
         raise CustomAPIException()

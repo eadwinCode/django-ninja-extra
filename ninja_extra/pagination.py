@@ -22,7 +22,7 @@ from ninja_extra.urls import remove_query_param, replace_query_param
 logger = logging.getLogger()
 
 if TYPE_CHECKING:
-    from .controllers import APIController
+    from .controllers import ControllerBase  # pragma: no cover
 
 __all__ = [
     "PageNumberPagination",
@@ -182,7 +182,9 @@ def _inject_pagination(
     paginator_kwargs_name = "pagination"
 
     @wraps(func)
-    def view_with_pagination(controller: "APIController", *args: Any, **kw: Any) -> Any:
+    def view_with_pagination(
+        controller: "ControllerBase", *args: Any, **kw: Any
+    ) -> Any:
         func_kwargs = dict(kw)
         if not func.has_kwargs:  # type: ignore
             func_kwargs.pop(paginator_kwargs_name)

@@ -1,29 +1,34 @@
-from abc import ABC, ABCMeta
+import inspect
+import re
+import uuid
+from abc import ABC
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
+    Tuple,
     Type,
     Union,
     cast,
-    no_type_check,
+    overload,
 )
 
 from django.db.models import Model, QuerySet
 from django.http import HttpResponse
+from django.urls import URLPattern, path as django_path
 from injector import inject, is_decorated_with_inject
-from ninja import NinjaAPI
+from ninja import NinjaAPI, Router
 from ninja.constants import NOT_SET
-from ninja.operation import Operation
 from ninja.security.base import AuthBase
-from ninja.types import DictStrAny
+from ninja.utils import normalize_path
 
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
-from ninja_extra.operation import PathView
+from ninja_extra.operation import Operation, PathView
 from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.shortcuts import (
     fail_silently,
@@ -32,108 +37,188 @@ from ninja_extra.shortcuts import (
 )
 from ninja_extra.types import PermissionType
 
+from .registry import ControllerRegistry
 from .response import Detail, Id, Ok
 from .route.route_functions import RouteFunction
-from .router import ControllerRouter
 
 if TYPE_CHECKING:
-    from .route.context import RouteContext
+    from ninja_extra import NinjaExtraAPI  # pragma: no cover
+
+    from .route.context import RouteContext  # pragma: no cover
 
 
-class MissingRouterDecoratorException(Exception):
+class MissingAPIControllerDecoratorException(Exception):
     pass
 
 
+def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
+    for method in cls.__dict__.values():
+        if isinstance(method, RouteFunction):
+            yield method
+
+
 def compute_api_route_function(
-    base_cls: Type["APIController"], controller: Optional[Type["APIController"]] = None
+    base_cls: Type, api_controller_instance: "APIController"
 ) -> None:
-    controller = controller if controller else base_cls
-    for cls_route_function in base_cls.get_route_functions():
-        cls_route_function.controller = controller
-        controller.add_operation_from_route_function(cls_route_function)
+    for cls_route_function in get_route_functions(base_cls):
+        cls_route_function.api_controller = api_controller_instance
+        api_controller_instance.add_operation_from_route_function(cls_route_function)
 
 
-class APIControllerModelMetaclass(ABCMeta):
-    @no_type_check
-    def __new__(mcs, name: str, bases: tuple, namespace: dict):
-        cls = super().__new__(mcs, name, bases, namespace)
-        if name == "APIController" and ABC in bases:
-            return cls
+class APIController:
+    _PATH_PARAMETER_COMPONENT_RE = r"{(?:(?P<converter>[^>:]+):)?(?P<parameter>[^>]+)}"
 
-        cls = cast(Type[APIController], cls)
-        cls._path_operations = {}
-        cls.api = namespace.get("api", None)
-        cls.registered = False
+    """
+    A class decorator
 
-        if not namespace.get("tags"):
-            tag = str(cls.__name__).lower().replace("controller", "")
-            cls.tags = [tag]
+    Features
+    --
+    - Converts class to APIController
+    - Forces class to inherit from `ControllerBase` if missing
+    - Adapts class to Django-Ninja router
 
-        for base_cls in reversed(bases):
-            if base_cls is not APIController and issubclass(base_cls, APIController):
-                compute_api_route_function(base_cls, cls)
+    Usage:
+    ---------
+    ```python
+    from ninja_extra import api_controller, ControllerBase, http_post, http_get
 
-        compute_api_route_function(cls)
-        if not is_decorated_with_inject(cls.__init__):
-            fail_silently(inject, constructor_or_class=cls)
-        return cls
+    @api_controller
+    class SomeController:
+        @http_get()
+        def some_method_name(self):
+            ...
 
+    assert issubclass(SomeController, ControllerBase) # true
 
-class APIController(ABC, metaclass=APIControllerModelMetaclass):
+    @api_controller
+    class AnotherController(ControllerBase):
+        @http_post()
+        def some_method_name(self):
+            ...
+    ```
+    You can more code intellisense within a controller decorated class when it inherits from `ControllerBase`
+    as shown with `AnotherController` example.
+    """
+
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
     #   controller should have a csrf ON unless turned off by api instance
-    auto_import = (
-        True  # set to false and it would be ignored when api.auto_discover is called
-    )
 
-    # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
-    _path_operations: Dict[str, PathView]
-    # `api` a reference to NinjaExtraAPI on APIController registration
-    api: Optional[NinjaAPI] = None
-    # `auth` primarily defines APIController route function global authentication method.
-    auth: Optional[AuthBase] = None
-    # `registered` prevents controllers from being register twice or exist in two different `api` instances
-    registered: bool
-    # `_router` a reference to ControllerRouter of any APIController with a ControllerRouter decorator
-    _router: Optional[ControllerRouter] = None
-    # `permission_classes` primarily holds permission defined by the ControllerRouter and its used as
-    # a fallback if route functions has no permissions definition
-    permission_classes: PermissionType = [AllowAny]  # type: ignore
-    # `tags` is a property for grouping endpoint in Swagger API docs
-    tags: List[str] = []
+    def __init__(
+        self,
+        prefix: str,
+        *,
+        auth: Any = NOT_SET,
+        tags: Union[Optional[List[str]], str] = None,
+        permissions: Optional["PermissionType"] = None,
+        auto_import: bool = True,
+    ) -> None:
 
-    # `context` variable will change based on the route function called on the APIController
-    # that way we can get some specific items things that belong the route function during execution
-    context: Optional["RouteContext"] = None
+        self.prefix = prefix
+        # `auth` primarily defines APIController route function global authentication method.
+        self.auth: Optional[AuthBase] = auth
 
-    Ok = Ok
-    Id = Id
-    Detail = Detail
-    bad_request = bad_request
+        self.tags = tags  # type: ignore
 
-    @classmethod
-    def get_router(cls) -> ControllerRouter:
-        if not cls._router:
-            raise MissingRouterDecoratorException(
-                "Controller Router not found. "
-                "Did you forget to use the `router` decorator"
-            )
-        return cls._router
+        self.auto_import: bool = auto_import  # set to false and it would be ignored when api.auto_discover is called
+        # `controller_class` target class that the APIController wraps
+        self._controller_class: Optional[Type["ControllerBase"]] = None
+        # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
+        self._path_operations: Dict[str, PathView] = dict()
+        # `permission_classes` a collection of BasePermission Types
+        # a fallback if route functions has no permissions definition
+        self.permission_classes: PermissionType = permissions or [AllowAny]  # type: ignore
+        # `registered` prevents controllers from being register twice or exist in two different `api` instances
+        self.registered: bool = False
 
-    @classmethod
-    def get_path_operations(cls) -> DictStrAny:
-        return cls._path_operations
+        self._prefix_has_route_param = False
 
-    @classmethod
-    def add_operation_from_route_function(cls, route_function: RouteFunction) -> None:
+        if re.search(self._PATH_PARAMETER_COMPONENT_RE, prefix):
+            self._prefix_has_route_param = True
+
+    @property
+    def controller_class(self) -> Type["ControllerBase"]:
+        assert self._controller_class, "Controller Class is not available"
+        return self._controller_class
+
+    @property
+    def tags(self) -> Optional[List[str]]:
+        # `tags` is a property for grouping endpoint in Swagger API docs
+        return self._tags
+
+    @tags.setter
+    def tags(self, value: Union[str, List[str], None]) -> None:
+        tag: Optional[List[str]] = cast(Optional[List[str]], value)
+        if tag and isinstance(value, str):
+            tag = [value]
+        self._tags = tag
+
+    def __call__(self, cls: Type) -> Type["ControllerBase"]:
+        self.auto_import = getattr(cls, "auto_import", self.auto_import)
+        if not issubclass(cls, ControllerBase):
+            # We force the cls to inherit from `ControllerBase` by creating another type.
+            cls = type(cls.__name__, (ControllerBase, cls), {"_api_controller": self})
+        else:
+            cls._api_controller = self
+
+        if not self.tags:
+            tag = str(cls.__name__).lower().replace("controller", "")
+            self.tags = [tag]
+
+        self._controller_class = cls
+        bases = inspect.getmro(cls)
+        for base_cls in bases:
+            if base_cls not in [ControllerBase, ABC, object]:
+                compute_api_route_function(base_cls, self)
+
+        if not is_decorated_with_inject(cls.__init__):
+            fail_silently(inject, constructor_or_class=cls)
+
+        ControllerRegistry().add_controller(cls)
+        return cls
+
+    @property
+    def path_operations(self) -> Dict[str, PathView]:
+        return self._path_operations
+
+    def set_api_instance(self, api: "NinjaExtraAPI") -> None:
+        self.controller_class.api = api
+        for path_view in self.path_operations.values():
+            path_view.set_api_instance(api, cast(Router, self))
+
+    def build_routers(self) -> List[Tuple[str, "APIController"]]:
+        prefix = self.prefix
+        if self._prefix_has_route_param:
+            prefix = ""
+        return [(prefix, self)]
+
+    def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
+        for path, path_view in self.path_operations.items():
+            path = path.replace("{", "<").replace("}", ">")
+            route = "/".join([i for i in (prefix, path) if i])
+            # to skip lot of checks we simply treat double slash as a mistake:
+            route = normalize_path(route)
+            route = route.lstrip("/")
+            for op in path_view.operations:
+                op = cast(Operation, op)
+                yield django_path(
+                    route, path_view.get_view(), name=cast(str, op.url_name)
+                )
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return f"<controller - {self.controller_class.__name__}>"
+
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.controller_class.__name__}"
+
+    def add_operation_from_route_function(self, route_function: RouteFunction) -> None:
         # converts route functions to Operation model
-        cls.add_api_operation(
+        route_function.route.route_params.operation_id = f"{str(uuid.uuid4())[:8]}_controller_{route_function.route.view_func.__name__}"
+        self.add_api_operation(
             view_func=route_function.as_view, **route_function.route.route_params.dict()
         )
 
-    @classmethod
     def add_api_operation(
-        cls,
+        self,
         path: str,
         methods: List[str],
         view_func: Callable,
@@ -152,16 +237,18 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
     ) -> Operation:
-        if path not in cls._path_operations:
+        if self._prefix_has_route_param:
+            path = normalize_path("/".join([i for i in (self.prefix, path) if i]))
+        if path not in self._path_operations:
             path_view = PathView()
-            cls._path_operations[path] = path_view
+            self._path_operations[path] = path_view
         else:
-            path_view = cls._path_operations[path]
+            path_view = self._path_operations[path]
         operation = path_view.add_operation(
             path=path,
             methods=methods,
             view_func=view_func,
-            auth=auth or cls.auth,
+            auth=auth or self.auth,
             response=response,
             operation_id=operation_id,
             summary=summary,
@@ -177,11 +264,57 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
         )
         return operation
 
+
+class ControllerBase(ABC):
+    """
+    Abstract Controller Base implementation all Controller class should implement
+
+    Example:
+    ---------
+    ```python
+    from ninja_extra import api_controller, ControllerBase, http_get
+
+    @api_controller
+    class SomeController(ControllerBase):
+        @http_get()
+        def some_method_name(self):
+            ...
+    ```
+    Inheritance Example
+    -------------------
+    ```python
+
+    @api_controller
+    class AnotherController(SomeController):
+        @http_get()
+        def some_method_name(self):
+            ...
+    ```
+    """
+
+    # `_api_controller` a reference to APIController instance
+    _api_controller: Optional[APIController] = None
+
+    # `api` a reference to NinjaExtraAPI on APIController registration
+    api: Optional[NinjaAPI] = None
+
+    # `context` variable will change based on the route function called on the APIController
+    # that way we can get some specific items things that belong the route function during execution
+    context: Optional["RouteContext"] = None
+
+    Ok = Ok
+    Id = Id
+    Detail = Detail
+    bad_request = bad_request
+
     @classmethod
-    def get_route_functions(cls) -> Iterable[RouteFunction]:
-        for method in cls.__dict__.values():
-            if isinstance(method, RouteFunction):
-                yield method
+    def get_api_controller(cls) -> APIController:
+        if not cls._api_controller:
+            raise MissingAPIControllerDecoratorException(
+                "api_controller not found. "
+                "Did you forget to use the `api_controller` decorator"
+            )
+        return cls._api_controller
 
     @classmethod
     def permission_denied(cls, permission: BasePermission) -> None:
@@ -251,12 +384,57 @@ class APIController(ABC, metaclass=APIControllerModelMetaclass):
                 self.permission_denied(permission)
 
     def create_response(
-        self, message: Union[str, List[Dict], List[str], Dict], status_code: int = 200
+        self, message: Any, status_code: int = 200, **kwargs: Any
     ) -> HttpResponse:
-        response = self.Detail(message, status_code=status_code)
-        assert self.context and self.context.request and self.api
-        return self.api.create_response(
-            request=self.context.request,
-            data=response.convert_to_schema().dict(),
-            status=response.status_code,
+        assert self.api and self.context and self.context.request
+        content = self.api.renderer.render(
+            self.context.request, message, response_status=status_code
         )
+        content_type = "{}; charset={}".format(
+            self.api.renderer.media_type, self.api.renderer.charset
+        )
+        return HttpResponse(
+            content, status=status_code, content_type=content_type, **kwargs
+        )
+
+
+@overload
+def api_controller() -> Type[ControllerBase]:  # type: ignore # pragma: no cover
+    ...
+
+
+@overload
+def api_controller(
+    prefix: str = "",
+    auth: Any = NOT_SET,
+    tags: Union[Optional[List[str]], str] = None,
+    permissions: Optional["PermissionType"] = None,
+    auto_import: bool = True,
+) -> APIController:  # pragma: no cover
+    ...
+
+
+def api_controller(
+    prefix: Union[str, Type] = "",
+    auth: Any = NOT_SET,
+    tags: Union[Optional[List[str]], str] = None,
+    permissions: Optional["PermissionType"] = None,
+    auto_import: bool = True,
+) -> Union[Type[ControllerBase], APIController]:
+    if isinstance(prefix, type):
+        _api_controller = APIController(
+            prefix="",
+            auth=auth,
+            tags=tags,
+            permissions=permissions,
+            auto_import=auto_import,
+        )
+        return _api_controller(prefix)
+
+    return APIController(
+        prefix=prefix,
+        auth=auth,
+        tags=tags,
+        permissions=permissions,
+        auto_import=auto_import,
+    )

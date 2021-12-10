@@ -3,88 +3,113 @@ from unittest.mock import Mock, patch
 import pytest
 from django.contrib.auth.models import Group
 
-from ninja_extra import APIController, NinjaExtraAPI, exceptions, route, router, testing
-from ninja_extra.controllers import RouteContext, RouteFunction
-from ninja_extra.controllers.base import MissingRouterDecoratorException
+from ninja_extra import NinjaExtraAPI, api_controller, exceptions, http_get, testing
+from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
+from ninja_extra.controllers.base import (
+    APIController,
+    MissingAPIControllerDecoratorException,
+    compute_api_route_function,
+    get_route_functions,
+)
 from ninja_extra.controllers.response import Detail, Id, Ok
-from ninja_extra.controllers.router import ControllerRouter
 from ninja_extra.permissions.common import AllowAny
 
 
-class SomeController(APIController):
+@api_controller
+class SomeController:
     pass
 
 
-class SomeControllerWithInject(APIController):
+@api_controller
+class Some2Controller(ControllerBase):
+    pass
+
+
+@api_controller
+class SomeControllerWithInject:
     def __init__(self, a: str):
         pass
 
 
-class SomeControllerWithRoute(APIController):
-    @route.get("/example")
+@api_controller
+class SomeControllerWithRoute:
+    @http_get("/example")
     def example(self):
         pass
 
-    @route.get("/example/{ex_id}")
+    @http_get("/example/{ex_id}")
     def example2(self, ex_id: str):
-        pass
+        return self.create_response(dict(detail=ex_id), status_code=302)
 
-
-@router("", tags=["new tag"])
-class SomeControllerWithRouter(APIController):
-    auto_import = False  # disable auto_import of the controller
-
-    @route.get("/example")
-    def example(self):
-        pass
-
-    @route.get("/example/{ex_id}")
-    def example2(self, ex_id: str):
-        return self.create_response(ex_id, status_code=302)
-
-    @route.get("/example/{ex_id}/ok")
+    @http_get("/example/{ex_id}/ok")
     def example_with_ok_response(self, ex_id: str):
         return self.Ok(ex_id)
 
-    @route.get("/example/{ex_id}/id")
+    @http_get("/example/{ex_id}/id")
     def example_with_id_response(self, ex_id: str):
         return self.Id(ex_id)
 
 
+@api_controller("", tags=["new tag"])
+class DisableAutoImportController:
+    auto_import = False  # disable auto_import of the controller
+
+
 class TestAPIController:
+    def test_api_controller_as_decorator(self):
+        api_controller_instance = api_controller("prefix", tags="new_tag")
+
+        assert api_controller_instance.prefix == "prefix"
+        assert api_controller_instance.tags == ["new_tag"]
+        assert api_controller_instance.permission_classes == [AllowAny]
+        api_controller_instance = api_controller()
+        assert api_controller_instance.prefix == ""
+        assert api_controller_instance.tags is None
+        assert "abc" in SomeController.__module__
+        assert "tests.test_controller" in Some2Controller.__module__
+        assert Some2Controller.get_api_controller()
+
+    def test_api_controller_prefix_with_parameter(self):
+        @api_controller("/{int:organisation_id}")
+        class UsersController:
+            @http_get("")
+            def example_with_id_response(self, organisation_id: int):
+                return dict(organisation_id=organisation_id)
+
+        _api_controller: APIController = UsersController.get_api_controller()
+        assert _api_controller._prefix_has_route_param
+
+        client = testing.TestClient(UsersController)
+        response = client.get(
+            "452",
+        )
+
+        assert response.json() == dict(organisation_id=452)
+        assert [("", _api_controller)] == _api_controller.build_routers()
+
     def test_controller_should_have_preset_properties(self):
         api = NinjaExtraAPI()
-        assert SomeController.tags == ["some"]
-        assert SomeController._path_operations == {}
-        assert SomeController.permission_classes == [AllowAny]
-        assert SomeController._router is None
+        _api_controller = SomeController.get_api_controller()
+        assert _api_controller.tags == ["some"]
+        assert _api_controller._path_operations == {}
+        assert _api_controller.permission_classes == [AllowAny]
         assert SomeController.api is None
-        assert SomeController.registered is False
+        assert _api_controller.registered is False
+        assert ControllerBase in SomeController.__bases__
 
-        with pytest.raises(MissingRouterDecoratorException) as ex:
-            api.register_controllers(SomeController)
-        assert "Controller Router not found" in str(ex.value)
-
-    def test_controller_with_router_should_have_preset_properties(self):
-        api = NinjaExtraAPI()
-        assert SomeControllerWithRouter.permission_classes == [AllowAny]
-        assert isinstance(SomeControllerWithRouter._router, ControllerRouter)
-        assert SomeControllerWithRouter.api is None
-        assert SomeControllerWithRouter.registered is False
-
-        api.register_controllers(SomeControllerWithRouter)
-        assert SomeControllerWithRouter.api == api
-        assert SomeControllerWithRouter.registered
+        api.register_controllers(SomeController)
+        assert _api_controller.registered
 
     def test_controller_should_wrap_with_inject(self):
         assert not hasattr(SomeController.__init__, "__bindings__")
         assert hasattr(SomeControllerWithInject.__init__, "__bindings__")
 
     def test_controller_should_have_path_operation_list(self):
-        assert len(SomeControllerWithRoute._path_operations) == 2
+        _api_controller = SomeControllerWithRoute.get_api_controller()
+        assert len(_api_controller._path_operations) == 4
 
         route_function: RouteFunction = SomeControllerWithRoute.example
-        path_view = SomeControllerWithRoute._path_operations.get(str(route_function))
+        path_view = _api_controller._path_operations.get(str(route_function))
         assert path_view, "route doesn't exist in controller"
         assert len(path_view.operations) == 1
 
@@ -92,13 +117,27 @@ class TestAPIController:
         assert operation.methods == route_function.route.route_params.methods
         assert operation.operation_id == route_function.route.route_params.operation_id
 
-    def test_controller_route_definition_should_return_instance_route_definitions(self):
-        assert len(SomeControllerWithRoute._path_operations) == 2
-        for route_definition in SomeControllerWithRoute.get_route_functions():
+    def test_get_route_function_should_return_instance_route_definitions(self):
+        for route_definition in get_route_functions(SomeControllerWithRoute):
             assert isinstance(route_definition, RouteFunction)
 
+    def test_compute_api_route_function_works(self):
+        _api_controller = api_controller()
+
+        class AnyClassTypeWithRoute:
+            @http_get("/example")
+            def example(self):
+                pass
+
+        compute_api_route_function(AnyClassTypeWithRoute, _api_controller)
+        assert len(_api_controller.path_operations) == 1
+        path_view = _api_controller.path_operations.get(
+            str(AnyClassTypeWithRoute.example)
+        )
+        assert path_view
+
     @pytest.mark.django_db
-    def test_controller_get_object_or_exception_works(self):
+    def test_controller_base_get_object_or_exception_works(self):
         group_instance = Group.objects.create(name="_groupowner")
 
         controller_object = SomeController()
@@ -123,7 +162,7 @@ class TestAPIController:
                 assert isinstance(ex, exceptions.PermissionDenied)
 
     @pytest.mark.django_db
-    def test_controller_get_object_or_none_works(self):
+    def test_controller_base_get_object_or_none_works(self):
         group_instance = Group.objects.create(name="_groupowner2")
 
         controller_object = SomeController()
@@ -167,14 +206,14 @@ class TestAPIControllerResponse:
 
     def test_controller_response_works(self):
         detail = Detail("5242", status_code=302)
-        client = testing.TestClient(SomeControllerWithRouter)
+        client = testing.TestClient(SomeControllerWithRoute)
         response = client.get("/example/5242")
 
         assert response.status_code == 302
         assert detail.convert_to_schema().dict() == response.json()
 
         ok_response = Ok("5242")
-        result = SomeControllerWithRouter.example_with_ok_response(
+        result = SomeControllerWithRoute.example_with_ok_response(
             request=Mock(), ex_id="5242"
         )
         assert isinstance(result, tuple)
@@ -182,7 +221,7 @@ class TestAPIControllerResponse:
         assert result[0] == ok_response.status_code
 
         id_response = Id("5242")
-        result = SomeControllerWithRouter.example_with_id_response(
+        result = SomeControllerWithRoute.example_with_id_response(
             request=Mock(), ex_id="5242"
         )
         assert isinstance(result, tuple)

@@ -6,12 +6,12 @@ Django-Ninja already covers most of the use cases [here](https://django-ninja.re
 
 ```python hl_lines="7 8"
 from ninja import Form, constants
-from ninja_extra import APIController, route, router
+from ninja_extra import api_controller, http_post, router
 
 
-@router('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
-class MyAPIController(APIController):
-    @route.post("/login")
+@api_controller('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
+class MyAPIController:
+    @http_post("/login")
     def login(self, username: str = Form(...), password: str = Form(...)):
         return {'username': username, 'password': '*****'}
 ```

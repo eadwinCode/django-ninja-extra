@@ -1,20 +1,21 @@
 from json import dumps as json_dumps
-from typing import Any, Callable, Dict, Type
+from typing import Any, Callable, Dict, Type, Union
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
 from ninja.testing.client import NinjaClientBase, NinjaResponse
 
-from ninja_extra import APIController, NinjaExtraAPI
+from ninja_extra import ControllerBase, NinjaExtraAPI
 
 
 class NinjaExtraClientBase(NinjaClientBase):
-    def __init__(self, controller: Type[APIController]) -> None:
+    def __init__(self, controller_class: Union[Type[ControllerBase], Type]) -> None:
         api = NinjaExtraAPI()
-        controller_ninja_router = controller.get_router()
-        assert controller_ninja_router
-        controller_ninja_router.set_api_instance(api)
-        self._urls_cache = list(controller_ninja_router.urls_paths(""))
+        assert hasattr(controller_class, "get_api_controller"), "Not a valid object"
+        controller_ninja_api_controller = controller_class.get_api_controller()
+        assert controller_ninja_api_controller
+        controller_ninja_api_controller.set_api_instance(api)
+        self._urls_cache = list(controller_ninja_api_controller.urls_paths(""))
         super(NinjaExtraClientBase, self).__init__(api)
 
     def request(

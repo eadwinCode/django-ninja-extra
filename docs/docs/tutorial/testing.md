@@ -9,11 +9,11 @@ There are two test clients
 
 ```Python
 from ninja_extra.testing import TestClient
-from ninja_extra import APIController, route, router
+from ninja_extra import api_controller, route
 from ninja_extra.permissions import AllowAny
 
-@router('', tags=['Math'], permissions=[AllowAny])
-class MyMathController(APIController):
+@api_controller('', tags=['Math'], permissions=[AllowAny])
+class MyMathController:
     @route.get('/add',)
     def add(self, a: int, b: int):
         """add a to b"""
