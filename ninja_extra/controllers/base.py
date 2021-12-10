@@ -385,7 +385,7 @@ class ControllerBase(ABC):
                 self.permission_denied(permission)
 
     def create_response(
-        self, message: Any, status_code: int = 200, headers: DictStrAny = {}
+        self, message: Any, status_code: int = 200, **kwargs: Any
     ) -> HttpResponse:
         assert self.api and self.context and self.context.request
         content = self.api.renderer.render(
@@ -395,7 +395,7 @@ class ControllerBase(ABC):
             self.api.renderer.media_type, self.api.renderer.charset
         )
         return HttpResponse(
-            content, status=status_code, content_type=content_type, headers=headers
+            content, status=status_code, content_type=content_type, **kwargs
         )
 
 
