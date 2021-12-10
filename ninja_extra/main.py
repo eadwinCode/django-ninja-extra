@@ -69,15 +69,6 @@ class NinjaExtraAPI(NinjaAPI):
             str(_url_tuple[len(_url_tuple) - 1]),
         )
 
-    # def create_response(
-    #     self, request: HttpRequest, data: Any, *, status_code: int = 200, headers: DictStrAny = {}
-    # ) -> HttpResponse:
-    #     content = self.renderer.render(request, data, response_status=status_code)
-    #     content_type = "{}; charset={}".format(
-    #         self.renderer.media_type, self.renderer.charset
-    #     )
-    #     return HttpResponse(content, status=status_code, content_type=content_type, headers=headers)
-
     def register_controllers(
         self, *controllers: Union[Type[ControllerBase], Type]
     ) -> None:

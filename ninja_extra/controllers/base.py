@@ -1,4 +1,5 @@
 import inspect
+import re
 import uuid
 from abc import ABC
 from typing import (
@@ -21,15 +22,14 @@ from django.db.models import Model, QuerySet
 from django.http import HttpResponse
 from django.urls import URLPattern, path as django_path
 from injector import inject, is_decorated_with_inject
-from ninja import NinjaAPI
+from ninja import NinjaAPI, Router
 from ninja.constants import NOT_SET
-from ninja.operation import Operation
 from ninja.security.base import AuthBase
 from ninja.types import DictStrAny
 from ninja.utils import normalize_path
 
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
-from ninja_extra.operation import PathView
+from ninja_extra.operation import Operation, PathView
 from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.shortcuts import (
     fail_silently,
@@ -67,6 +67,8 @@ def compute_api_route_function(
 
 
 class APIController:
+    _PATH_PARAMETER_COMPONENT_RE = r"{(?:(?P<converter>[^>:]+):)?(?P<parameter>[^>]+)}"
+
     """
     A class decorator
 
@@ -87,13 +89,16 @@ class APIController:
         def some_method_name(self):
             ...
 
+    assert issubclass(SomeController, ControllerBase) # true
+
     @api_controller
     class AnotherController(ControllerBase):
         @http_post()
         def some_method_name(self):
             ...
     ```
-
+    You can more code intellisense within a controller decorated class when it inherits from `ControllerBase`
+    as shown with `AnotherController` example.
     """
 
     # TODO: implement csrf on route function or on controller level. Which can override api csrf
@@ -126,6 +131,11 @@ class APIController:
         # `registered` prevents controllers from being register twice or exist in two different `api` instances
         self.registered: bool = False
 
+        self._prefix_has_route_param = False
+
+        if re.search(self._PATH_PARAMETER_COMPONENT_RE, prefix):
+            self._prefix_has_route_param = True
+
     @property
     def controller_class(self) -> Type["ControllerBase"]:
         assert self._controller_class, "Controller Class is not available"
@@ -155,6 +165,7 @@ class APIController:
             tag = str(cls.__name__).lower().replace("controller", "")
             self.tags = [tag]
 
+        self._controller_class = cls
         bases = inspect.getmro(cls)
         for base_cls in bases:
             if base_cls not in [ControllerBase, ABC, object]:
@@ -163,21 +174,23 @@ class APIController:
         if not is_decorated_with_inject(cls.__init__):
             fail_silently(inject, constructor_or_class=cls)
 
-        self._controller_class = cls
         ControllerRegistry().add_controller(cls)
         return cls
 
     @property
-    def path_operations(self) -> DictStrAny:
+    def path_operations(self) -> Dict[str, PathView]:
         return self._path_operations
 
     def set_api_instance(self, api: "NinjaExtraAPI") -> None:
         self.controller_class.api = api
         for path_view in self.path_operations.values():
-            path_view.set_api_instance(api, self)
+            path_view.set_api_instance(api, cast(Router, self))
 
     def build_routers(self) -> List[Tuple[str, "APIController"]]:
-        return [(self.prefix, self)]
+        prefix = self.prefix
+        if self._prefix_has_route_param:
+            prefix = ""
+        return [(prefix, self)]
 
     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
         for path, path_view in self.path_operations.items():
@@ -187,14 +200,15 @@ class APIController:
             route = normalize_path(route)
             route = route.lstrip("/")
             for op in path_view.operations:
+                op = cast(Operation, op)
                 yield django_path(
                     route, path_view.get_view(), name=cast(str, op.url_name)
                 )
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return f"<controller - {self.controller_class.__name__}>"
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f"{self.controller_class.__name__}"
 
     def add_operation_from_route_function(self, route_function: RouteFunction) -> None:
@@ -224,6 +238,8 @@ class APIController:
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
     ) -> Operation:
+        if self._prefix_has_route_param:
+            path = normalize_path("/".join([i for i in (self.prefix, path) if i]))
         if path not in self._path_operations:
             path_view = PathView()
             self._path_operations[path] = path_view
@@ -384,7 +400,7 @@ class ControllerBase(ABC):
 
 
 @overload
-def api_controller() -> Type[ControllerBase]:  # type: ignore
+def api_controller() -> Type[ControllerBase]:  # type: ignore # pragma: no cover
     ...
 
 
@@ -395,7 +411,7 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> APIController:
+) -> APIController:  # pragma: no cover
     ...
 
 

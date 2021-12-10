@@ -27,15 +27,19 @@ from ninja_extra.logger import request_logger
 from ninja_extra.signals import route_context_finished, route_context_started
 
 from .controllers.route.context import RouteContext
+from .details import ViewSignature
 
 if TYPE_CHECKING:
     from .controllers.route.route_functions import RouteFunction  # pragma: no cover
 
 
 class Operation(NinjaOperation):
-    def __init__(self, *args: Any, url_name: Optional[str], **kwargs: Any) -> None:
+    def __init__(
+        self, *args: Any, url_name: Optional[str] = None, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.url_name = url_name
+        self.signature = ViewSignature(self.path, self.view_func)
 
     def _log_action(
         self,
@@ -64,8 +68,8 @@ class Operation(NinjaOperation):
                 )
 
             logger(msg, **kwargs)
-        except (Exception,) as dd:
-            print(dd)
+        except (Exception,) as log_ex:
+            request_logger.debug(log_ex)
 
     def get_execution_context(
         self, request: HttpRequest, *args: Any, **kwargs: Any
@@ -75,12 +79,7 @@ class Operation(NinjaOperation):
         )
 
         if not route_function:
-            raise Exception("Route Function is found missing")
-
-        if route_function and not hasattr(
-            route_function, "get_route_execution_context"
-        ):
-            raise Exception("Invalid Route Function")
+            raise Exception("Route Function is missing")
 
         return route_function.get_route_execution_context(request, *args, **kwargs)
 

@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from ninja_extra import NinjaExtraAPI, api_controller, exceptions, http_get, testing
 from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
 from ninja_extra.controllers.base import (
+    APIController,
     MissingAPIControllerDecoratorException,
     compute_api_route_function,
     get_route_functions,
@@ -16,6 +17,11 @@ from ninja_extra.permissions.common import AllowAny
 
 @api_controller
 class SomeController:
+    pass
+
+
+@api_controller
+class Some2Controller(ControllerBase):
     pass
 
 
@@ -59,6 +65,27 @@ class TestAPIController:
         api_controller_instance = api_controller()
         assert api_controller_instance.prefix == ""
         assert api_controller_instance.tags is None
+        assert "abc" in SomeController.__module__
+        assert "tests.test_controller" in Some2Controller.__module__
+        assert Some2Controller.get_api_controller()
+
+    def test_api_controller_prefix_with_parameter(self):
+        @api_controller("/{int:organisation_id}")
+        class UsersController:
+            @http_get("")
+            def example_with_id_response(self, organisation_id: int):
+                return dict(organisation_id=organisation_id)
+
+        _api_controller: APIController = UsersController.get_api_controller()
+        assert _api_controller._prefix_has_route_param
+
+        client = testing.TestClient(UsersController)
+        response = client.get(
+            "452",
+        )
+
+        assert response.json() == dict(organisation_id=452)
+        assert [("", _api_controller)] == _api_controller.build_routers()
 
     def test_controller_should_have_preset_properties(self):
         api = NinjaExtraAPI()

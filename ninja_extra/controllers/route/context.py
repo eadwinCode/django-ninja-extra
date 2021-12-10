@@ -8,6 +8,10 @@ from ninja_extra.types import PermissionType
 
 
 class RouteContext(PydanticModel):
+    """
+    APIController Context which will be available to the class instance when handling request
+    """
+
     class Config:
         arbitrary_types_allowed = True
 

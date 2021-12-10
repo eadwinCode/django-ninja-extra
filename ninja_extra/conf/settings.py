@@ -60,11 +60,10 @@ class NinjaExtraSettings(Schema):
         return values
 
 
-# convert to lazy object
 settings = NinjaExtraSettings.from_orm(USER_SETTINGS)
 
 
-def reload_settings(*args: Any, **kwargs: Any) -> None:
+def reload_settings(*args: Any, **kwargs: Any) -> None:  # pragma: no cover
     global settings
 
     setting, value = kwargs["setting"], kwargs["value"]
@@ -73,4 +72,4 @@ def reload_settings(*args: Any, **kwargs: Any) -> None:
         settings = NinjaExtraSettings.from_orm(UserDefinedSettingsMapper(value))
 
 
-setting_changed.connect(reload_settings)
+setting_changed.connect(reload_settings)  # pragma: no cover
