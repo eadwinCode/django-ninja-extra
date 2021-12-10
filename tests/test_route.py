@@ -40,7 +40,9 @@ class FakeAuth:
 
 
 @api_controller(
-    "permission", auth=FakeAuth(), permissions=[permissions.IsAuthenticated & permissions.IsAdminUser]
+    "permission",
+    auth=FakeAuth(),
+    permissions=[permissions.IsAuthenticated & permissions.IsAdminUser],
 )
 class PermissionController:
     @http_post("/example_post", auth=None)
