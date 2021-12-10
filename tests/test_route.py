@@ -34,15 +34,20 @@ anonymous_request = Mock()
 anonymous_request.user = AnonymousUser()
 
 
+class FakeAuth:
+    def authenticate(self, **kwargs):
+        return True
+
+
 @api_controller(
-    "permission", permissions=[permissions.IsAuthenticated & permissions.IsAdminUser]
+    "permission", auth=FakeAuth(), permissions=[permissions.IsAuthenticated & permissions.IsAdminUser]
 )
 class PermissionController:
-    @http_post("/example_post")
+    @http_post("/example_post", auth=None)
     def example(self):
         return {"message": "OK"}
 
-    @http_get("/example_get", permissions=[permissions.AllowAny])
+    @http_get("/example_get", auth=None, permissions=[permissions.AllowAny])
     def example_allow_any(self):
         return {"message": "OK"}
 
@@ -309,6 +314,13 @@ class TestAPIControllerRoutePermission:
         _request.user = user
         return _request
 
+    def test_permission_controller_example_allow_any_auth_is_none(self):
+        route_params = PermissionController.example_allow_any.route.route_params
+        assert route_params.auth is None
+
+        response = PermissionController.example_allow_any(anonymous_request)
+        assert response == {"message": "OK"}
+
     def test_route_is_protected_by_global_controller_permission(self):
         with pytest.raises(PermissionDenied) as pex:
             PermissionController.example(anonymous_request)
@@ -321,7 +333,7 @@ class TestAPIControllerRoutePermission:
         response = PermissionController.example(request)
         assert response == {"message": "OK"}
 
-    def test_route_is_protected_by_its_permissions(self):
+    def test_route_is_protected_by_its_permissions_paramater(self):
         response = PermissionController.example_allow_any(anonymous_request)
         assert response == {"message": "OK"}
 

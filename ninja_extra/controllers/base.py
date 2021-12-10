@@ -237,6 +237,8 @@ class APIController:
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
     ) -> Operation:
+        auth = self.auth if auth == NOT_SET else auth
+
         if self._prefix_has_route_param:
             path = normalize_path("/".join([i for i in (self.prefix, path) if i]))
         if path not in self._path_operations:
@@ -248,7 +250,7 @@ class APIController:
             path=path,
             methods=methods,
             view_func=view_func,
-            auth=auth or self.auth,
+            auth=auth,
             response=response,
             operation_id=operation_id,
             summary=summary,
