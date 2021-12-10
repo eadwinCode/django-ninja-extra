@@ -25,7 +25,6 @@ from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI, Router
 from ninja.constants import NOT_SET
 from ninja.security.base import AuthBase
-from ninja.types import DictStrAny
 from ninja.utils import normalize_path
 
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
