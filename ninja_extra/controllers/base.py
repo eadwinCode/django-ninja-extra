@@ -65,6 +65,139 @@ def compute_api_route_function(
         api_controller_instance.add_operation_from_route_function(cls_route_function)
 
 
+class ControllerBase(ABC):
+    """
+    Abstract Controller Base implementation all Controller class should implement
+
+    Example:
+    ---------
+    ```python
+    from ninja_extra import api_controller, ControllerBase, http_get
+
+    @api_controller
+    class SomeController(ControllerBase):
+        @http_get()
+        def some_method_name(self):
+            ...
+    ```
+    Inheritance Example
+    -------------------
+    ```python
+
+    @api_controller
+    class AnotherController(SomeController):
+        @http_get()
+        def some_method_name(self):
+            ...
+    ```
+    """
+
+    # `_api_controller` a reference to APIController instance
+    _api_controller: Optional["APIController"] = None
+
+    # `api` a reference to NinjaExtraAPI on APIController registration
+    api: Optional[NinjaAPI] = None
+
+    # `context` variable will change based on the route function called on the APIController
+    # that way we can get some specific items things that belong the route function during execution
+    context: Optional["RouteContext"] = None
+
+    Ok = Ok
+    Id = Id
+    Detail = Detail
+    bad_request = bad_request
+
+    @classmethod
+    def get_api_controller(cls) -> "APIController":
+        if not cls._api_controller:
+            raise MissingAPIControllerDecoratorException(
+                "api_controller not found. "
+                "Did you forget to use the `api_controller` decorator"
+            )
+        return cls._api_controller
+
+    @classmethod
+    def permission_denied(cls, permission: BasePermission) -> None:
+        message = getattr(permission, "message", None)
+        raise PermissionDenied(message)
+
+    def get_object_or_exception(
+        self,
+        klass: Union[Type[Model], QuerySet],
+        error_message: str = None,
+        exception: Type[APIException] = NotFound,
+        **kwargs: Any,
+    ) -> Any:
+        obj = get_object_or_exception(
+            klass=klass, error_message=error_message, exception=exception, **kwargs
+        )
+        self.check_object_permissions(obj)
+        return obj
+
+    def get_object_or_none(
+        self, klass: Union[Type[Model], QuerySet], **kwargs: Any
+    ) -> Optional[Any]:
+        obj = get_object_or_none(klass=klass, **kwargs)
+        if obj:
+            self.check_object_permissions(obj)
+        return obj
+
+    def _get_permissions(self) -> Iterable[BasePermission]:
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if not self.context:
+            return
+
+        for permission_class in self.context.permission_classes:
+            permission_instance = permission_class()
+            yield permission_instance
+
+    def check_permissions(self) -> None:
+        """
+        Check if the request should be permitted.
+        Raises an appropriate exception if the request is not permitted.
+        """
+        for permission in self._get_permissions():
+            if (
+                self.context
+                and self.context.request
+                and not permission.has_permission(
+                    request=self.context.request, controller=self
+                )
+            ):
+                self.permission_denied(permission)
+
+    def check_object_permissions(self, obj: Union[Any, Model]) -> None:
+        """
+        Check if the request should be permitted for a given object.
+        Raises an appropriate exception if the request is not permitted.
+        """
+        for permission in self._get_permissions():
+            if (
+                self.context
+                and self.context.request
+                and not permission.has_object_permission(
+                    request=self.context.request, controller=self, obj=obj
+                )
+            ):
+                self.permission_denied(permission)
+
+    def create_response(
+        self, message: Any, status_code: int = 200, **kwargs: Any
+    ) -> HttpResponse:
+        assert self.api and self.context and self.context.request
+        content = self.api.renderer.render(
+            self.context.request, message, response_status=status_code
+        )
+        content_type = "{}; charset={}".format(
+            self.api.renderer.media_type, self.api.renderer.charset
+        )
+        return HttpResponse(
+            content, status=status_code, content_type=content_type, **kwargs
+        )
+
+
 class APIController:
     _PATH_PARAMETER_COMPONENT_RE = r"{(?:(?P<converter>[^>:]+):)?(?P<parameter>[^>]+)}"
 
@@ -267,147 +400,14 @@ class APIController:
         return operation
 
 
-class ControllerBase(ABC):
-    """
-    Abstract Controller Base implementation all Controller class should implement
-
-    Example:
-    ---------
-    ```python
-    from ninja_extra import api_controller, ControllerBase, http_get
-
-    @api_controller
-    class SomeController(ControllerBase):
-        @http_get()
-        def some_method_name(self):
-            ...
-    ```
-    Inheritance Example
-    -------------------
-    ```python
-
-    @api_controller
-    class AnotherController(SomeController):
-        @http_get()
-        def some_method_name(self):
-            ...
-    ```
-    """
-
-    # `_api_controller` a reference to APIController instance
-    _api_controller: Optional[APIController] = None
-
-    # `api` a reference to NinjaExtraAPI on APIController registration
-    api: Optional[NinjaAPI] = None
-
-    # `context` variable will change based on the route function called on the APIController
-    # that way we can get some specific items things that belong the route function during execution
-    context: Optional["RouteContext"] = None
-
-    Ok = Ok
-    Id = Id
-    Detail = Detail
-    bad_request = bad_request
-
-    @classmethod
-    def get_api_controller(cls) -> APIController:
-        if not cls._api_controller:
-            raise MissingAPIControllerDecoratorException(
-                "api_controller not found. "
-                "Did you forget to use the `api_controller` decorator"
-            )
-        return cls._api_controller
-
-    @classmethod
-    def permission_denied(cls, permission: BasePermission) -> None:
-        message = getattr(permission, "message", None)
-        raise PermissionDenied(message)
-
-    def get_object_or_exception(
-        self,
-        klass: Union[Type[Model], QuerySet],
-        error_message: str = None,
-        exception: Type[APIException] = NotFound,
-        **kwargs: Any,
-    ) -> Any:
-        obj = get_object_or_exception(
-            klass=klass, error_message=error_message, exception=exception, **kwargs
-        )
-        self.check_object_permissions(obj)
-        return obj
-
-    def get_object_or_none(
-        self, klass: Union[Type[Model], QuerySet], **kwargs: Any
-    ) -> Optional[Any]:
-        obj = get_object_or_none(klass=klass, **kwargs)
-        if obj:
-            self.check_object_permissions(obj)
-        return obj
-
-    def _get_permissions(self) -> Iterable[BasePermission]:
-        """
-        Instantiates and returns the list of permissions that this view requires.
-        """
-        if not self.context:
-            return
-
-        for permission_class in self.context.permission_classes:
-            permission_instance = permission_class()
-            yield permission_instance
-
-    def check_permissions(self) -> None:
-        """
-        Check if the request should be permitted.
-        Raises an appropriate exception if the request is not permitted.
-        """
-        for permission in self._get_permissions():
-            if (
-                self.context
-                and self.context.request
-                and not permission.has_permission(
-                    request=self.context.request, controller=self
-                )
-            ):
-                self.permission_denied(permission)
-
-    def check_object_permissions(self, obj: Union[Any, Model]) -> None:
-        """
-        Check if the request should be permitted for a given object.
-        Raises an appropriate exception if the request is not permitted.
-        """
-        for permission in self._get_permissions():
-            if (
-                self.context
-                and self.context.request
-                and not permission.has_object_permission(
-                    request=self.context.request, controller=self, obj=obj
-                )
-            ):
-                self.permission_denied(permission)
-
-    def create_response(
-        self, message: Any, status_code: int = 200, **kwargs: Any
-    ) -> HttpResponse:
-        assert self.api and self.context and self.context.request
-        content = self.api.renderer.render(
-            self.context.request, message, response_status=status_code
-        )
-        content_type = "{}; charset={}".format(
-            self.api.renderer.media_type, self.api.renderer.charset
-        )
-        return HttpResponse(
-            content, status=status_code, content_type=content_type, **kwargs
-        )
-
-
 @overload
-def api_controller() -> Type[ControllerBase]:  # type: ignore # pragma: no cover
+def api_controller(prefix_or_class: Type) -> Type[ControllerBase]:  # pragma: no cover
     ...
 
 
 @overload
 def api_controller(
-    prefix: str = "",
+    prefix_or_class: str = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
@@ -417,13 +417,13 @@ def api_controller(
 
 
 def api_controller(
-    prefix: Union[str, Type] = "",
+    prefix_or_class: Union[str, Type] = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
 ) -> Union[Type[ControllerBase], APIController]:
-    if isinstance(prefix, type):
+    if isinstance(prefix_or_class, type):
         _api_controller = APIController(
             prefix="",
             auth=auth,
@@ -431,10 +431,10 @@ def api_controller(
             permissions=permissions,
             auto_import=auto_import,
         )
-        return _api_controller(prefix)
+        return _api_controller(prefix_or_class)
 
     return APIController(
-        prefix=prefix,
+        prefix=prefix_or_class,
         auth=auth,
         tags=tags,
         permissions=permissions,
