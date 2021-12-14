@@ -38,9 +38,6 @@ Plus **Extra**:
 
 Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
-## Sample Project
-Django-Ninja-Tutorial Project, [visit](https://github.com/eadwinCode/bookstoreapi)
-
 ## Installation
 
 ```
