@@ -11,11 +11,12 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Sequence,
     Tuple,
     Type,
     Union,
     cast,
-    overload, Sequence,
+    overload,
 )
 
 from django.db.models import Model, QuerySet
@@ -29,7 +30,8 @@ from ninja.signature import is_async
 from ninja.utils import normalize_path
 
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
-from ninja_extra.operation import Operation, ControllerPathView
+from ninja_extra.helper import get_function_name
+from ninja_extra.operation import ControllerPathView, Operation
 from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.shortcuts import (
     fail_silently,
@@ -37,10 +39,10 @@ from ninja_extra.shortcuts import (
     get_object_or_none,
 )
 from ninja_extra.types import PermissionType
-from ninja_extra.helper import get_function_name
+
 from .registry import ControllerRegistry
 from .response import Detail, Id, Ok
-from .route.route_functions import RouteFunction, AsyncRouteFunction
+from .route.route_functions import AsyncRouteFunction, RouteFunction
 
 if TYPE_CHECKING:
     from ninja_extra import NinjaExtraAPI  # pragma: no cover
@@ -271,7 +273,7 @@ class APIController:
 
         self.has_auth_async = False
         if auth is not NOT_SET:
-            auth_callbacks = isinstance(auth, Sequence) and auth or [auth]  # type: ignore
+            auth_callbacks = isinstance(auth, Sequence) and auth or [auth]
             for _auth in auth_callbacks:
                 _call_back = _auth if inspect.isfunction(_auth) else _auth.__call__
                 if is_async(_call_back):
@@ -357,7 +359,11 @@ class APIController:
         # converts route functions to Operation model
         route_function.route.route_params.operation_id = f"{str(uuid.uuid4())[:8]}_controller_{route_function.route.view_func.__name__}"
 
-        if self.auth and self.has_auth_async and not isinstance(route_function, AsyncRouteFunction):
+        if (
+            self.auth
+            and self.has_auth_async
+            and not isinstance(route_function, AsyncRouteFunction)
+        ):
             raise Exception(
                 f"You are using a Controller level Asynchronous Authentication Class, "
                 f"All controller endpoint must be `async`.\n"
