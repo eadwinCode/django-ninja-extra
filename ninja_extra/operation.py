@@ -14,7 +14,6 @@ from typing import (
     cast,
 )
 
-from asgiref.sync import sync_to_async
 from django.http import HttpRequest
 from django.http.response import HttpResponse, HttpResponseBase
 from django.utils.encoding import force_str
@@ -164,6 +163,8 @@ class ControllerOperation(Operation):
 class AsyncOperation(Operation, NinjaAsyncOperation):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        from asgiref.sync import sync_to_async
+
         self._get_values = cast(Callable, sync_to_async(super()._get_values))  # type: ignore
         self._result_to_response = cast(  # type: ignore
             Callable,
