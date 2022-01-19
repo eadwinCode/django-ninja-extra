@@ -52,7 +52,7 @@ class Operation(NinjaOperation):
         self, auth: Optional[Union[Sequence[Callable], Callable, object]]
     ) -> None:
         if auth is not None and auth is not NOT_SET:
-            self.auth_callbacks = isinstance(auth, Sequence) and auth or [auth]  # type: ignore
+            self.auth_callbacks = isinstance(auth, Sequence) and auth or [auth]
             for callback in self.auth_callbacks:
                 _call_back = (
                     callback if inspect.isfunction(callback) else callback.__call__  # type: ignore
