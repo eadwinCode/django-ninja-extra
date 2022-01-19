@@ -15,7 +15,7 @@ from typing import (
     Type,
     Union,
     cast,
-    overload,
+    overload, Sequence,
 )
 
 from django.db.models import Model, QuerySet
@@ -270,11 +270,13 @@ class APIController:
             self._prefix_has_route_param = True
 
         self.has_auth_async = False
-        for _auth in auth:
-            _call_back = _auth if inspect.isfunction(_auth) else _auth.__call__
-            if is_async(_call_back):
-                self.has_auth_async = True
-                break
+        if auth is not NOT_SET:
+            auth_callbacks = isinstance(auth, Sequence) and auth or [auth]  # type: ignore
+            for _auth in auth_callbacks:
+                _call_back = _auth if inspect.isfunction(_auth) else _auth.__call__
+                if is_async(_call_back):
+                    self.has_auth_async = True
+                    break
 
     @property
     def controller_class(self) -> Type["ControllerBase"]:
