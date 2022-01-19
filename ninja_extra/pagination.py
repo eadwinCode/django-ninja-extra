@@ -171,9 +171,9 @@ def _inject_pagination(
     paginator_class: Type[PaginationBase],
     **paginator_params: Any,
 ) -> Callable[..., Any]:
-    func.has_kwargs = True  # type: ignore
+    setattr(func, 'has_kwargs', True)
     if not has_kwargs(func):
-        func.has_kwargs = False  # type: ignore
+        setattr(func, 'has_kwargs', False)
         logger.debug(
             f"function {func.__name__} should have **kwargs if you want to use pagination parameters"
         )
@@ -186,14 +186,16 @@ def _inject_pagination(
         controller: "ControllerBase", *args: Any, **kw: Any
     ) -> Any:
         func_kwargs = dict(kw)
-        if not func.has_kwargs:  # type: ignore
+        if not getattr(func, 'has_kwargs', None):
             func_kwargs.pop(paginator_kwargs_name)
 
         items = func(controller, *args, **func_kwargs)
         assert (
             controller.context and controller.context.request
         ), "Request object is None"
-        return paginator.paginate_queryset(items, controller.context.request, **kw)
+
+        func_kwargs['request'] = controller.context.request
+        return paginator.paginate_queryset(items, **func_kwargs)
 
     view_with_pagination._ninja_contribute_args = [  # type: ignore
         (
