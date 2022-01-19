@@ -21,11 +21,12 @@ from ninja.operation import (
     PathView as NinjaPathView,
 )
 from ninja.signature import is_async
-
+from ninja.utils import check_csrf
+from asgiref.sync import sync_to_async
 from ninja_extra.exceptions import APIException
 from ninja_extra.logger import request_logger
 from ninja_extra.signals import route_context_finished, route_context_started
-
+from ninja_extra.helper import Helper
 from .controllers.route.context import RouteContext
 from .details import ViewSignature
 
@@ -40,6 +41,7 @@ class Operation(NinjaOperation):
         super().__init__(*args, **kwargs)
         self.url_name = url_name
         self.signature = ViewSignature(self.path, self.view_func)
+        self.is_coroutine = is_async(self.view_func)
 
     def _log_action(
         self,
@@ -90,10 +92,8 @@ class Operation(NinjaOperation):
             context = self.get_execution_context(request, **kw)
             # send route_context_started signal
             route_context_started.send(RouteContext, route_context=context)
-            values = self._get_values(request, kw)
-            context.kwargs = values
 
-            yield values, context
+            yield context
             self._log_action(
                 request_logger.info,
                 request=request,
@@ -115,13 +115,14 @@ class Operation(NinjaOperation):
             route_context_finished.send(RouteContext, route_context=None)
 
     def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:
-        error = super(Operation, self)._run_checks(request)
+        error = self._run_checks(request)
         if error:
             return error
         try:
             with self._prep_run(request, **kw) as ctx:
-                values, context = ctx
-                result = self.view_func(context=context, **values)
+                values = self._get_values(request, kw)
+                ctx.kwargs = values
+                result = self.view_func(context=ctx, **values)
                 _processed_results = self._result_to_response(request, result)
             return _processed_results
         except Exception as e:
@@ -131,16 +132,58 @@ class Operation(NinjaOperation):
                 e.args = (msg,) + e.args[1:]
             return self.api.on_exception(request, e)
 
+    def _set_auth(
+        self, auth: Optional[Union[Sequence[Callable], Callable, object]]
+    ) -> None:
+        if auth is not None and auth is not NOT_SET:  # TODO: can it even happen ?
+            self.auth_callbacks = isinstance(auth, Sequence) and auth or [auth]  # type: ignore
+            self.auth_callbacks = Helper.assign_route_auth_function_properties(
+                self.auth_callbacks, view_func=self.view_func
+            )
+
 
 class AsyncOperation(Operation, NinjaAsyncOperation):
+    async def _run_checks(self, request: HttpRequest) -> Optional[HttpResponse]:
+        """Runs security checks for each operation"""
+        # auth:
+        if self.auth_callbacks:
+            error = await self._run_authentication(request)
+            if error:
+                return error
+
+        # csrf:
+        if self.api.csrf:
+            error = check_csrf(request, self.view_func)
+            if error:
+                return error
+
+        return None
+
+    async def _run_authentication(self, request: HttpRequest) -> Optional[HttpResponse]:
+        for callback in self.auth_callbacks:
+            try:
+                is_coroutine = getattr(callback, 'is_coroutine', False)
+                if is_coroutine:
+                    result = await callback(request)
+                else:
+                    result = callback(request)
+            except Exception as exc:
+                return self.api.on_exception(request, exc)
+
+            if result:
+                request.auth = result  # type: ignore
+                return None
+        return self.api.create_response(request, {"detail": "Unauthorized"}, status=401)
+
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
-        error = self._run_checks(request)
+        error = await self._run_checks(request)
         if error:
             return error
         try:
             with self._prep_run(request, **kw) as ctx:
-                values, context = ctx
-                result = await self.view_func(context=context, **values)
+                values = await sync_to_async(self._get_values)(request, kw)
+                ctx.kwargs = values
+                result = await self.view_func(context=ctx, **values)
                 _processed_results = self._result_to_response(request, result)
             return _processed_results
         except Exception as e:
