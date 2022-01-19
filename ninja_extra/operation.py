@@ -41,12 +41,18 @@ if TYPE_CHECKING:
 
 class Operation(NinjaOperation):
     def __init__(
-        self, *args: Any, url_name: Optional[str] = None, **kwargs: Any
+        self,
+        path: str,
+        methods: List[str],
+        view_func: Callable,
+        *,
+        url_name: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(*args, **kwargs)
+        self.is_coroutine = is_async(view_func)
         self.url_name = url_name
+        super().__init__(path, methods, view_func, **kwargs)
         self.signature = ViewSignature(self.path, self.view_func)
-        self.is_coroutine = is_async(self.view_func)
 
     def _set_auth(
         self, auth: Optional[Union[Sequence[Callable], Callable, object]]
