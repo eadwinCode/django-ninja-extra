@@ -8,7 +8,7 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Union,
+    Union, Type,
 )
 
 from django.http import HttpRequest
@@ -21,6 +21,7 @@ from ninja.operation import (
     PathView as NinjaPathView,
 )
 from ninja.signature import is_async
+from ninja.types import TCallable
 from ninja.utils import check_csrf
 from asgiref.sync import sync_to_async
 from ninja_extra.exceptions import APIException
@@ -43,6 +44,17 @@ class Operation(NinjaOperation):
         self.signature = ViewSignature(self.path, self.view_func)
         self.is_coroutine = is_async(self.view_func)
 
+    def _set_auth(
+        self, auth: Optional[Union[Sequence[Callable], Callable, object]]
+    ) -> None:
+        if auth is not None and auth is not NOT_SET:  # TODO: can it even happen ?
+            self.auth_callbacks = isinstance(auth, Sequence) and auth or [auth]  # type: ignore
+            self.auth_callbacks = Helper.assign_route_auth_function_properties(
+                self.auth_callbacks, view_func=self.view_func
+            )
+
+
+class ControllerOperation(Operation):
     def _log_action(
         self,
         logger: Callable[..., Any],
@@ -132,15 +144,6 @@ class Operation(NinjaOperation):
                 e.args = (msg,) + e.args[1:]
             return self.api.on_exception(request, e)
 
-    def _set_auth(
-        self, auth: Optional[Union[Sequence[Callable], Callable, object]]
-    ) -> None:
-        if auth is not None and auth is not NOT_SET:  # TODO: can it even happen ?
-            self.auth_callbacks = isinstance(auth, Sequence) and auth or [auth]  # type: ignore
-            self.auth_callbacks = Helper.assign_route_auth_function_properties(
-                self.auth_callbacks, view_func=self.view_func
-            )
-
 
 class AsyncOperation(Operation, NinjaAsyncOperation):
     async def _run_checks(self, request: HttpRequest) -> Optional[HttpResponse]:
@@ -175,6 +178,19 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 return None
         return self.api.create_response(request, {"detail": "Unauthorized"}, status=401)
 
+    async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
+        error = await self._run_checks(request)
+        if error:
+            return error
+        try:
+            values = await sync_to_async(self._get_values)(request, kw)
+            result = await self.view_func(request, **values)
+            return self._result_to_response(request, result)
+        except Exception as e:
+            return self.api.on_exception(request, e)
+
+
+class AsyncControllerOperation(AsyncOperation, ControllerOperation):
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
         error = await self._run_checks(request)
         if error:
@@ -219,12 +235,7 @@ class PathView(NinjaPathView):
     ) -> Operation:
         if url_name:
             self.url_name = url_name
-
-        operation_class = Operation
-        if is_async(view_func):
-            self.is_async = True
-            operation_class = AsyncOperation
-
+        operation_class = self.get_operation_class(view_func)
         operation = operation_class(
             path,
             methods,
@@ -246,3 +257,20 @@ class PathView(NinjaPathView):
 
         self.operations.append(operation)
         return operation
+
+    def get_operation_class(self, view_func: TCallable) -> Type[Union[Operation, AsyncOperation]]:
+        operation_class = Operation
+        if is_async(view_func):
+            self.is_async = True
+            operation_class = AsyncOperation
+        return operation_class
+
+
+class ControllerPathView(PathView):
+    def get_operation_class(self, view_func: TCallable) -> Type[Union[Operation, AsyncOperation]]:
+        operation_class = ControllerOperation
+        if is_async(view_func):
+            self.is_async = True
+            operation_class = AsyncControllerOperation
+        return operation_class
+
