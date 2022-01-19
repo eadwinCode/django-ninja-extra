@@ -1,19 +1,20 @@
-from typing import (
-    Any,
-    Callable,
-    List,
-    Optional,
-)
+from typing import Any, Callable, Dict, List, Optional
 
 from ninja.constants import NOT_SET
-from ninja.operation import PathView
-from ninja import router as NinjaRouter
+from ninja.router import Router as NinjaRouter
+
 from ninja_extra.operation import PathView
 
 __all__ = ["Router"]
 
 
 class Router(NinjaRouter):
+    def __init__(
+        self, *, auth: Any = NOT_SET, tags: Optional[List[str]] = None
+    ) -> None:
+        super().__init__(auth=auth, tags=tags)
+        self.path_operations: Dict[str, PathView] = {}  # type: ignore
+
     def add_api_operation(
         self,
         path: str,
