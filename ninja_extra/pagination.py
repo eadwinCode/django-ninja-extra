@@ -215,9 +215,9 @@ class PaginatorOperation:
             assert (
                 controller.context and controller.context.request
             ), "Request object is None"
-
-            func_kwargs["request"] = controller.context.request
-            return self.paginator.paginate_queryset(items, **func_kwargs)
+            params = dict(kw)
+            params["request"] = controller.context.request
+            return self.paginator.paginate_queryset(items, **params)
 
         as_view._ninja_contribute_args = [  # type: ignore
             (
@@ -241,11 +241,12 @@ class AsyncPaginatorOperation(PaginatorOperation):
                 controller.context and controller.context.request
             ), "Request object is None"
 
-            func_kwargs["request"] = controller.context.request
+            params = dict(kw)
+            params["request"] = controller.context.request
             paginate_queryset = cast(
                 Callable, sync_to_async(self.paginator.paginate_queryset)
             )
-            return await paginate_queryset(items, **func_kwargs)
+            return await paginate_queryset(items, **params)
 
         as_view._ninja_contribute_args = [  # type: ignore
             (

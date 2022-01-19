@@ -35,6 +35,9 @@ anonymous_request.user = AnonymousUser()
 
 
 class FakeAuth:
+    def __call__(self, *args, **kwargs):
+        return self.authenticate(**kwargs)
+
     def authenticate(self, **kwargs):
         return True
 
