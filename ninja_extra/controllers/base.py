@@ -29,7 +29,7 @@ from ninja.signature import is_async
 from ninja.utils import normalize_path
 
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
-from ninja_extra.operation import Operation, PathView
+from ninja_extra.operation import Operation, ControllerPathView
 from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.shortcuts import (
     fail_silently,
@@ -257,7 +257,7 @@ class APIController:
         # `controller_class` target class that the APIController wraps
         self._controller_class: Optional[Type["ControllerBase"]] = None
         # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
-        self._path_operations: Dict[str, PathView] = dict()
+        self._path_operations: Dict[str, ControllerPathView] = dict()
         # `permission_classes` a collection of BasePermission Types
         # a fallback if route functions has no permissions definition
         self.permission_classes: PermissionType = permissions or [AllowAny]  # type: ignore
@@ -318,7 +318,7 @@ class APIController:
         return cls
 
     @property
-    def path_operations(self) -> Dict[str, PathView]:
+    def path_operations(self) -> Dict[str, ControllerPathView]:
         return self._path_operations
 
     def set_api_instance(self, api: "NinjaExtraAPI") -> None:
@@ -392,7 +392,7 @@ class APIController:
         if self._prefix_has_route_param:
             path = normalize_path("/".join([i for i in (self.prefix, path) if i]))
         if path not in self._path_operations:
-            path_view = PathView()
+            path_view = ControllerPathView()
             self._path_operations[path] = path_view
         else:
             path_view = self._path_operations[path]
