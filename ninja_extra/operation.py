@@ -1,3 +1,4 @@
+import inspect
 import time
 from contextlib import contextmanager
 from typing import (
@@ -8,9 +9,12 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Union, Type,
+    Type,
+    Union,
+    cast,
 )
 
+from asgiref.sync import sync_to_async
 from django.http import HttpRequest
 from django.http.response import HttpResponse, HttpResponseBase
 from django.utils.encoding import force_str
@@ -23,11 +27,12 @@ from ninja.operation import (
 from ninja.signature import is_async
 from ninja.types import TCallable
 from ninja.utils import check_csrf
-from asgiref.sync import sync_to_async
+
 from ninja_extra.exceptions import APIException
+from ninja_extra.helper import get_function_name
 from ninja_extra.logger import request_logger
 from ninja_extra.signals import route_context_finished, route_context_started
-from ninja_extra.helper import Helper
+
 from .controllers.route.context import RouteContext
 from .details import ViewSignature
 
@@ -47,11 +52,22 @@ class Operation(NinjaOperation):
     def _set_auth(
         self, auth: Optional[Union[Sequence[Callable], Callable, object]]
     ) -> None:
-        if auth is not None and auth is not NOT_SET:  # TODO: can it even happen ?
+        if auth is not None and auth is not NOT_SET:
             self.auth_callbacks = isinstance(auth, Sequence) and auth or [auth]  # type: ignore
-            self.auth_callbacks = Helper.assign_route_auth_function_properties(
-                self.auth_callbacks, view_func=self.view_func
-            )
+            for callback in self.auth_callbacks:
+                _call_back = (
+                    callback if inspect.isfunction(callback) else callback.__call__  # type: ignore
+                )
+
+                if not getattr(callback, "is_coroutine", None):
+                    setattr(callback, "is_coroutine", is_async(_call_back))
+
+                if is_async(_call_back) and not self.is_coroutine:
+                    raise Exception(
+                        f"Could apply auth=`{get_function_name(callback)}` "
+                        f"to view_func=`{get_function_name(self.view_func)}`.\n"
+                        f"N:B - {get_function_name(callback)} can only be used on Asynchronous view functions"
+                    )
 
 
 class ControllerOperation(Operation):
@@ -136,7 +152,7 @@ class ControllerOperation(Operation):
                 ctx.kwargs = values
                 result = self.view_func(context=ctx, **values)
                 _processed_results = self._result_to_response(request, result)
-            return _processed_results
+                return _processed_results
         except Exception as e:
             if isinstance(e, TypeError) and "required positional argument" in str(e):
                 msg = "Did you fail to use functools.wraps() in a decorator?"
@@ -148,10 +164,13 @@ class ControllerOperation(Operation):
 class AsyncOperation(Operation, NinjaAsyncOperation):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._get_values = sync_to_async(super()._get_values)
-        self._result_to_response = sync_to_async(super()._result_to_response)
+        self._get_values = cast(Callable, sync_to_async(super()._get_values))  # type: ignore
+        self._result_to_response = cast(  # type: ignore
+            Callable,
+            sync_to_async(super()._result_to_response),
+        )
 
-    async def _run_checks(self, request: HttpRequest) -> Optional[HttpResponse]:
+    async def _run_checks(self, request: HttpRequest) -> Optional[HttpResponse]:  # type: ignore
         """Runs security checks for each operation"""
         # auth:
         if self.auth_callbacks:
@@ -167,10 +186,10 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
         return None
 
-    async def _run_authentication(self, request: HttpRequest) -> Optional[HttpResponse]:
+    async def _run_authentication(self, request: HttpRequest) -> Optional[HttpResponse]:  # type: ignore
         for callback in self.auth_callbacks:
             try:
-                is_coroutine = getattr(callback, 'is_coroutine', False)
+                is_coroutine = getattr(callback, "is_coroutine", False)
                 if is_coroutine:
                     result = await callback(request)
                 else:
@@ -188,9 +207,10 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
         if error:
             return error
         try:
-            values = await self._get_values(request, kw)
+            values = await self._get_values(request, kw)  # type: ignore
             result = await self.view_func(request, **values)
-            return await self._result_to_response(request, result)
+            _processed_results = await self._result_to_response(request, result)  # type: ignore
+            return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
 
@@ -202,11 +222,11 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):
             return error
         try:
             with self._prep_run(request, **kw) as ctx:
-                values = await self._get_values(request, kw)
+                values = await self._get_values(request, kw)  # type: ignore
                 ctx.kwargs = values
                 result = await self.view_func(context=ctx, **values)
-                _processed_results = await self._result_to_response(request, result)
-            return _processed_results
+                _processed_results = await self._result_to_response(request, result)  # type: ignore
+                return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
 
@@ -263,7 +283,9 @@ class PathView(NinjaPathView):
         self.operations.append(operation)
         return operation
 
-    def get_operation_class(self, view_func: TCallable) -> Type[Union[Operation, AsyncOperation]]:
+    def get_operation_class(
+        self, view_func: TCallable
+    ) -> Type[Union[Operation, AsyncOperation]]:
         operation_class = Operation
         if is_async(view_func):
             self.is_async = True
@@ -272,10 +294,11 @@ class PathView(NinjaPathView):
 
 
 class ControllerPathView(PathView):
-    def get_operation_class(self, view_func: TCallable) -> Type[Union[Operation, AsyncOperation]]:
+    def get_operation_class(
+        self, view_func: TCallable
+    ) -> Type[Union[Operation, AsyncOperation]]:
         operation_class = ControllerOperation
         if is_async(view_func):
             self.is_async = True
             operation_class = AsyncControllerOperation
         return operation_class
-
