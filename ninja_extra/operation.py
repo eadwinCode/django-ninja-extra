@@ -146,6 +146,11 @@ class ControllerOperation(Operation):
 
 
 class AsyncOperation(Operation, NinjaAsyncOperation):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._get_values = sync_to_async(super()._get_values)
+        self._result_to_response = sync_to_async(super()._result_to_response)
+
     async def _run_checks(self, request: HttpRequest) -> Optional[HttpResponse]:
         """Runs security checks for each operation"""
         # auth:
@@ -183,9 +188,9 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
         if error:
             return error
         try:
-            values = await sync_to_async(self._get_values)(request, kw)
+            values = await self._get_values(request, kw)
             result = await self.view_func(request, **values)
-            return self._result_to_response(request, result)
+            return await self._result_to_response(request, result)
         except Exception as e:
             return self.api.on_exception(request, e)
 
@@ -197,10 +202,10 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):
             return error
         try:
             with self._prep_run(request, **kw) as ctx:
-                values = await sync_to_async(self._get_values)(request, kw)
+                values = await self._get_values(request, kw)
                 ctx.kwargs = values
                 result = await self.view_func(context=ctx, **values)
-                _processed_results = self._result_to_response(request, result)
+                _processed_results = await self._result_to_response(request, result)
             return _processed_results
         except Exception as e:
             return self.api.on_exception(request, e)
