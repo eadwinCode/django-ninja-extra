@@ -25,6 +25,7 @@ from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI, Router
 from ninja.constants import NOT_SET
 from ninja.security.base import AuthBase
+from ninja.signature import is_async
 from ninja.utils import normalize_path
 
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
@@ -36,10 +37,10 @@ from ninja_extra.shortcuts import (
     get_object_or_none,
 )
 from ninja_extra.types import PermissionType
-
+from ninja_extra.helper import get_function_name
 from .registry import ControllerRegistry
 from .response import Detail, Id, Ok
-from .route.route_functions import RouteFunction
+from .route.route_functions import RouteFunction, AsyncRouteFunction
 
 if TYPE_CHECKING:
     from ninja_extra import NinjaExtraAPI  # pragma: no cover
@@ -268,6 +269,13 @@ class APIController:
         if re.search(self._PATH_PARAMETER_COMPONENT_RE, prefix):
             self._prefix_has_route_param = True
 
+        self.has_auth_async = False
+        for _auth in auth:
+            _call_back = _auth if inspect.isfunction(_auth) else _auth.__call__
+            if is_async(_call_back):
+                self.has_auth_async = True
+                break
+
     @property
     def controller_class(self) -> Type["ControllerBase"]:
         assert self._controller_class, "Controller Class is not available"
@@ -346,6 +354,15 @@ class APIController:
     def add_operation_from_route_function(self, route_function: RouteFunction) -> None:
         # converts route functions to Operation model
         route_function.route.route_params.operation_id = f"{str(uuid.uuid4())[:8]}_controller_{route_function.route.view_func.__name__}"
+
+        if self.auth and self.has_auth_async and not isinstance(route_function, AsyncRouteFunction):
+            raise Exception(
+                f"You are using a Controller level Asynchronous Authentication Class, "
+                f"All controller endpoint must be `async`.\n"
+                f"Controller={self.controller_class.__name__}, "
+                f"endpoint={get_function_name(route_function.route.view_func)}"
+            )
+
         self.add_api_operation(
             view_func=route_function.as_view, **route_function.route.route_params.dict()
         )
