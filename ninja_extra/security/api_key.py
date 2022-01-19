@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
+from typing import Any, Optional
 
 from django.http import HttpRequest
 from ninja.security.apikey import APIKeyBase, APIKeyCookie, APIKeyHeader, APIKeyQuery
-from typing import Optional, Any
 
-
-__all__ = ["AsyncAPIKeyBase", "AsyncAPIKeyQuery", "AsyncAPIKeyCookie", "AsyncAPIKeyHeader"]
+__all__ = [
+    "AsyncAPIKeyBase",
+    "AsyncAPIKeyQuery",
+    "AsyncAPIKeyCookie",
+    "AsyncAPIKeyHeader",
+]
 
 
 class AsyncAPIKeyBase(APIKeyBase, ABC):
@@ -14,7 +18,9 @@ class AsyncAPIKeyBase(APIKeyBase, ABC):
         return await self.authenticate(request, key)
 
     @abstractmethod
-    async def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
+    async def authenticate(
+        self, request: HttpRequest, key: Optional[str]
+    ) -> Optional[Any]:
         pass  # pragma: no cover
 
 

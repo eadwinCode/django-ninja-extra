@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
+from typing import Any, Optional
+
 from django.conf import settings
-from ninja.compatibility import get_headers
 from django.http import HttpRequest
-from ninja.security.http import HttpBasicAuth, HttpBearer, logger, DecodeError
-from typing import Optional, Any
+from ninja.compatibility import get_headers
+from ninja.security.http import DecodeError, HttpBasicAuth, HttpBearer, logger
 
 __all__ = ["AsyncHttpBearer", "AsyncHttpBasicAuth"]
 
