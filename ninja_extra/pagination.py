@@ -178,8 +178,7 @@ def _inject_pagination(
     if is_async(func):
         paginator_operation_class = AsyncPaginatorOperation
     paginator_operation = paginator_operation_class(
-        paginator=paginator, view_func=func,
-        paginator_kwargs_name=paginator_kwargs_name
+        paginator=paginator, view_func=func, paginator_kwargs_name=paginator_kwargs_name
     )
 
     return paginator_operation.as_view
@@ -187,11 +186,11 @@ def _inject_pagination(
 
 class PaginatorOperation:
     def __init__(
-            self,
-            *,
-            paginator: PaginationBase,
-            view_func: Callable,
-            paginator_kwargs_name: str = "pagination"
+        self,
+        *,
+        paginator: PaginationBase,
+        view_func: Callable,
+        paginator_kwargs_name: str = "pagination",
     ) -> None:
         self.paginator = paginator
         self.paginator_kwargs_name = paginator_kwargs_name
@@ -214,10 +213,10 @@ class PaginatorOperation:
 
             items = self.view_func(controller, *args, **func_kwargs)
             assert (
-                    controller.context and controller.context.request
+                controller.context and controller.context.request
             ), "Request object is None"
 
-            func_kwargs['request'] = controller.context.request
+            func_kwargs["request"] = controller.context.request
             return self.paginator.paginate_queryset(items, **func_kwargs)
 
         as_view._ninja_contribute_args = [  # type: ignore
@@ -239,11 +238,14 @@ class AsyncPaginatorOperation(PaginatorOperation):
 
             items = await self.view_func(controller, *args, **func_kwargs)
             assert (
-                    controller.context and controller.context.request
+                controller.context and controller.context.request
             ), "Request object is None"
 
-            func_kwargs['request'] = controller.context.request
-            return await sync_to_async(self.paginator.paginate_queryset)(items, **func_kwargs)
+            func_kwargs["request"] = controller.context.request
+            paginate_queryset = cast(
+                Callable, sync_to_async(self.paginator.paginate_queryset)
+            )
+            return await paginate_queryset(items, **func_kwargs)
 
         as_view._ninja_contribute_args = [  # type: ignore
             (
