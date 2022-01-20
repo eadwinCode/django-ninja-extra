@@ -57,7 +57,7 @@ class MockUser(str):
 
 BODY_UNAUTHORIZED_DEFAULT = dict(detail="Unauthorized")
 
-if django.VERSION < (3, 1):
+if not django.VERSION < (3, 1):
     api = NinjaExtraAPI(csrf=True, urls_namespace="async_auth")
 
     for path, auth in [
