@@ -371,7 +371,7 @@ class APIController:
                 f"endpoint={get_function_name(route_function.route.view_func)}"
             )
 
-        self.add_api_operation(
+        route_function.operation = self.add_api_operation(  # type: ignore
             view_func=route_function.as_view, **route_function.route.route_params.dict()
         )
 
