@@ -32,6 +32,8 @@ __all__ = [
     "LimitOffsetPagination",
     "paginate",
     "PaginatedResponseSchema",
+    "PaginatorOperation",
+    "AsyncPaginatorOperation",
 ]
 
 
@@ -202,8 +204,16 @@ class PaginatorOperation:
             logger.debug(
                 f"function {view_func.__name__} should have **kwargs if you want to use pagination parameters"
             )
-
-        self.as_view = wraps(view_func)(self.get_view_function())
+        paginator_view = self.get_view_function()
+        paginator_view._ninja_contribute_args = [  # type: ignore
+            (
+                self.paginator_kwargs_name,
+                self.paginator.Input,
+                self.paginator.InputSource,
+            ),
+        ]
+        setattr(paginator_view, "paginator_operation", self)
+        self.as_view = wraps(view_func)(paginator_view)
 
     def get_view_function(self) -> Callable:
         def as_view(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
@@ -219,13 +229,6 @@ class PaginatorOperation:
             params["request"] = controller.context.request
             return self.paginator.paginate_queryset(items, **params)
 
-        as_view._ninja_contribute_args = [  # type: ignore
-            (
-                self.paginator_kwargs_name,
-                self.paginator.Input,
-                self.paginator.InputSource,
-            ),
-        ]
         return as_view
 
 
@@ -248,11 +251,4 @@ class AsyncPaginatorOperation(PaginatorOperation):
             )
             return await paginate_queryset(items, **params)
 
-        as_view._ninja_contribute_args = [  # type: ignore
-            (
-                self.paginator_kwargs_name,
-                self.paginator.Input,
-                self.paginator.InputSource,
-            ),
-        ]
         return as_view
