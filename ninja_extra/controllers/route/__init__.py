@@ -459,8 +459,7 @@ class Route(object):
 
         _response = response
         if (
-            inspect.isclass(response)
-            and issubclass(response, ControllerResponse)  # type:ignore
+            inspect.isclass(response) and issubclass(response, ControllerResponse)
         ) or isinstance(response, ControllerResponse):
             response = cast(ControllerResponse, response)
             _response = {response.status_code: response.get_schema()}

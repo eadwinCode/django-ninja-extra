@@ -2,9 +2,11 @@ import django
 import pytest
 
 from ninja_extra import api_controller, route
+from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
+from ninja_extra.operation import AsyncControllerOperation, ControllerOperation
 from ninja_extra.testing import TestAsyncClient, TestClient
 
-from .utils import mock_log_call, mock_signal_call
+from .utils import AsyncFakeAuth, FakeAuth, mock_log_call, mock_signal_call
 
 
 class TestOperation:
@@ -33,6 +35,40 @@ class TestOperation:
         client = TestClient(self.SomeTestController)
         with pytest.raises(Exception):
             client.get(str(self.SomeTestController.example_exception))
+
+
+@pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
+def test_operation_auth_configs():
+    api_controller_instance = api_controller("prefix", tags="any_Tag")
+
+    async def async_endpoint(self, request):
+        pass
+
+    def sync_endpoint(self, request):
+        pass
+
+    sync_auth_http_get = route.get("/example", auth=[FakeAuth()])
+    async_auth_http_get = route.get("/example/async", auth=[AsyncFakeAuth()])
+
+    route_function = sync_auth_http_get(async_endpoint)
+    assert isinstance(route_function, AsyncRouteFunction)
+    async_route_function = async_auth_http_get(async_endpoint)
+
+    api_controller_instance.add_operation_from_route_function(route_function)
+    assert isinstance(route_function.operation, AsyncControllerOperation)
+    api_controller_instance.add_operation_from_route_function(async_route_function)
+    assert isinstance(async_route_function.operation, AsyncControllerOperation)
+
+    sync_route_function = sync_auth_http_get(sync_endpoint)
+    api_controller_instance.add_operation_from_route_function(sync_route_function)
+    assert isinstance(sync_route_function.operation, ControllerOperation)
+    assert isinstance(sync_route_function, RouteFunction)
+
+    with pytest.raises(Exception) as ex:
+        api_controller_instance.add_operation_from_route_function(
+            async_auth_http_get(sync_endpoint)
+        )
+    assert "sync_endpoint" in str(ex) and "AsyncFakeAuth" in str(ex)
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")

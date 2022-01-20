@@ -30,13 +30,10 @@ from ninja_extra.controllers.route.context import RouteContext
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions import AllowAny
 
+from .utils import FakeAuth
+
 anonymous_request = Mock()
 anonymous_request.user = AnonymousUser()
-
-
-class FakeAuth:
-    def authenticate(self, **kwargs):
-        return True
 
 
 @api_controller(

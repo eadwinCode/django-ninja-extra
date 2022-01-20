@@ -4,13 +4,14 @@ from collections import OrderedDict
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast, overload
 
+from asgiref.sync import sync_to_async
 from django.core.paginator import InvalidPage, Page, Paginator
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from ninja import Schema
 from ninja.constants import NOT_SET
 from ninja.pagination import LimitOffsetPagination, PageNumberPagination, PaginationBase
-from ninja.signature import has_kwargs
+from ninja.signature import has_kwargs, is_async
 from ninja.types import DictStrAny
 from pydantic import Field
 
@@ -31,6 +32,8 @@ __all__ = [
     "LimitOffsetPagination",
     "paginate",
     "PaginatedResponseSchema",
+    "PaginatorOperation",
+    "AsyncPaginatorOperation",
 ]
 
 
@@ -171,36 +174,81 @@ def _inject_pagination(
     paginator_class: Type[PaginationBase],
     **paginator_params: Any,
 ) -> Callable[..., Any]:
-    func.has_kwargs = True  # type: ignore
-    if not has_kwargs(func):
-        func.has_kwargs = False  # type: ignore
-        logger.debug(
-            f"function {func.__name__} should have **kwargs if you want to use pagination parameters"
-        )
-
     paginator: PaginationBase = paginator_class(**paginator_params)
     paginator_kwargs_name = "pagination"
+    paginator_operation_class = PaginatorOperation
+    if is_async(func):
+        paginator_operation_class = AsyncPaginatorOperation
+    paginator_operation = paginator_operation_class(
+        paginator=paginator, view_func=func, paginator_kwargs_name=paginator_kwargs_name
+    )
 
-    @wraps(func)
-    def view_with_pagination(
-        controller: "ControllerBase", *args: Any, **kw: Any
-    ) -> Any:
-        func_kwargs = dict(kw)
-        if not func.has_kwargs:  # type: ignore
-            func_kwargs.pop(paginator_kwargs_name)
+    return paginator_operation.as_view
 
-        items = func(controller, *args, **func_kwargs)
-        assert (
-            controller.context and controller.context.request
-        ), "Request object is None"
-        return paginator.paginate_queryset(items, controller.context.request, **kw)
 
-    view_with_pagination._ninja_contribute_args = [  # type: ignore
-        (
-            paginator_kwargs_name,
-            paginator.Input,
-            paginator.InputSource,
-        ),
-    ]
+class PaginatorOperation:
+    def __init__(
+        self,
+        *,
+        paginator: PaginationBase,
+        view_func: Callable,
+        paginator_kwargs_name: str = "pagination",
+    ) -> None:
+        self.paginator = paginator
+        self.paginator_kwargs_name = paginator_kwargs_name
+        self.view_func = view_func
+        self.view_func_has_kwargs = True
 
-    return view_with_pagination
+        if not has_kwargs(view_func):
+            self.view_func_has_kwargs = False
+            logger.debug(
+                f"function {view_func.__name__} should have **kwargs if you want to use pagination parameters"
+            )
+        paginator_view = self.get_view_function()
+        paginator_view._ninja_contribute_args = [  # type: ignore
+            (
+                self.paginator_kwargs_name,
+                self.paginator.Input,
+                self.paginator.InputSource,
+            ),
+        ]
+        setattr(paginator_view, "paginator_operation", self)
+        self.as_view = wraps(view_func)(paginator_view)
+
+    def get_view_function(self) -> Callable:
+        def as_view(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
+            func_kwargs = dict(kw)
+            if not self.view_func_has_kwargs:
+                func_kwargs.pop(self.paginator_kwargs_name)
+
+            items = self.view_func(controller, *args, **func_kwargs)
+            assert (
+                controller.context and controller.context.request
+            ), "Request object is None"
+            params = dict(kw)
+            params["request"] = controller.context.request
+            return self.paginator.paginate_queryset(items, **params)
+
+        return as_view
+
+
+class AsyncPaginatorOperation(PaginatorOperation):
+    def get_view_function(self) -> Callable:
+        async def as_view(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
+            func_kwargs = dict(kw)
+            if not self.view_func_has_kwargs:
+                func_kwargs.pop(self.paginator_kwargs_name)
+
+            items = await self.view_func(controller, *args, **func_kwargs)
+            assert (
+                controller.context and controller.context.request
+            ), "Request object is None"
+
+            params = dict(kw)
+            params["request"] = controller.context.request
+            paginate_queryset = cast(
+                Callable, sync_to_async(self.paginator.paginate_queryset)
+            )
+            return await paginate_queryset(items, **params)
+
+        return as_view

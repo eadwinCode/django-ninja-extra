@@ -1,5 +1,6 @@
 from unittest.mock import Mock, patch
 
+import django
 import pytest
 from django.contrib.auth.models import Group
 
@@ -7,12 +8,13 @@ from ninja_extra import NinjaExtraAPI, api_controller, exceptions, http_get, tes
 from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
 from ninja_extra.controllers.base import (
     APIController,
-    MissingAPIControllerDecoratorException,
     compute_api_route_function,
     get_route_functions,
 )
 from ninja_extra.controllers.response import Detail, Id, Ok
 from ninja_extra.permissions.common import AllowAny
+
+from .utils import AsyncFakeAuth, FakeAuth
 
 
 @api_controller
@@ -57,11 +59,16 @@ class DisableAutoImportController:
 
 class TestAPIController:
     def test_api_controller_as_decorator(self):
-        api_controller_instance = api_controller("prefix", tags="new_tag")
+        api_controller_instance = api_controller(
+            "prefix", tags="new_tag", auth=FakeAuth()
+        )
 
+        assert not api_controller_instance.has_auth_async
+        assert not api_controller_instance._prefix_has_route_param
         assert api_controller_instance.prefix == "prefix"
         assert api_controller_instance.tags == ["new_tag"]
         assert api_controller_instance.permission_classes == [AllowAny]
+
         api_controller_instance = api_controller()
         assert api_controller_instance.prefix == ""
         assert api_controller_instance.tags is None
@@ -181,6 +188,35 @@ class TestAPIController:
             with patch.object(AllowAny, "has_object_permission", return_value=False):
                 controller_object.get_object_or_none(Group, id=group_instance.id)
                 assert isinstance(ex, exceptions.PermissionDenied)
+
+
+@pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
+def test_async_controller():
+    api_controller_instance = api_controller(
+        "prefix", tags="any_Tag", auth=AsyncFakeAuth()
+    )
+    assert api_controller_instance.has_auth_async
+
+    with pytest.raises(Exception) as ex:
+
+        @api_controller_instance
+        class NonAsyncRouteInControllerWithAsyncAuth:
+            @http_get("/example")
+            def example(self):
+                pass
+
+    assert "NonAsyncRouteInControllerWithAsyncAuth" in str(ex) and "example" in str(ex)
+
+    @api_controller_instance
+    class AsyncRouteInControllerWithAsyncAuth:
+        @http_get("/example")
+        async def example(self):
+            pass
+
+    assert isinstance(
+        AsyncRouteInControllerWithAsyncAuth.example.operation.auth_callbacks[0],
+        AsyncFakeAuth,
+    )
 
 
 class TestAPIControllerResponse:
