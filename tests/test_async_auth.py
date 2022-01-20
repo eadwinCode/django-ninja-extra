@@ -51,28 +51,28 @@ async def demo_operation(request):
     return {"auth": request.auth}
 
 
-api = NinjaExtraAPI(csrf=True, urls_namespace="async_auth")
-
-for path, auth in [
-    ("django_auth", async_django_auth),
-    ("callable", callable_auth),
-    ("apikeyquery", KeyQuery()),
-    ("apikeyheader", KeyHeader()),
-    ("apikeycookie", KeyCookie()),
-    ("basic", BasicAuth()),
-    ("bearer", BearerAuth()),
-]:
-    api.get(f"/{path}", auth=auth, operation_id=path)(demo_operation)
-
-
-client = TestAsyncClient(api)
-
-
 class MockUser(str):
     is_authenticated = True
 
 
 BODY_UNAUTHORIZED_DEFAULT = dict(detail="Unauthorized")
+
+if django.VERSION < (3, 1):
+    api = NinjaExtraAPI(csrf=True, urls_namespace="async_auth")
+
+    for path, auth in [
+        ("django_auth", async_django_auth),
+        ("callable", callable_auth),
+        ("apikeyquery", KeyQuery()),
+        ("apikeyheader", KeyHeader()),
+        ("apikeycookie", KeyCookie()),
+        ("basic", BasicAuth()),
+        ("bearer", BearerAuth()),
+    ]:
+        api.get(f"/{path}", auth=auth, operation_id=path)(demo_operation)
+
+
+    client = TestAsyncClient(api)
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
