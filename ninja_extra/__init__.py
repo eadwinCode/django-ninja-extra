@@ -1,6 +1,6 @@
 """Django Ninja Extra - Class Based Utility and more for Django Ninja(Fast Django REST framework)"""
 
-__version__ = "0.14.0"
+__version__ = "0.14.2"
 
 from ninja_extra.controllers import (
     ControllerBase,
