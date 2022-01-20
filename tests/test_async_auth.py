@@ -71,7 +71,6 @@ if not django.VERSION < (3, 1):
     ]:
         api.get(f"/{path}", auth=auth, operation_id=path)(demo_operation)
 
-
     client = TestAsyncClient(api)
 
 
