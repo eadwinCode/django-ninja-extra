@@ -15,6 +15,7 @@ from ninja_extra.controllers import (
 from ninja_extra.controllers.route import route
 from ninja_extra.dependency_resolver import get_injector, service_resolver
 from ninja_extra.main import NinjaExtraAPI
+from ninja_extra.router import Router
 
 default_app_config = "ninja_extra.apps.NinjaExtraConfig"
 
@@ -36,4 +37,5 @@ __all__ = [
     "get_injector",
     "service_resolver",
     "lazy",
+    "Router",
 ]

@@ -10,7 +10,7 @@ from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
 
-from ninja_extra import exceptions
+from ninja_extra import exceptions, router
 from ninja_extra.controllers.base import APIController, ControllerBase
 from ninja_extra.controllers.registry import ControllerRegistry
 
@@ -49,6 +49,9 @@ class NinjaExtraAPI(NinjaAPI):
         )
         self.app_name = app_name
         self.exception_handler(exceptions.APIException)(self.api_exception_handler)
+        self._routers: List[Tuple[str, router.Router]] = []  # type: ignore
+        self.default_router = router.Router()
+        self.add_router("", self.default_router)
 
     def api_exception_handler(
         self, request: HttpRequest, exc: exceptions.APIException
