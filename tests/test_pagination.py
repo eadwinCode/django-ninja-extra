@@ -1,13 +1,20 @@
+import inspect
+
+import django
+import pytest
 from ninja import Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
+from ninja_extra.controllers import RouteFunction
 from ninja_extra.pagination import (
+    AsyncPaginatorOperation,
     PageNumberPagination,
     PageNumberPaginationExtra,
     PaginationBase,
+    PaginatorOperation,
     paginate,
 )
-from ninja_extra.testing import TestClient
+from ninja_extra.testing import TestAsyncClient, TestClient
 
 ITEMS = list(range(100))
 
@@ -58,6 +65,21 @@ client = TestClient(SomeAPIController)
 
 
 class TestPagination:
+    def test_paginator_operation_used(self):
+        some_api_route_functions = {
+            k: v
+            for k, v in inspect.getmembers(
+                SomeAPIController, lambda member: isinstance(member, RouteFunction)
+            )
+        }
+        has_kwargs = ("items_1", "items_3", "items_4")
+        for name, route_function in some_api_route_functions.items():
+            assert hasattr(route_function.as_view, "paginator_operation")
+            paginator_operation = route_function.as_view.paginator_operation
+            assert isinstance(paginator_operation, PaginatorOperation)
+            if name in has_kwargs:
+                assert paginator_operation.view_func_has_kwargs
+
     def test_case1(self):
         response = client.get("/items_1?limit=10").json()
         assert response == ITEMS[:10]
@@ -194,3 +216,108 @@ class TestPagination:
                 "required": False,
             }
         ]
+
+
+@pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
+@pytest.mark.asyncio
+class TestAsyncOperations:
+    if not django.VERSION < (3, 1):
+
+        @api_controller
+        class AsyncSomeAPIController:
+            @route.get("/items_1")
+            @paginate  # WITHOUT brackets (should use default pagination)
+            async def items_1(self, **kwargs):
+                return ITEMS
+
+            @route.get("/items_2")
+            @paginate()  # with brackets (should use default pagination)
+            async def items_2(self, someparam: int = 0, **kwargs):
+                # also having custom param `someparam` - that should not be lost
+                return ITEMS
+
+            @route.get("/items_3")
+            @paginate(CustomPagination)
+            async def items_3(self, **kwargs):
+                return ITEMS
+
+            @route.get("/items_4")
+            @paginate(PageNumberPaginationExtra, page_size=10)
+            async def items_4(self, **kwargs):
+                return ITEMS
+
+            @route.get("/items_5")
+            @paginate(PageNumberPagination, page_size=10)
+            async def items_5_without_kwargs(self):
+                return ITEMS
+
+        api_async = NinjaExtraAPI()
+        api_async.register_controllers(AsyncSomeAPIController)
+        client = TestAsyncClient(AsyncSomeAPIController)
+
+        async def test_paginator_operation_used(self):
+            some_api_route_functions = {
+                k: v
+                for k, v in inspect.getmembers(
+                    self.AsyncSomeAPIController,
+                    lambda member: isinstance(member, RouteFunction),
+                )
+            }
+            has_kwargs = ("items_1", "items_3", "items_4")
+            for name, route_function in some_api_route_functions.items():
+                assert hasattr(route_function.as_view, "paginator_operation")
+                paginator_operation = route_function.as_view.paginator_operation
+                assert isinstance(paginator_operation, AsyncPaginatorOperation)
+                if name in has_kwargs:
+                    assert paginator_operation.view_func_has_kwargs
+
+        async def test_case1(self):
+            response = await self.client.get("/items_1?limit=10")
+            assert response.json() == ITEMS[:10]
+
+            schema = self.api_async.get_openapi_schema()["paths"]["/api/items_1"]["get"]
+            # print(schema)
+            assert schema["parameters"] == [
+                {
+                    "in": "query",
+                    "name": "limit",
+                    "schema": {
+                        "title": "Limit",
+                        "default": 100,
+                        "exclusiveMinimum": 0,
+                        "type": "integer",
+                    },
+                    "required": False,
+                },
+                {
+                    "in": "query",
+                    "name": "offset",
+                    "schema": {
+                        "title": "Offset",
+                        "default": 0,
+                        "exclusiveMinimum": -1,
+                        "type": "integer",
+                    },
+                    "required": False,
+                },
+            ]
+
+        async def test_case2(self):
+            response = await self.client.get("/items_2?limit=10")
+            assert response.json() == ITEMS[:10]
+
+        async def test_case3(self):
+            response = await self.client.get("/items_3?skip=5")
+            assert response.json() == ITEMS[5:10]
+
+        async def test_case4(self):
+            response = await self.client.get("/items_4?page=2")
+            response = response.json()
+            assert response.get("results") == ITEMS[10:20]
+            assert response.get("count") == 100
+            assert response.get("next") == "http://testlocation/?page=3"
+            assert response.get("previous") == "http://testlocation/"
+
+        async def test_case5(self):
+            response = await self.client.get("/items_5?page=2")
+            assert response.json() == ITEMS[10:20]

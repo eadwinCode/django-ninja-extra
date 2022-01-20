@@ -4,6 +4,22 @@ from unittest.mock import patch
 from ninja.signature import is_async
 
 
+class FakeAuth:
+    def __call__(self, *args, **kwargs):
+        return self.authenticate(**kwargs)
+
+    def authenticate(self, **kwargs):
+        return True
+
+
+class AsyncFakeAuth:
+    async def __call__(self, *args, **kwargs):
+        return await self.authenticate(**kwargs)
+
+    async def authenticate(self, **kwargs):
+        return True
+
+
 def mock_signal_call(signal: str, called: bool = True):
     def _wrap(func):
         if is_async(func):
