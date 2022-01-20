@@ -11,6 +11,8 @@ from ...dependency_resolver import get_injector
 from .context import RouteContext
 
 if TYPE_CHECKING:
+    from ninja_extra.operation import ControllerOperation
+
     from ...controllers.base import APIController, ControllerBase
     from ...controllers.route import Route
 
@@ -28,6 +30,7 @@ class RouteFunction(object):
         self, route: "Route", api_controller: Optional["APIController"] = None
     ):
         self.route = route
+        self.operation: Optional["ControllerOperation"] = None
         self.has_request_param = False
         self.api_controller = api_controller
         self.as_view = wraps(route.view_func)(self.get_view_function())
