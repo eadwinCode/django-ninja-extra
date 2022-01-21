@@ -5,18 +5,12 @@ from ninja.constants import NOT_SET
 from ninja.signature import is_async
 from ninja.types import TCallable
 
+from ninja_extra.constants import DELETE, GET, PATCH, POST, PUT, ROUTE_METHODS
 from ninja_extra.controllers.response import ControllerResponse
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
 
 from .route_functions import AsyncRouteFunction, RouteFunction
-
-POST = "POST"
-PUT = "PUT"
-PATCH = "PATCH"
-DELETE = "DELETE"
-GET = "GET"
-ROUTE_METHODS = [POST, PUT, PATCH, DELETE, GET]
 
 
 class RouteInvalidParameterException(Exception):
