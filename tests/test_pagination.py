@@ -33,22 +33,22 @@ class CustomPagination(PaginationBase):
 class SomeAPIController:
     @route.get("/items_1")
     @paginate  # WITHOUT brackets (should use default pagination)
-    def items_1(self, **kwargs):
+    def items_1(self):
         return ITEMS
 
     @route.get("/items_2")
     @paginate()  # with brackets (should use default pagination)
-    def items_2(self, someparam: int = 0, **kwargs):
+    def items_2(self, someparam: int = 0):
         # also having custom param `someparam` - that should not be lost
         return ITEMS
 
     @route.get("/items_3")
-    @paginate(CustomPagination)
+    @paginate(CustomPagination, pass_parameter="pass_kwargs")
     def items_3(self, **kwargs):
         return ITEMS
 
     @route.get("/items_4")
-    @paginate(PageNumberPaginationExtra, page_size=10)
+    @paginate(PageNumberPaginationExtra, page_size=10, pass_parameter="pass_kwargs")
     def items_4(self, **kwargs):
         return ITEMS
 
@@ -72,7 +72,7 @@ class TestPagination:
                 SomeAPIController, lambda member: isinstance(member, RouteFunction)
             )
         }
-        has_kwargs = ("items_1", "items_3", "items_4")
+        has_kwargs = ("items_3", "items_4")
         for name, route_function in some_api_route_functions.items():
             assert hasattr(route_function.as_view, "paginator_operation")
             paginator_operation = route_function.as_view.paginator_operation
@@ -82,7 +82,8 @@ class TestPagination:
 
     def test_case1(self):
         response = client.get("/items_1?limit=10").json()
-        assert response == ITEMS[:10]
+        assert response.get("items")
+        assert response["items"] == ITEMS[:10]
 
         schema = api.get_openapi_schema()["paths"]["/api/items_1"]["get"]
         # print(schema)
@@ -113,7 +114,8 @@ class TestPagination:
 
     def test_case2(self):
         response = client.get("/items_2?limit=10").json()
-        assert response == ITEMS[:10]
+        assert response.get("items")
+        assert response["items"] == ITEMS[:10]
 
         schema = api.get_openapi_schema()["paths"]["/api/items_2"]["get"]
         # print(schema["parameters"])
@@ -199,7 +201,8 @@ class TestPagination:
 
     def test_case5(self):
         response = client.get("/items_5?page=2").json()
-        assert response == ITEMS[10:20]
+        assert response.get("items")
+        assert response["items"] == ITEMS[10:20]
 
         schema = api.get_openapi_schema()["paths"]["/api/items_5"]["get"]
         # print(schema)
@@ -232,17 +235,19 @@ class TestAsyncOperations:
 
             @route.get("/items_2")
             @paginate()  # with brackets (should use default pagination)
-            async def items_2(self, someparam: int = 0, **kwargs):
+            async def items_2(self, someparam: int = 0):
                 # also having custom param `someparam` - that should not be lost
                 return ITEMS
 
             @route.get("/items_3")
-            @paginate(CustomPagination)
+            @paginate(CustomPagination, pass_parameter="pass_kwargs")
             async def items_3(self, **kwargs):
                 return ITEMS
 
             @route.get("/items_4")
-            @paginate(PageNumberPaginationExtra, page_size=10)
+            @paginate(
+                PageNumberPaginationExtra, page_size=10, pass_parameter="pass_kwargs"
+            )
             async def items_4(self, **kwargs):
                 return ITEMS
 
@@ -263,7 +268,7 @@ class TestAsyncOperations:
                     lambda member: isinstance(member, RouteFunction),
                 )
             }
-            has_kwargs = ("items_1", "items_3", "items_4")
+            has_kwargs = ("items_3", "items_4")
             for name, route_function in some_api_route_functions.items():
                 assert hasattr(route_function.as_view, "paginator_operation")
                 paginator_operation = route_function.as_view.paginator_operation
@@ -273,7 +278,9 @@ class TestAsyncOperations:
 
         async def test_case1(self):
             response = await self.client.get("/items_1?limit=10")
-            assert response.json() == ITEMS[:10]
+            data = response.json()
+            assert data.get("items")
+            assert data["items"] == ITEMS[:10]
 
             schema = self.api_async.get_openapi_schema()["paths"]["/api/items_1"]["get"]
             # print(schema)
@@ -304,7 +311,9 @@ class TestAsyncOperations:
 
         async def test_case2(self):
             response = await self.client.get("/items_2?limit=10")
-            assert response.json() == ITEMS[:10]
+            data = response.json()
+            assert data.get("items")
+            assert data["items"] == ITEMS[:10]
 
         async def test_case3(self):
             response = await self.client.get("/items_3?skip=5")
@@ -320,4 +329,6 @@ class TestAsyncOperations:
 
         async def test_case5(self):
             response = await self.client.get("/items_5?page=2")
-            assert response.json() == ITEMS[10:20]
+            data = response.json()
+            assert data.get("items")
+            assert data["items"] == ITEMS[10:20]

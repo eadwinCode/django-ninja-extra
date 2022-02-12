@@ -63,7 +63,7 @@ test = [
     "isort",
     "injector",
     "flake8",
-    "mypy",
+    "mypy==0.931",
     "django-stubs",
 ]
 doc = []

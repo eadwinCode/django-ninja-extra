@@ -1,3 +1,7 @@
-from .response import PaginatedResponseSchema, RouteParameter
+from .response import (
+    NinjaPaginationResponseSchema,
+    PaginatedResponseSchema,
+    RouteParameter,
+)
 
-__all__ = ["PaginatedResponseSchema", "RouteParameter"]
+__all__ = ["PaginatedResponseSchema", "RouteParameter", "NinjaPaginationResponseSchema"]

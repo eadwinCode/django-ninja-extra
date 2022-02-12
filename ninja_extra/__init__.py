@@ -2,6 +2,8 @@
 
 __version__ = "0.14.2"
 
+import django
+
 from ninja_extra.controllers import (
     ControllerBase,
     api_controller,
@@ -17,7 +19,9 @@ from ninja_extra.dependency_resolver import get_injector, service_resolver
 from ninja_extra.main import NinjaExtraAPI
 from ninja_extra.router import Router
 
-default_app_config = "ninja_extra.apps.NinjaExtraConfig"
+if django.VERSION < (3, 2):  # pragma: no cover
+    default_app_config = "ninja_extra.apps.NinjaExtraConfig"
+
 
 __all__ = [
     "ControllerBase",
