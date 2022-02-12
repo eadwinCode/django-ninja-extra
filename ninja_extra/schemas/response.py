@@ -60,7 +60,7 @@ if sys.version_info >= (3, 8):  # pragma: no cover
     class NinjaPaginationResponseSchema(
         GenericModel, Generic[T], BaseNinjaResponseSchema
     ):
-        items = List[T]
+        items: List[T]
 
 
 class RouteParameter(BaseModel):
