@@ -19,6 +19,11 @@ class BasePaginatedResponseSchema(Schema):
     results: List[Any]
 
 
+class BaseNinjaResponseSchema(Schema):
+    count: int
+    items: List[Any]
+
+
 class PaginatedResponseSchema(GenericType):
     def get_generic_type(
         self, wrap_type: Any
@@ -32,12 +37,30 @@ class PaginatedResponseSchema(GenericType):
         return ListResponseSchema
 
 
+class NinjaPaginationResponseSchema(GenericType):
+    def get_generic_type(
+        self, wrap_type: Any
+    ) -> Type[BaseNinjaResponseSchema]:  # pragma: no cover
+        class ListNinjaResponseSchema(BaseNinjaResponseSchema):
+            items: List[wrap_type]  # type: ignore
+
+        ListNinjaResponseSchema.__name__ = (
+            f"{self.__class__.__name__}[{str(wrap_type.__name__).capitalize()}]"
+        )
+        return ListNinjaResponseSchema
+
+
 if sys.version_info >= (3, 8):  # pragma: no cover
 
     class PaginatedResponseSchema(
         GenericModel, Generic[T], BasePaginatedResponseSchema
     ):
         results: List[T]
+
+    class NinjaPaginationResponseSchema(
+        GenericModel, Generic[T], BaseNinjaResponseSchema
+    ):
+        items = List[T]
 
 
 class RouteParameter(BaseModel):

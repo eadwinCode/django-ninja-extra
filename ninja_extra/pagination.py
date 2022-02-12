@@ -11,7 +11,7 @@ from django.http import HttpRequest
 from ninja import Schema
 from ninja.constants import NOT_SET
 from ninja.pagination import LimitOffsetPagination, PageNumberPagination, PaginationBase
-from ninja.signature import has_kwargs, is_async
+from ninja.signature import is_async
 from ninja.types import DictStrAny
 from pydantic import Field
 
@@ -66,8 +66,9 @@ class PageNumberPaginationExtra(PaginationBase):
         self,
         page_size: int = settings.PAGINATION_PER_PAGE,
         max_page_size: Optional[int] = None,
+        pass_parameter: Optional[str] = None,
     ) -> None:
-        super().__init__()
+        super().__init__(pass_parameter=pass_parameter)
         self.page_size = page_size
         self.max_page_size = max_page_size or 200
         self.Input = self.create_input()  # type:ignore
@@ -79,14 +80,17 @@ class PageNumberPaginationExtra(PaginationBase):
 
         return DynamicInput
 
-    def paginate_queryset(
-        self, items: QuerySet, request: HttpRequest, **params: Any
+    def paginate_queryset(  # type: ignore
+        self,
+        queryset: QuerySet,
+        pagination: Input,
+        request: Optional[HttpRequest] = None,
+        **params: DictStrAny,
     ) -> Any:
-
-        pagination_input = cast(PageNumberPaginationExtra.Input, params["pagination"])
-        page_size = self.get_page_size(pagination_input.page_size)
-        current_page_number = pagination_input.page
-        paginator = self.paginator_class(items, page_size)
+        assert request, "request is required"
+        page_size = self.get_page_size(pagination.page_size)
+        current_page_number = pagination.page
+        paginator = self.paginator_class(queryset, page_size)
         try:
             url = request.build_absolute_uri()
             page: Page = paginator.page(current_page_number)
@@ -197,13 +201,7 @@ class PaginatorOperation:
         self.paginator = paginator
         self.paginator_kwargs_name = paginator_kwargs_name
         self.view_func = view_func
-        self.view_func_has_kwargs = True
 
-        if not has_kwargs(view_func):
-            self.view_func_has_kwargs = False
-            logger.debug(
-                f"function {view_func.__name__} should have **kwargs if you want to use pagination parameters"
-            )
         paginator_view = self.get_view_function()
         paginator_view._ninja_contribute_args = [  # type: ignore
             (
@@ -215,11 +213,16 @@ class PaginatorOperation:
         setattr(paginator_view, "paginator_operation", self)
         self.as_view = wraps(view_func)(paginator_view)
 
+    @property
+    def view_func_has_kwargs(self) -> bool:
+        return self.paginator.pass_parameter is not None
+
     def get_view_function(self) -> Callable:
         def as_view(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
-            func_kwargs = dict(kw)
-            if not self.view_func_has_kwargs:
-                func_kwargs.pop(self.paginator_kwargs_name)
+            func_kwargs = dict(**kw)
+            pagination_params = func_kwargs.pop(self.paginator_kwargs_name)
+            if self.paginator.pass_parameter:
+                func_kwargs[self.paginator.pass_parameter] = pagination_params
 
             items = self.view_func(controller, *args, **func_kwargs)
             assert (
@@ -235,9 +238,10 @@ class PaginatorOperation:
 class AsyncPaginatorOperation(PaginatorOperation):
     def get_view_function(self) -> Callable:
         async def as_view(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
-            func_kwargs = dict(kw)
-            if not self.view_func_has_kwargs:
-                func_kwargs.pop(self.paginator_kwargs_name)
+            func_kwargs = dict(**kw)
+            pagination_params = func_kwargs.pop(self.paginator_kwargs_name)
+            if self.paginator.pass_parameter:
+                func_kwargs[self.paginator.pass_parameter] = pagination_params
 
             items = await self.view_func(controller, *args, **func_kwargs)
             assert (
