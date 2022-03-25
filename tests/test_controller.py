@@ -136,7 +136,7 @@ class TestAPIController:
             def example(self):
                 pass
 
-        compute_api_route_function(AnyClassTypeWithRoute, _api_controller)
+        _api_controller(AnyClassTypeWithRoute)
         assert len(_api_controller.path_operations) == 1
         path_view = _api_controller.path_operations.get(
             str(AnyClassTypeWithRoute.example)

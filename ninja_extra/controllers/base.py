@@ -65,7 +65,7 @@ def compute_api_route_function(
 ) -> None:
     for cls_route_function in get_route_functions(base_cls):
         cls_route_function.api_controller = api_controller_instance
-        api_controller_instance.add_operation_from_route_function(cls_route_function)
+        api_controller_instance.add_controller_route_function(cls_route_function)
 
 
 class ControllerBase(ABC):
@@ -260,6 +260,7 @@ class APIController:
         self._controller_class: Optional[Type["ControllerBase"]] = None
         # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
         self._path_operations: Dict[str, ControllerPathView] = dict()
+        self._controller_class_route_functions: Dict[str, RouteFunction] = dict()
         # `permission_classes` a collection of BasePermission Types
         # a fallback if route functions has no permissions definition
         self.permission_classes: PermissionType = permissions or [AllowAny]  # type: ignore
@@ -315,6 +316,9 @@ class APIController:
             if base_cls not in [ControllerBase, ABC, object]:
                 compute_api_route_function(base_cls, self)
 
+        for _, v in self._controller_class_route_functions.items():
+            self._add_operation_from_route_function(v)
+
         if not is_decorated_with_inject(cls.__init__):
             fail_silently(inject, constructor_or_class=cls)
 
@@ -336,6 +340,11 @@ class APIController:
             prefix = ""
         return [(prefix, self)]
 
+    def add_controller_route_function(self, route_function: RouteFunction) -> None:
+        self._controller_class_route_functions[
+            get_function_name(route_function.route.view_func)
+        ] = route_function
+
     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
         for path, path_view in self.path_operations.items():
             path = path.replace("{", "<").replace("}", ">")
@@ -355,7 +364,7 @@ class APIController:
     def __str__(self) -> str:  # pragma: no cover
         return f"{self.controller_class.__name__}"
 
-    def add_operation_from_route_function(self, route_function: RouteFunction) -> None:
+    def _add_operation_from_route_function(self, route_function: RouteFunction) -> None:
         # converts route functions to Operation model
         route_function.route.route_params.operation_id = f"{str(uuid.uuid4())[:8]}_controller_{route_function.route.view_func.__name__}"
 
