@@ -39,6 +39,9 @@ Plus **Extra**:
 
 Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
+## Example
+Checkout this sample project: https://github.com/eadwinCode/bookstoreapi
+
 ## Installation
 
 ```
