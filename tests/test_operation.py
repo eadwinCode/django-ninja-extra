@@ -54,18 +54,18 @@ def test_operation_auth_configs():
     assert isinstance(route_function, AsyncRouteFunction)
     async_route_function = async_auth_http_get(async_endpoint)
 
-    api_controller_instance.add_operation_from_route_function(route_function)
+    api_controller_instance._add_operation_from_route_function(route_function)
     assert isinstance(route_function.operation, AsyncControllerOperation)
-    api_controller_instance.add_operation_from_route_function(async_route_function)
+    api_controller_instance._add_operation_from_route_function(async_route_function)
     assert isinstance(async_route_function.operation, AsyncControllerOperation)
 
     sync_route_function = sync_auth_http_get(sync_endpoint)
-    api_controller_instance.add_operation_from_route_function(sync_route_function)
+    api_controller_instance._add_operation_from_route_function(sync_route_function)
     assert isinstance(sync_route_function.operation, ControllerOperation)
     assert isinstance(sync_route_function, RouteFunction)
 
     with pytest.raises(Exception) as ex:
-        api_controller_instance.add_operation_from_route_function(
+        api_controller_instance._add_operation_from_route_function(
             async_auth_http_get(sync_endpoint)
         )
     assert "sync_endpoint" in str(ex) and "AsyncFakeAuth" in str(ex)
