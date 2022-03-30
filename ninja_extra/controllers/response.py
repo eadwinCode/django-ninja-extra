@@ -1,4 +1,3 @@
-import abc
 from typing import Any, Dict, List, Optional, Type, Union
 
 from ninja import Schema
@@ -7,7 +6,11 @@ from pydantic.types import UUID1, UUID3, UUID4, UUID5
 from ninja_extra import status
 
 
-class ControllerResponse(abc.ABC):
+class ControllerResponseMeta(type):
+    pass
+
+
+class ControllerResponse(metaclass=ControllerResponseMeta):
     status_code: int = status.HTTP_204_NO_CONTENT
 
     def __init__(self, **kwargs: Any) -> None:
@@ -17,9 +20,8 @@ class ControllerResponse(abc.ABC):
     def get_schema(cls) -> Union[Schema, Type[Schema], Any]:
         raise NotImplementedError
 
-    @abc.abstractmethod
     def convert_to_schema(self) -> Any:
-        pass
+        raise NotImplementedError
 
 
 class Id(ControllerResponse):
@@ -109,22 +111,3 @@ class Detail(ControllerResponse):
     @classmethod
     def get_schema(cls) -> Union[Schema, Type[Schema], Any]:
         return cls.Detail
-
-
-# class NotFound(ControllerResponse):
-#     status_code: int = status.HTTP_404_NOT_FOUND
-#     message: Any = 'Item not found'
-#
-#     def __init__(self, detail: Optional[Any] = None) -> None:
-#         super(NotFound, self).__init__()
-#         self.detail = detail or self.message
-#
-#     class NotFound(Schema):
-#         message: Any
-#
-#     def convert_to_schema(self) -> Any:
-#         return self.NotFound.from_orm(self)
-#
-#     @classmethod
-#     def get_schema(cls) -> Union[Schema, Type[Schema], Any]:
-#         return cls.NotFound
