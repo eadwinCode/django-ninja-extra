@@ -6,7 +6,7 @@ from ninja.signature import is_async
 from ninja.types import TCallable
 
 from ninja_extra.constants import DELETE, GET, PATCH, POST, PUT, ROUTE_METHODS
-from ninja_extra.controllers.response import ControllerResponse
+from ninja_extra.controllers.response import ControllerResponse, ControllerResponseMeta
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
 
@@ -453,7 +453,8 @@ class Route(object):
 
         _response = response
         if (
-            inspect.isclass(response) and issubclass(response, ControllerResponse)
+            inspect.isclass(response)
+            and isinstance(type(response), ControllerResponseMeta)
         ) or isinstance(response, ControllerResponse):
             response = cast(ControllerResponse, response)
             _response = {response.status_code: response.get_schema()}
@@ -461,8 +462,9 @@ class Route(object):
             _response_computed = dict()
             for item in response:
                 if (
-                    inspect.isclass(item) and issubclass(item, ControllerResponse)
+                    inspect.isclass(item) and type(item) == ControllerResponseMeta
                 ) or isinstance(item, ControllerResponse):
+                    item = cast(ControllerResponse, item)
                     _response_computed.update({item.status_code: item.get_schema()})
                 elif isinstance(item, dict):
                     _response_computed.update(item)
