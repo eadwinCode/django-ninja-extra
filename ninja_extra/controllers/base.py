@@ -312,7 +312,7 @@ class APIController:
 
         self._controller_class = cls
         bases = inspect.getmro(cls)
-        for base_cls in bases:
+        for base_cls in reversed(bases):
             if base_cls not in [ControllerBase, ABC, object]:
                 compute_api_route_function(base_cls, self)
 
