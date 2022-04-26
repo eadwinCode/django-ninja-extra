@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from typing import (
     TYPE_CHECKING,
     Any,
+    AsyncIterator,
     Callable,
     Iterator,
     List,
@@ -27,6 +28,7 @@ from ninja.signature import is_async
 from ninja.types import TCallable
 from ninja.utils import check_csrf
 
+from ninja_extra.compatible import asynccontextmanager
 from ninja_extra.exceptions import APIException
 from ninja_extra.helper import get_function_name
 from ninja_extra.logger import request_logger
@@ -119,7 +121,7 @@ class ControllerOperation(Operation):
         return route_function.get_route_execution_context(request, *args, **kwargs)
 
     @contextmanager
-    def _prep_run(self, request: HttpRequest, **kw: Any) -> Iterator:
+    def _prep_run(self, request: HttpRequest, **kw: Any) -> Iterator[RouteContext]:
         try:
             start_time = time.time()
             context = self.get_execution_context(request, **kw)
@@ -223,12 +225,43 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
 
 class AsyncControllerOperation(AsyncOperation, ControllerOperation):
+    @asynccontextmanager
+    async def _prep_run(  # type:ignore
+        self, request: HttpRequest, **kw: Any
+    ) -> AsyncIterator[RouteContext]:
+        try:
+            start_time = time.time()
+            context = self.get_execution_context(request, **kw)
+            # send route_context_started signal
+            route_context_started.send(RouteContext, route_context=context)
+
+            yield context
+            self._log_action(
+                request_logger.info,
+                request=request,
+                duration=time.time() - start_time,
+                extra=dict(request=request),
+                exc_info=None,
+            )
+        except Exception as e:
+            self._log_action(
+                request_logger.error,
+                request=request,
+                ex=e,
+                extra=dict(request=request),
+                exc_info=None,
+            )
+            raise e
+        finally:
+            # send route_context_finished signal
+            route_context_finished.send(RouteContext, route_context=None)
+
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
         error = await self._run_checks(request)
         if error:
             return error
         try:
-            with self._prep_run(request, **kw) as ctx:
+            async with self._prep_run(request, **kw) as ctx:
                 values = await self._get_values(request, kw)  # type: ignore
                 ctx.kwargs = values
                 result = await self.view_func(context=ctx, **values)
