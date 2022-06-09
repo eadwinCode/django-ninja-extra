@@ -268,7 +268,7 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):
                 values = await self._get_values(request, kw, temporal_response)  # type: ignore
                 ctx.kwargs = values
                 result = await self.view_func(context=ctx, **values)
-                _processed_results = await self._result_to_response(request, result)  # type: ignore
+                _processed_results = await self._result_to_response(request, result, temporal_response)  # type: ignore
                 return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
