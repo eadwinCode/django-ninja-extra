@@ -159,7 +159,9 @@ class ControllerOperation(Operation):
                 values = self._get_values(request, kw, temporal_response)
                 ctx.kwargs = values
                 result = self.view_func(context=ctx, **values)
-                _processed_results = self._result_to_response(request, result, temporal_response)
+                _processed_results = self._result_to_response(
+                    request, result, temporal_response
+                )
                 return _processed_results
         except Exception as e:
             if isinstance(e, TypeError) and "required positional argument" in str(e):
@@ -275,10 +277,10 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):
 
 
 class PathView(NinjaPathView):
-    async def _async_view(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:  # type: ignore
+    async def _async_view(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:  # type: ignore
         return await super(PathView, self)._async_view(request, *args, **kwargs)
 
-    def _sync_view(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:  # type: ignore
+    def _sync_view(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:  # type: ignore
         return super(PathView, self)._sync_view(request, *args, **kwargs)
 
     def add_operation(

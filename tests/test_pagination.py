@@ -94,7 +94,7 @@ class TestPagination:
                 "schema": {
                     "title": "Limit",
                     "default": 100,
-                    "exclusiveMinimum": 0,
+                    "minimum": 1,
                     "type": "integer",
                 },
                 "required": False,
@@ -105,7 +105,7 @@ class TestPagination:
                 "schema": {
                     "title": "Offset",
                     "default": 0,
-                    "exclusiveMinimum": -1,
+                    "minimum": 0,
                     "type": "integer",
                 },
                 "required": False,
@@ -132,7 +132,7 @@ class TestPagination:
                 "schema": {
                     "title": "Limit",
                     "default": 100,
-                    "exclusiveMinimum": 0,
+                    "minimum": 1,
                     "type": "integer",
                 },
                 "required": False,
@@ -143,7 +143,7 @@ class TestPagination:
                 "schema": {
                     "title": "Offset",
                     "default": 0,
-                    "exclusiveMinimum": -1,
+                    "minimum": 0,
                     "type": "integer",
                 },
                 "required": False,
@@ -213,7 +213,7 @@ class TestPagination:
                 "schema": {
                     "title": "Page",
                     "default": 1,
-                    "exclusiveMinimum": 0,
+                    "minimum": 1,
                     "type": "integer",
                 },
                 "required": False,
@@ -291,7 +291,7 @@ class TestAsyncOperations:
                     "schema": {
                         "title": "Limit",
                         "default": 100,
-                        "exclusiveMinimum": 0,
+                        "minimum": 1,
                         "type": "integer",
                     },
                     "required": False,
@@ -302,7 +302,7 @@ class TestAsyncOperations:
                     "schema": {
                         "title": "Offset",
                         "default": 0,
-                        "exclusiveMinimum": -1,
+                        "minimum": 0,
                         "type": "integer",
                     },
                     "required": False,
