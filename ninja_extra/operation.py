@@ -155,10 +155,11 @@ class ControllerOperation(Operation):
             return error
         try:
             with self._prep_run(request, **kw) as ctx:
-                values = self._get_values(request, kw)
+                temporal_response = self.api.create_temporal_response(request)
+                values = self._get_values(request, kw, temporal_response)
                 ctx.kwargs = values
                 result = self.view_func(context=ctx, **values)
-                _processed_results = self._result_to_response(request, result)
+                _processed_results = self._result_to_response(request, result, temporal_response)
                 return _processed_results
         except Exception as e:
             if isinstance(e, TypeError) and "required positional argument" in str(e):
@@ -216,9 +217,10 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
         if error:
             return error
         try:
-            values = await self._get_values(request, kw)  # type: ignore
+            temporal_response = self.api.create_temporal_response(request)
+            values = await self._get_values(request, kw, temporal_response)  # type: ignore
             result = await self.view_func(request, **values)
-            _processed_results = await self._result_to_response(request, result)  # type: ignore
+            _processed_results = await self._result_to_response(request, result, temporal_response)  # type: ignore
             return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
@@ -262,7 +264,8 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):
             return error
         try:
             async with self._prep_run(request, **kw) as ctx:
-                values = await self._get_values(request, kw)  # type: ignore
+                temporal_response = self.api.create_temporal_response(request)
+                values = await self._get_values(request, kw, temporal_response)  # type: ignore
                 ctx.kwargs = values
                 result = await self.view_func(context=ctx, **values)
                 _processed_results = await self._result_to_response(request, result)  # type: ignore
