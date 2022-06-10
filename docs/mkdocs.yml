@@ -47,7 +47,7 @@ nav:
   - Schema: tutorial/schema.md
   - Pagination: tutorial/pagination.md
   - Error Handling: tutorial/custom_exception.md
-  - Versoning: tutorial/versioning.md
+  - Versioning: tutorial/versioning.md
   - Testing: tutorial/testing.md
 - Settings: settings.md
 - Dependency Injection: service_module_injector.md
