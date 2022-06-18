@@ -25,7 +25,7 @@ from ninja_extra.controllers import (
     RouteFunction,
     RouteInvalidParameterException,
 )
-from ninja_extra.controllers.base import get_route_functions
+from ninja_extra.controllers.base import get_all_controller_route_function
 from ninja_extra.controllers.route.context import RouteContext
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions import AllowAny
@@ -77,6 +77,10 @@ class SomeTestController:
     def example_list_create(self, ex_id: str):
         pass
 
+    @http_post("/example/operation-id", operation_id="example_post_operation_id")
+    def example_post_operation_id(self):
+        pass
+
 
 class TestControllerRoute:
     @pytest.mark.parametrize(
@@ -95,8 +99,10 @@ class TestControllerRoute:
         assert len(path_view.operations) == operation_count
 
     def test_controller_route_should_have_an_operation(self):
-        for route_func in get_route_functions(SomeTestController):
-            path_view = SomeTestController.get_path_operations().get(str(route_func))
+        for route_func in get_all_controller_route_function(SomeTestController):
+            path_view = SomeTestController.get_api_controller().path_operations.get(
+                str(route_func)
+            )
             operations = list(
                 filter(
                     lambda n: n.operation_id
@@ -105,6 +111,8 @@ class TestControllerRoute:
                 )
             )
             assert len(operations) == 1
+            if str(route_func) == "/example/operation-id":
+                assert operations[0].operation_id == "example_post_operation_id"
             assert route_func.route.route_params.methods == operations[0].methods
 
     def test_controller_route_should_right_view_func_type(self):

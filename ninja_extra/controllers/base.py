@@ -60,6 +60,17 @@ def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
             yield method
 
 
+def get_all_controller_route_function(
+    controller: Union[Type["ControllerBase"], Type]
+) -> List[RouteFunction]:
+    route_functions: List[RouteFunction] = []
+    for item in dir(controller):
+        attr = getattr(controller, item)
+        if isinstance(attr, RouteFunction):
+            route_functions.append(attr)
+    return route_functions
+
+
 def compute_api_route_function(
     base_cls: Type, api_controller_instance: "APIController"
 ) -> None:
