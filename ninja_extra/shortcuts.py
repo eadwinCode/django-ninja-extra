@@ -1,9 +1,17 @@
-from typing import Any, Optional, Type, Union, cast, no_type_check
+from typing import Any, List, Optional, Tuple, Type, Union, cast, no_type_check
 
 from django.db.models import Model, QuerySet
 from ninja.types import DictStrAny, TCallable
 
 from .exceptions import APIException, NotFound
+
+
+@no_type_check
+def add_ninja_contribute_args(func: TCallable, value: Tuple) -> None:
+    _ninja_contribute_args: List[Tuple] = getattr(func, "_ninja_contribute_args", [])
+    assert isinstance(_ninja_contribute_args, list)
+    _ninja_contribute_args.append(value)
+    setattr(func, "_ninja_contribute_args", _ninja_contribute_args)
 
 
 @no_type_check
