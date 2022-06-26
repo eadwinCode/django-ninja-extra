@@ -136,8 +136,8 @@ class Operation(NinjaOperation):
 
         return get_route_execution_context(
             request,
-            temporal_response=temporal_response,
-            permission_classes=permission_classes,
+            temporal_response,
+            permission_classes,
             *args,
             **kwargs,
         )
@@ -529,7 +529,7 @@ __deprecated__ = {
 }
 
 
-def __getattr__(name: str) -> int:
+def __getattr__(name: str) -> Any:  # pragma: no cover
     if name in __deprecated__:
         value = __deprecated__[name]
         warnings.warn(

@@ -244,7 +244,9 @@ class Throttled(APIException):
     extra_detail_plural = _("Expected available in {wait} seconds.")
     default_code = "throttled"
 
-    def __init__(self, wait=None, detail=None, code=None):
+    def __init__(
+        self, wait: float = None, detail: Any = None, code: Any = None
+    ) -> None:
         if detail is None:
             detail = force_str(self.default_detail)
         if wait is not None:

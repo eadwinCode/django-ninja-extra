@@ -25,7 +25,7 @@ class RouteContext(PydanticModel):
 
 def get_route_execution_context(
     request: HttpRequest,
-    temporal_response: HttpResponse,
+    temporal_response: HttpResponse = None,
     permission_classes: PermissionType = [],
     *args: Any,
     **kwargs: Any,

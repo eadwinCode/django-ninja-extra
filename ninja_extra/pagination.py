@@ -2,18 +2,7 @@ import inspect
 import logging
 from collections import OrderedDict
 from functools import wraps
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    cast,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast, overload
 
 from asgiref.sync import sync_to_async
 from django.core.paginator import InvalidPage, Page, Paginator

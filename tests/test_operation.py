@@ -3,7 +3,12 @@ import pytest
 
 from ninja_extra import api_controller, route
 from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
-from ninja_extra.operation import AsyncControllerOperation, ControllerOperation, Operation, AsyncOperation
+from ninja_extra.operation import (
+    AsyncControllerOperation,
+    AsyncOperation,
+    ControllerOperation,
+    Operation,
+)
 from ninja_extra.testing import TestAsyncClient, TestClient
 
 from .utils import AsyncFakeAuth, FakeAuth, mock_log_call, mock_signal_call

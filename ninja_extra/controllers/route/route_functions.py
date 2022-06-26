@@ -2,7 +2,7 @@ import inspect
 import warnings
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, cast
 
 from django.http import HttpRequest, HttpResponse
 
@@ -37,15 +37,20 @@ class RouteFunction(object):
         self.as_view = wraps(route.view_func)(self.get_view_function())
         self._resolve_api_func_signature_(self.as_view)
 
-    def __call__(self, request: HttpRequest, temporal_response: HttpResponse = None, *args: Any, **kwargs: Any) -> Any:
+    def __call__(
+        self,
+        request: HttpRequest,
+        temporal_response: HttpResponse = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Any:
         _api_controller = self.get_api_controller()
         context = get_route_execution_context(
             request,
-            temporal_response=temporal_response,
+            temporal_response,
+            self.route.permissions or _api_controller.permission_classes,
             *args,
             **kwargs,
-            permission_classes=self.route.permissions
-            or _api_controller.permission_classes,
         )
         return self.as_view(request, *args, context=context, **kwargs)
 
@@ -72,8 +77,13 @@ class RouteFunction(object):
         return context_func
 
     def get_view_function(self) -> Callable:
-        def as_view(request: HttpRequest, context: RouteContext = None, *args: Any, **kwargs: Any) -> Any:
-            context = context or service_resolver(RouteContext)
+        def as_view(
+            request: HttpRequest,
+            context: RouteContext = None,
+            *args: Any,
+            **kwargs: Any,
+        ) -> Any:
+            context = context or cast(RouteContext, service_resolver(RouteContext))
             with self._prep_controller_route_execution(context, **kwargs) as ctx:
                 ctx.controller_instance.check_permissions()
                 result = self.route.view_func(
@@ -107,9 +117,10 @@ class RouteFunction(object):
         self, request: HttpRequest, *args: Any, **kwargs: Any
     ) -> RouteContext:
         warnings.warn(
-            'get_route_execution_context() is deprecated in favor of '
-            'ninja_extra.controllers.route.context.get_route_execution_context()',
-            DeprecationWarning, stacklevel=2,
+            "get_route_execution_context() is deprecated in favor of "
+            "ninja_extra.controllers.route.context.get_route_execution_context()",
+            DeprecationWarning,
+            stacklevel=2,
         )
         _api_controller = self.get_api_controller()
 
@@ -153,8 +164,13 @@ class RouteFunction(object):
 
 class AsyncRouteFunction(RouteFunction):
     def get_view_function(self) -> Callable:
-        async def as_view(request: HttpRequest, context: RouteContext = None, *args: Any, **kwargs: Any) -> Any:
-            context = context or service_resolver(RouteContext)
+        async def as_view(
+            request: HttpRequest,
+            context: RouteContext = None,
+            *args: Any,
+            **kwargs: Any,
+        ) -> Any:
+            context = context or cast(RouteContext, service_resolver(RouteContext))
             with self._prep_controller_route_execution(context, **kwargs) as ctx:
                 ctx.controller_instance.check_permissions()
                 result = await self.route.view_func(
@@ -170,14 +186,19 @@ class AsyncRouteFunction(RouteFunction):
             return f"<AsyncRouteFunction, controller: No Controller Found, path: {self.__str__()}>"
         return f"<AsyncRouteFunction, controller: {self.api_controller.controller_class.__name__}, path: {self.__str__()}>"
 
-    async def __call__(self, request: HttpRequest, temporal_response: HttpResponse = None, *args: Any, **kwargs: Any) -> Any:
+    async def __call__(
+        self,
+        request: HttpRequest,
+        temporal_response: HttpResponse = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Any:
         _api_controller = self.get_api_controller()
         context = get_route_execution_context(
             request,
-            temporal_response=temporal_response,
+            temporal_response,
+            self.route.permissions or _api_controller.permission_classes,
             *args,
             **kwargs,
-            permission_classes=self.route.permissions
-            or _api_controller.permission_classes,
         )
         return await self.as_view(request, *args, context=context, **kwargs)

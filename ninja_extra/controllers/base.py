@@ -274,7 +274,7 @@ class APIController:
         self._controller_class_route_functions: Dict[str, RouteFunction] = dict()
         # `permission_classes` a collection of BasePermission Types
         # a fallback if route functions has no permissions definition
-        self.permission_classes: PermissionType = permissions or [AllowAny]  # type: ignore
+        self.permission_classes: PermissionType = permissions or [AllowAny]
         # `registered` prevents controllers from being register twice or exist in two different `api` instances
         self.registered: bool = False
 
