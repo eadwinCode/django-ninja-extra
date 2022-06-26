@@ -1,14 +1,15 @@
 import inspect
+import warnings
 from contextlib import contextmanager
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple
 
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 
 from ninja_extra.controllers.response import ControllerResponse
 
-from ...dependency_resolver import get_injector
-from .context import RouteContext
+from ...dependency_resolver import get_injector, service_resolver
+from .context import RouteContext, get_route_execution_context
 
 if TYPE_CHECKING:
     from ninja_extra.operation import ControllerOperation
@@ -36,9 +37,17 @@ class RouteFunction(object):
         self.as_view = wraps(route.view_func)(self.get_view_function())
         self._resolve_api_func_signature_(self.as_view)
 
-    def __call__(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
-        context = self.get_route_execution_context(request, *args, **kwargs)
-        return self.as_view(*args, context=context, **kwargs)
+    def __call__(self, request: HttpRequest, temporal_response: HttpResponse = None, *args: Any, **kwargs: Any) -> Any:
+        _api_controller = self.get_api_controller()
+        context = get_route_execution_context(
+            request,
+            temporal_response=temporal_response,
+            *args,
+            **kwargs,
+            permission_classes=self.route.permissions
+            or _api_controller.permission_classes,
+        )
+        return self.as_view(request, *args, context=context, **kwargs)
 
     def _get_required_api_func_signature(self) -> Tuple:
         skip_parameters = ["self", "request"]
@@ -63,7 +72,8 @@ class RouteFunction(object):
         return context_func
 
     def get_view_function(self) -> Callable:
-        def as_view(context: RouteContext, *args: Any, **kwargs: Any) -> Any:
+        def as_view(request: HttpRequest, context: RouteContext = None, *args: Any, **kwargs: Any) -> Any:
+            context = context or service_resolver(RouteContext)
             with self._prep_controller_route_execution(context, **kwargs) as ctx:
                 ctx.controller_instance.check_permissions()
                 result = self.route.view_func(
@@ -96,7 +106,11 @@ class RouteFunction(object):
     def get_route_execution_context(
         self, request: HttpRequest, *args: Any, **kwargs: Any
     ) -> RouteContext:
-
+        warnings.warn(
+            'get_route_execution_context() is deprecated in favor of '
+            'ninja_extra.controllers.route.context.get_route_execution_context()',
+            DeprecationWarning, stacklevel=2,
+        )
         _api_controller = self.get_api_controller()
 
         init_kwargs = dict(
@@ -139,7 +153,8 @@ class RouteFunction(object):
 
 class AsyncRouteFunction(RouteFunction):
     def get_view_function(self) -> Callable:
-        async def as_view(context: RouteContext, *args: Any, **kwargs: Any) -> Any:
+        async def as_view(request: HttpRequest, context: RouteContext = None, *args: Any, **kwargs: Any) -> Any:
+            context = context or service_resolver(RouteContext)
             with self._prep_controller_route_execution(context, **kwargs) as ctx:
                 ctx.controller_instance.check_permissions()
                 result = await self.route.view_func(
@@ -155,6 +170,14 @@ class AsyncRouteFunction(RouteFunction):
             return f"<AsyncRouteFunction, controller: No Controller Found, path: {self.__str__()}>"
         return f"<AsyncRouteFunction, controller: {self.api_controller.controller_class.__name__}, path: {self.__str__()}>"
 
-    async def __call__(self, request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
-        context = self.get_route_execution_context(request, *args, **kwargs)
-        return await self.as_view(*args, context=context, **kwargs)
+    async def __call__(self, request: HttpRequest, temporal_response: HttpResponse = None, *args: Any, **kwargs: Any) -> Any:
+        _api_controller = self.get_api_controller()
+        context = get_route_execution_context(
+            request,
+            temporal_response=temporal_response,
+            *args,
+            **kwargs,
+            permission_classes=self.route.permissions
+            or _api_controller.permission_classes,
+        )
+        return await self.as_view(request, *args, context=context, **kwargs)

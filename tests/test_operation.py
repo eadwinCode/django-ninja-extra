@@ -3,7 +3,7 @@ import pytest
 
 from ninja_extra import api_controller, route
 from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
-from ninja_extra.operation import AsyncControllerOperation, ControllerOperation
+from ninja_extra.operation import AsyncControllerOperation, ControllerOperation, Operation, AsyncOperation
 from ninja_extra.testing import TestAsyncClient, TestClient
 
 from .utils import AsyncFakeAuth, FakeAuth, mock_log_call, mock_signal_call
@@ -55,13 +55,13 @@ def test_operation_auth_configs():
     async_route_function = async_auth_http_get(async_endpoint)
 
     api_controller_instance._add_operation_from_route_function(route_function)
-    assert isinstance(route_function.operation, AsyncControllerOperation)
+    assert isinstance(route_function.operation, AsyncOperation)
     api_controller_instance._add_operation_from_route_function(async_route_function)
-    assert isinstance(async_route_function.operation, AsyncControllerOperation)
+    assert isinstance(async_route_function.operation, AsyncOperation)
 
     sync_route_function = sync_auth_http_get(sync_endpoint)
     api_controller_instance._add_operation_from_route_function(sync_route_function)
-    assert isinstance(sync_route_function.operation, ControllerOperation)
+    assert isinstance(sync_route_function.operation, Operation)
     assert isinstance(sync_route_function, RouteFunction)
 
     with pytest.raises(Exception) as ex:
