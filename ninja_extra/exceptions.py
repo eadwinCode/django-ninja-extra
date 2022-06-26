@@ -1,11 +1,12 @@
 """
 DRF Exceptions
 """
+import math
 from typing import Any, Dict, List, Optional, Type, Union, no_type_check
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils.encoding import force_str
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, ngettext
 from ninja.errors import HttpError
 
 from ninja_extra import status
@@ -233,6 +234,34 @@ class UnsupportedMediaType(APIException):
     ):
         if detail is None:
             detail = force_str(self.default_detail).format(media_type=media_type)
+        super().__init__(detail, code)
+
+
+class Throttled(APIException):
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    default_detail = _("Request was throttled.")
+    extra_detail_singular = _("Expected available in {wait} second.")
+    extra_detail_plural = _("Expected available in {wait} seconds.")
+    default_code = "throttled"
+
+    def __init__(self, wait=None, detail=None, code=None):
+        if detail is None:
+            detail = force_str(self.default_detail)
+        if wait is not None:
+            wait = math.ceil(wait)
+            detail = " ".join(
+                (
+                    detail,
+                    force_str(
+                        ngettext(
+                            self.extra_detail_singular.format(wait=wait),
+                            self.extra_detail_plural.format(wait=wait),
+                            wait,
+                        )
+                    ),
+                )
+            )
+        self.wait = wait
         super().__init__(detail, code)
 
 
