@@ -7,5 +7,5 @@ from ninja_extra.permissions.base import (
 )
 
 PermissionType = Union[
-    List[Type[BasePermission]], List[OperandHolder], List[SingleOperandHolder]
+    List[Type[BasePermission]], List[OperandHolder], List[SingleOperandHolder], List
 ]

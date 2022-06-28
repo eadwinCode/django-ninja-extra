@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 from ninja.signature.details import ViewSignature as NinjaViewSignature
 
-if TYPE_CHECKING:
-    from .controllers.route.route_functions import RouteFunction  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
+    from .controllers.route.route_functions import RouteFunction
 
 
 class ViewSignature(NinjaViewSignature):

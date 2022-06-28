@@ -1,5 +1,6 @@
 import inspect
 import time
+import warnings
 from contextlib import contextmanager
 from typing import (
     TYPE_CHECKING,
@@ -33,12 +34,13 @@ from ninja_extra.exceptions import APIException
 from ninja_extra.helper import get_function_name
 from ninja_extra.logger import request_logger
 from ninja_extra.signals import route_context_finished, route_context_started
+from ninja_extra.types import PermissionType
 
-from .controllers.route.context import RouteContext
+from .controllers.route.context import RouteContext, get_route_execution_context
 from .details import ViewSignature
 
-if TYPE_CHECKING:
-    from .controllers.route.route_functions import RouteFunction  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
+    from .controllers.route.route_functions import RouteFunction
 
 
 class Operation(NinjaOperation):
@@ -76,8 +78,6 @@ class Operation(NinjaOperation):
                         f"N:B - {get_function_name(callback)} can only be used on Asynchronous view functions"
                     )
 
-
-class ControllerOperation(Operation):
     def _log_action(
         self,
         logger: Callable[..., Any],
@@ -87,16 +87,22 @@ class ControllerOperation(Operation):
         **kwargs: Any,
     ) -> None:
         try:
-            route_function: "RouteFunction" = (
-                self.view_func.get_route_function()  # type:ignore
-            )
-            api_controller = route_function.get_api_controller()
-
             msg = (
                 f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
-                f'{api_controller.controller_class.__name__}[{self.view_func.__name__}] {request.path}" '
+                f'{self.view_func.__name__} {request.path}" '
                 f"{duration if duration else ''}"
             )
+            if hasattr(self.view_func, "get_route_function"):
+                route_function: "RouteFunction" = (
+                    self.view_func.get_route_function()  # type:ignore
+                )
+                api_controller = route_function.get_api_controller()
+
+                msg = (
+                    f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
+                    f'{api_controller.controller_class.__name__}[{self.view_func.__name__}] {request.path}" '
+                    f"{duration if duration else ''}"
+                )
             if ex:
                 msg += (
                     f"{ex.status_code}"
@@ -109,22 +115,42 @@ class ControllerOperation(Operation):
             request_logger.debug(log_ex)
 
     def get_execution_context(
-        self, request: HttpRequest, *args: Any, **kwargs: Any
+        self,
+        request: HttpRequest,
+        temporal_response: HttpResponse,
+        *args: Any,
+        **kwargs: Any,
     ) -> RouteContext:
-        route_function: "RouteFunction" = (
-            self.view_func.get_route_function()  # type:ignore
+        permission_classes: PermissionType = []
+        if hasattr(self.view_func, "get_route_function"):
+            route_function: "RouteFunction" = (
+                self.view_func.get_route_function()  # type:ignore
+            )
+            if not route_function:
+                raise Exception("Route Function is missing")
+
+            _api_controller = route_function.get_api_controller()
+            permission_classes = (
+                route_function.route.permissions or _api_controller.permission_classes
+            )
+
+        return get_route_execution_context(
+            request,
+            temporal_response,
+            permission_classes,
+            *args,
+            **kwargs,
         )
 
-        if not route_function:
-            raise Exception("Route Function is missing")
-
-        return route_function.get_route_execution_context(request, *args, **kwargs)
-
     @contextmanager
-    def _prep_run(self, request: HttpRequest, **kw: Any) -> Iterator[RouteContext]:
+    def _prep_run(
+        self, request: HttpRequest, temporal_response: HttpResponse, **kw: Any
+    ) -> Iterator[RouteContext]:
         try:
             start_time = time.time()
-            context = self.get_execution_context(request, **kw)
+            context = self.get_execution_context(
+                request, temporal_response=temporal_response, **kw
+            )
             # send route_context_started signal
             route_context_started.send(RouteContext, route_context=context)
 
@@ -154,8 +180,122 @@ class ControllerOperation(Operation):
         if error:
             return error
         try:
-            with self._prep_run(request, **kw) as ctx:
-                temporal_response = self.api.create_temporal_response(request)
+            temporal_response = self.api.create_temporal_response(request)
+            with self._prep_run(
+                request, temporal_response=temporal_response, **kw
+            ) as ctx:
+                values = self._get_values(request, kw, temporal_response)
+                ctx.kwargs.update(values)
+                result = self.view_func(request, **values)
+                _processed_results = self._result_to_response(
+                    request, result, temporal_response
+                )
+                return _processed_results
+        except Exception as e:
+            if isinstance(e, TypeError) and "required positional argument" in str(e):
+                msg = "Did you fail to use functools.wraps() in a decorator?"
+                msg = f"{e.args[0]}: {msg}" if e.args else msg
+                e.args = (msg,) + e.args[1:]
+            return self.api.on_exception(request, e)
+
+
+class ControllerOperation(Operation):
+    def _log_action(
+        self,
+        logger: Callable[..., Any],
+        request: HttpRequest,
+        duration: Optional[float] = None,
+        ex: Optional[Exception] = None,
+        **kwargs: Any,
+    ) -> None:
+        try:
+            msg = (
+                f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
+                f'{self.view_func.__name__} {request.path}" '
+                f"{duration if duration else ''}"
+            )
+            if hasattr(self.view_func, "get_route_function"):
+                route_function: "RouteFunction" = (
+                    self.view_func.get_route_function()  # type:ignore
+                )
+                api_controller = route_function.get_api_controller()
+
+                msg = (
+                    f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
+                    f'{api_controller.controller_class.__name__}[{self.view_func.__name__}] {request.path}" '
+                    f"{duration if duration else ''}"
+                )
+            if ex:
+                msg += (
+                    f"{ex.status_code}"
+                    if isinstance(ex, APIException)
+                    else f"{force_str(ex.args)}"
+                )
+
+            logger(msg, **kwargs)
+        except (Exception,) as log_ex:
+            request_logger.debug(log_ex)
+
+    def get_execution_context(
+        self,
+        request: HttpRequest,
+        temporal_response: HttpResponse,
+        *args: Any,
+        **kwargs: Any,
+    ) -> RouteContext:
+        route_function: "RouteFunction" = (
+            self.view_func.get_route_function()  # type:ignore
+        )
+
+        if not route_function:
+            raise Exception("Route Function is missing")
+
+        return route_function.get_route_execution_context(
+            request, temporal_response=temporal_response, *args, **kwargs
+        )
+
+    @contextmanager
+    def _prep_run(
+        self, request: HttpRequest, temporal_response: HttpResponse, **kw: Any
+    ) -> Iterator[RouteContext]:
+        try:
+            start_time = time.time()
+            context = self.get_execution_context(
+                request, temporal_response=temporal_response, **kw
+            )
+            # send route_context_started signal
+            route_context_started.send(RouteContext, route_context=context)
+
+            yield context
+            self._log_action(
+                request_logger.info,
+                request=request,
+                duration=time.time() - start_time,
+                extra=dict(request=request),
+                exc_info=None,
+            )
+        except Exception as e:
+            self._log_action(
+                request_logger.error,
+                request=request,
+                ex=e,
+                extra=dict(request=request),
+                exc_info=None,
+            )
+            raise e
+        finally:
+            # send route_context_finished signal
+            route_context_finished.send(RouteContext, route_context=None)
+
+    def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:
+        error = self._run_checks(request)
+        if error:
+            return error
+        try:
+            temporal_response = self.api.create_temporal_response(request)
+            with self._prep_run(
+                request, temporal_response=temporal_response, **kw
+            ) as ctx:
                 values = self._get_values(request, kw, temporal_response)
                 ctx.kwargs = values
                 result = self.view_func(context=ctx, **values)
@@ -214,16 +354,51 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 return None
         return self.api.create_response(request, {"detail": "Unauthorized"}, status=401)
 
+    @asynccontextmanager
+    async def _prep_run(  # type:ignore
+        self, request: HttpRequest, **kw: Any
+    ) -> AsyncIterator[RouteContext]:
+        try:
+            start_time = time.time()
+            context = self.get_execution_context(request, **kw)
+            # send route_context_started signal
+            route_context_started.send(RouteContext, route_context=context)
+
+            yield context
+            self._log_action(
+                request_logger.info,
+                request=request,
+                duration=time.time() - start_time,
+                extra=dict(request=request),
+                exc_info=None,
+            )
+        except Exception as e:
+            self._log_action(
+                request_logger.error,
+                request=request,
+                ex=e,
+                extra=dict(request=request),
+                exc_info=None,
+            )
+            raise e
+        finally:
+            # send route_context_finished signal
+            route_context_finished.send(RouteContext, route_context=None)
+
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
         error = await self._run_checks(request)
         if error:
             return error
         try:
             temporal_response = self.api.create_temporal_response(request)
-            values = await self._get_values(request, kw, temporal_response)  # type: ignore
-            result = await self.view_func(request, **values)
-            _processed_results = await self._result_to_response(request, result, temporal_response)  # type: ignore
-            return cast(HttpResponseBase, _processed_results)
+            async with self._prep_run(
+                request, temporal_response=temporal_response, **kw
+            ) as ctx:
+                values = await self._get_values(request, kw, temporal_response)  # type: ignore
+                ctx.kwargs.update(values)
+                result = await self.view_func(request, **values)
+                _processed_results = await self._result_to_response(request, result, temporal_response)  # type: ignore
+                return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
 
@@ -265,8 +440,10 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):
         if error:
             return error
         try:
-            async with self._prep_run(request, **kw) as ctx:
-                temporal_response = self.api.create_temporal_response(request)
+            temporal_response = self.api.create_temporal_response(request)
+            async with self._prep_run(
+                request, temporal_response=temporal_response, **kw
+            ) as ctx:
                 values = await self._get_values(request, kw, temporal_response)  # type: ignore
                 ctx.kwargs = values
                 result = await self.view_func(context=ctx, **values)
@@ -342,8 +519,23 @@ class ControllerPathView(PathView):
     def get_operation_class(
         self, view_func: TCallable
     ) -> Type[Union[Operation, AsyncOperation]]:
-        operation_class = ControllerOperation
-        if is_async(view_func):
-            self.is_async = True
-            operation_class = AsyncControllerOperation
-        return operation_class
+        return super(ControllerPathView, self).get_operation_class(view_func)
+
+
+__deprecated__ = {
+    "ControllerOperation": (ControllerOperation, Operation),
+    "AsyncControllerOperation": (AsyncControllerOperation, AsyncOperation),
+    "ControllerPathView": (ControllerPathView, PathView),
+}
+
+
+def __getattr__(name: str) -> Any:  # pragma: no cover
+    if name in __deprecated__:
+        value = __deprecated__[name]
+        warnings.warn(
+            f"'{name}' is deprecated. Use '{value[1]}' instead.",
+            category=DeprecationWarning,
+            stacklevel=3,
+        )
+        return value[0]
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

@@ -18,6 +18,7 @@ from pydantic import Field
 from ninja_extra.conf import settings
 from ninja_extra.exceptions import NotFound
 from ninja_extra.schemas import PaginatedResponseSchema
+from ninja_extra.shortcuts import add_ninja_contribute_args
 from ninja_extra.urls import remove_query_param, replace_query_param
 
 logger = logging.getLogger()
@@ -203,13 +204,14 @@ class PaginatorOperation:
         self.view_func = view_func
 
         paginator_view = self.get_view_function()
-        paginator_view._ninja_contribute_args = [  # type: ignore
+        add_ninja_contribute_args(
+            paginator_view,
             (
                 self.paginator_kwargs_name,
                 self.paginator.Input,
                 self.paginator.InputSource,
             ),
-        ]
+        )
         setattr(paginator_view, "paginator_operation", self)
         self.as_view = wraps(view_func)(paginator_view)
 
