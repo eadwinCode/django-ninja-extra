@@ -3,12 +3,11 @@ Provides various throttling policies.
 From DjangoRestFramework - https://github.com/encode/django-rest-framework/blob/master/rest_framework/throttling.py
 """
 import time
-from typing import Callable, List, Optional, Tuple, cast
+from typing import Any, Callable, List, Optional, Tuple, cast
 
 from django.core.cache import cache as default_cache
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
-from django.utils.connection import ConnectionProxy
 
 from ninja_extra.conf import settings
 
@@ -72,7 +71,7 @@ class SimpleRateThrottle(BaseThrottle):
     Previous request information used for throttling is stored in the cache.
     """
 
-    cache: ConnectionProxy = default_cache
+    cache: Any = default_cache
     timer: Callable[[], float] = time.time
     cache_format: str = "throttle_%(scope)s_%(ident)s"
     scope: Optional[str] = None
