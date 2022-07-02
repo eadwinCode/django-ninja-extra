@@ -46,6 +46,12 @@ class NinjaExtraSettings(Schema):
             raise ValueError("Invalid data type")
         return value
 
+    @validator("THROTTLING_CLASS", pre=True)
+    def pre_throttling_class_validate(cls, value: Any) -> Any:
+        if isinstance(value, list):
+            raise ValueError("Invalid data type")
+        return value
+
     @validator("PAGINATION_CLASS", pre=True)
     def pre_pagination_class_validate(cls, value: Any) -> Any:
         if isinstance(value, list):
