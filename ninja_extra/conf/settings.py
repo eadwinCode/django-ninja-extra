@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 from django.conf import settings as django_settings
 from django.test.signals import setting_changed
@@ -16,6 +16,7 @@ class UserDefinedSettingsMapper:
 NinjaExtra_SETTINGS_DEFAULTS = dict(
     INJECTOR_MODULES=[],
     PAGINATION_CLASS="ninja_extra.pagination.LimitOffsetPagination",
+    THROTTLING_CLASS="ninja_extra.throttling.UserRateThrottle",
 )
 
 USER_SETTINGS = UserDefinedSettingsMapper(
@@ -32,6 +33,11 @@ class NinjaExtraSettings(Schema):
         "ninja_extra.pagination.LimitOffsetPagination",
     )
     PAGINATION_PER_PAGE: int = Field(100)
+    THROTTLING_RATES: Dict[str, Optional[str]] = Field({"user": None, "anon": None})
+    THROTTLING_CLASS: Any = Field(
+        "ninja_extra.throttling.UserRateThrottle",
+    )
+    NUM_PROXIES: Optional[int] = None
     INJECTOR_MODULES: List[Any] = []
 
     @validator("INJECTOR_MODULES", pre=True)
