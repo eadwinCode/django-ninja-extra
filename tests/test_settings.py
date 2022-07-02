@@ -12,6 +12,10 @@ class CustomModuleImport:
     pass
 
 
+class CustomThrottlingClassImport:
+    pass
+
+
 def test_setting_imports_string_works(monkeypatch):
     with monkeypatch.context() as m:
         m.setattr(
@@ -24,14 +28,26 @@ def test_setting_imports_string_works(monkeypatch):
         m.setattr(
             settings, "PAGINATION_CLASS", "tests.test_settings.CustomPaginationImport"
         )
+        m.setattr(
+            settings,
+            "THROTTLING_CLASS",
+            "tests.test_settings.CustomThrottlingClassImport",
+        )
 
         assert isinstance(settings.INJECTOR_MODULES[0](), CustomModuleImport)
         assert isinstance(settings.PAGINATION_CLASS(), CustomPaginationImport)
+        assert isinstance(settings.THROTTLING_CLASS(), CustomThrottlingClassImport)
 
     with pytest.raises(ValidationError):
         monkeypatch.setattr(
             settings, "PAGINATION_CLASS", ["tests.test_settings.CustomModuleImport"]
         )
+
+    with pytest.raises(ValidationError):
+        monkeypatch.setattr(
+            settings, "THROTTLING_CLASS", ["tests.test_settings.CustomModuleImport"]
+        )
+
     with pytest.raises(ValidationError):
         monkeypatch.setattr(
             settings, "INJECTOR_MODULES", "tests.test_settings.CustomModuleImport"
