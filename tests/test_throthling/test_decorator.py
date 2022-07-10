@@ -25,7 +25,7 @@ class User6MinRateThrottle(UserRateThrottle):
     scope = "minutes"
 
 
-api = NinjaExtraAPI()
+api = NinjaExtraAPI(urls_namespace="decorator")
 
 
 @api.get("/throttle_user_default")
@@ -258,7 +258,7 @@ class TestThrottling:
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 @pytest.mark.asyncio
 async def test_async_throttling(monkeypatch):
-    api_async = NinjaExtraAPI(urls_namespace="async_auth")
+    api_async = NinjaExtraAPI(urls_namespace="decorator_async")
 
     @api_async.get("/throttle_user_default_async")
     @throttle
