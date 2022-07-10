@@ -24,7 +24,7 @@ def throttle(
     throttle_class: Type[BaseThrottle] = settings.THROTTLING_CLASS
 
     if isfunction:
-        return _inject_throttling(func_or_throttle_class, throttle_class)
+        return _inject_throttling(func_or_throttle_class, throttle_class, **init_kwargs)
 
     if not isnotset:
         throttle_class = func_or_throttle_class
@@ -36,9 +36,10 @@ def throttle(
 
 
 def _run_throttles(
+    throttle_class: Type[BaseThrottle],
     request_or_controller: Union[HttpRequest, ControllerBase],
-    throttling: BaseThrottle,
     response: HttpResponse = None,
+    **init_kwargs: Any,
 ) -> None:
     """
     Run all throttles for a request.
@@ -48,14 +49,15 @@ def _run_throttles(
     request = cast(
         HttpRequest,
         (
-            request_or_controller
-            if isinstance(request_or_controller, HttpRequest)
-            else request_or_controller.context.request  # type:ignore
+            request_or_controller.context.request  # type:ignore
+            if isinstance(request_or_controller, RouteContext)
+            else request_or_controller
         ),
     )
 
     throttle_durations = []
 
+    throttling: BaseThrottle = throttle_class(**init_kwargs)
     if not throttling.allow_request(request):
         throttle_durations.append(throttling.wait())
 
@@ -98,13 +100,12 @@ def _sync_inject_throttling_handler(
     def as_view(
         request_or_controller: Union[HttpRequest, ControllerBase], *args: Any, **kw: Any
     ) -> Any:
-        throttle_instance: BaseThrottle = throttle_class(**init_kwargs)
-
         ctx = cast(Optional[RouteContext], service_resolver(RouteContext))
         _run_throttles(
-            request_or_controller,
-            throttling=throttle_instance,
+            throttle_class,
+            request_or_controller=request_or_controller,
             response=ctx.response if ctx else None,
+            **init_kwargs,
         )
 
         res = func(request_or_controller, *args, **kw)
@@ -122,13 +123,12 @@ def _async_inject_throttling_handler(
     async def as_view(
         request_or_controller: Union[HttpRequest, ControllerBase], *args: Any, **kw: Any
     ) -> Any:
-        throttle_instance: BaseThrottle = throttle_class(**init_kwargs)
-
         ctx = cast(Optional[RouteContext], service_resolver(RouteContext))
         _run_throttles(
-            request_or_controller,
-            throttling=throttle_instance,
+            throttle_class,
+            request_or_controller=request_or_controller,
             response=ctx.response if ctx else None,
+            **init_kwargs,
         )
 
         res = await func(request_or_controller, *args, **kw)

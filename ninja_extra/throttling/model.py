@@ -229,16 +229,9 @@ class DynamicRateThrottle(SimpleRateThrottle):
         self.scope = scope
         super().__init__()
 
-    def allow_request(self, request: HttpRequest) -> bool:
-        if not self.scope:
-            return True
-
-        # We can now proceed as normal.
-        return super().allow_request(request)
-
     def get_cache_key(self, request: HttpRequest) -> Optional[str]:
         """
-        If `view.throttle_scope` is not set, don't apply this throttle.
+        If `scope` is not set during initialization, don't apply this throttle.
 
         Otherwise generate the unique cache key by concatenating the user id
         with the `.throttle_scope` property of the view.
