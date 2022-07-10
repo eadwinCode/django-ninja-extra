@@ -114,7 +114,7 @@ class TestThrottling:
         """
         self.ensure_is_throttled("throttle_user_3_sec", 200)
 
-    def test_request_throttling_multiple_throttles(self, monkeypatch):
+    def test_request_throttle_user_6_min_throttles(self, monkeypatch):
         """
         Ensure all throttle classes see each request even when the request is
         already being throttled
