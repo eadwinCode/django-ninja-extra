@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Callable, List, Optional, Sequence, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
@@ -56,12 +56,20 @@ class NinjaExtraAPI(NinjaAPI):
     def api_exception_handler(
         self, request: HttpRequest, exc: exceptions.APIException
     ) -> HttpResponse:
+        headers: Dict = {}
+        if isinstance(exc, exceptions.Throttled):
+            headers["Retry-After"] = "%d" % float(exc.wait or 0.0)
+
         if isinstance(exc.detail, (list, dict)):
             data = exc.detail
         else:
             data = {"detail": exc.detail}
 
-        return self.create_response(request, data, status=exc.status_code)
+        response = self.create_response(request, data, status=exc.status_code)
+        for k, v in headers.items():
+            response.setdefault(k, v)
+
+        return response
 
     @property
     def urls(self) -> Tuple[List[Union[URLResolver, URLPattern]], str, str]:
