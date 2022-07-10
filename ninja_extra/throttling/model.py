@@ -3,7 +3,7 @@ Provides various throttling policies.
 From DjangoRestFramework - https://github.com/encode/django-rest-framework/blob/master/rest_framework/throttling.py
 """
 import time
-from typing import Any, Callable, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 from django.core.cache import cache as default_cache
 from django.core.exceptions import ImproperlyConfigured
@@ -16,6 +16,8 @@ class BaseThrottle:
     """
     Rate throttling of requests.
     """
+
+    THROTTLE_RATES: Optional[Dict] = None
 
     def __init__(self) -> None:
         self.key: Optional[str] = None
@@ -102,8 +104,9 @@ class SimpleRateThrottle(BaseThrottle):
             )
             raise ImproperlyConfigured(msg)
 
+        _THROTTLE_RATES = self.THROTTLE_RATES or settings.THROTTLE_RATES
         try:
-            return settings.THROTTLING_RATES[self.scope]
+            return _THROTTLE_RATES[self.scope]
         except KeyError:
             msg = "No default throttle rate set for '%s' scope" % self.scope
             raise ImproperlyConfigured(msg)

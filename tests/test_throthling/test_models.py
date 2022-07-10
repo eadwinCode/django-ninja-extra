@@ -170,7 +170,7 @@ class TestDynamicRateThrottle:
         self, monkeypatch
     ):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLING_RATES", {"some_scope": "5/m"})
+            m.setattr(settings, "THROTTLE_RATES", {"some_scope": "5/m"})
             throttle = DynamicRateThrottle(scope="some_scope")
             user = User.objects.create(username="test")
             self.request.user = user
@@ -178,12 +178,12 @@ class TestDynamicRateThrottle:
 
     def test_get_cache_key_defaults_to_none(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLING_RATES", {"some_scope": "5/m"})
+            m.setattr(settings, "THROTTLE_RATES", {"some_scope": "5/m"})
             throttle = DynamicRateThrottle(scope="some_scope")
             assert throttle.get_cache_key(self.request) == "throttle_some_scope_None"
 
     def test_allow_request_returns_true_for_none_rate(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLING_RATES", {"some_scope": None})
+            m.setattr(settings, "THROTTLE_RATES", {"some_scope": None})
             throttle = DynamicRateThrottle(scope="some_scope")
             assert throttle.allow_request(self.request) is True

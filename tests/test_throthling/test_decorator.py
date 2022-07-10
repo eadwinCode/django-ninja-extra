@@ -7,25 +7,16 @@ from ninja.testing import TestAsyncClient, TestClient
 
 from ninja_extra import NinjaExtraAPI
 from ninja_extra.conf import settings
-from ninja_extra.throttling import DynamicRateThrottle, UserRateThrottle, throttle
+from ninja_extra.throttling import DynamicRateThrottle, throttle
 
+from .sample_models import (
+    ThrottlingMockUser,
+    User3MinRateThrottle,
+    User3SecRateThrottle,
+    User6MinRateThrottle,
+)
 
-class User3SecRateThrottle(UserRateThrottle):
-    rate = "3/sec"
-    scope = "seconds"
-
-
-class User3MinRateThrottle(UserRateThrottle):
-    rate = "3/min"
-    scope = "minutes"
-
-
-class User6MinRateThrottle(UserRateThrottle):
-    rate = "6/min"
-    scope = "minutes"
-
-
-api = NinjaExtraAPI(urls_namespace="decorator")
+api = NinjaExtraAPI(urls_namespace="throttle_decorator")
 
 
 @api.get("/throttle_user_default")
@@ -58,14 +49,6 @@ def dynamic_throttling_scope(request):
     return "foo"
 
 
-class ThrottlingMockUser(str):
-    is_authenticated = True
-    pk = id = 23
-
-    def set_id(self, value):
-        self.pk = self.id = value
-
-
 client = TestClient(api)
 
 
@@ -76,7 +59,7 @@ class TestThrottling:
 
     def test_requests_are_throttled_using_default_user_scope(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLING_RATES", dict(user="3/sec"))
+            m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec"))
             for dummy in range(4):
                 response = client.get("/throttle_user_default", user=self.user)
             assert response.status_code == 429
@@ -229,7 +212,7 @@ class TestThrottling:
 
     def test_throttling_request_response_headers(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLING_RATES", {"dynamic_scope": "3/min"})
+            m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
             for idx, dummy in enumerate(range(3)):
                 response = client.get("/dynamic_throttling_scope", user=self.user)
                 assert response.status_code == 200
@@ -242,13 +225,13 @@ class TestThrottling:
     def test_request_throttling_for_dynamic_throttling(self, monkeypatch):
         # for authenticated user
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLING_RATES", {"dynamic_scope": "3/min"})
+            m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
             for dummy in range(4):
                 response = client.get("/dynamic_throttling_scope", user=self.user)
             assert response.status_code == 429
         # for unauthenticated user
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLING_RATES", {"dynamic_scope": "3/min"})
+            m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
             for dummy in range(3):
                 client.get("/dynamic_throttling_scope")
             response = client.get("/dynamic_throttling_scope")
@@ -276,16 +259,16 @@ async def test_async_throttling(monkeypatch):
         return "foo"
 
     def create_user():
-        user = ThrottlingMockUser("Ninja")
-        user.set_id(uuid.uuid4())
-        return user
+        _user = ThrottlingMockUser("Ninja")
+        _user.set_id(uuid.uuid4())
+        return _user
 
     client_async = TestAsyncClient(api_async)
 
     user = create_user()
 
     with monkeypatch.context() as m:
-        m.setattr(settings, "THROTTLING_RATES", dict(user="3/sec"))
+        m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec"))
         for dummy in range(4):
             response = await client_async.get("/throttle_user_default_async", user=user)
         assert response.status_code == 429

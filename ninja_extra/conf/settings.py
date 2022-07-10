@@ -16,7 +16,7 @@ class UserDefinedSettingsMapper:
 NinjaExtra_SETTINGS_DEFAULTS = dict(
     INJECTOR_MODULES=[],
     PAGINATION_CLASS="ninja_extra.pagination.LimitOffsetPagination",
-    THROTTLING_CLASS="ninja_extra.throttling.UserRateThrottle",
+    THROTTLE_CLASS="ninja_extra.throttling.UserRateThrottle",
 )
 
 USER_SETTINGS = UserDefinedSettingsMapper(
@@ -33,8 +33,8 @@ class NinjaExtraSettings(Schema):
         "ninja_extra.pagination.LimitOffsetPagination",
     )
     PAGINATION_PER_PAGE: int = Field(100)
-    THROTTLING_RATES: Dict[str, Optional[str]] = Field({"user": None, "anon": None})
-    THROTTLING_CLASS: Any = Field(
+    THROTTLE_RATES: Dict[str, Optional[str]] = Field({"user": None, "anon": None})
+    THROTTLE_CLASS: Any = Field(
         "ninja_extra.throttling.UserRateThrottle",
     )
     NUM_PROXIES: Optional[int] = None
@@ -46,7 +46,7 @@ class NinjaExtraSettings(Schema):
             raise ValueError("Invalid data type")
         return value
 
-    @validator("THROTTLING_CLASS", pre=True)
+    @validator("THROTTLE_CLASS", pre=True)
     def pre_throttling_class_validate(cls, value: Any) -> Any:
         if isinstance(value, list):
             raise ValueError("Invalid data type")

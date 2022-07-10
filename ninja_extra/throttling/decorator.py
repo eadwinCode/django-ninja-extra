@@ -21,7 +21,7 @@ def throttle(
     isfunction = inspect.isfunction(func_or_throttle_class)
     isnotset = func_or_throttle_class == NOT_SET
 
-    throttle_class: Type[BaseThrottle] = settings.THROTTLING_CLASS
+    throttle_class: Type[BaseThrottle] = settings.THROTTLE_CLASS
 
     if isfunction:
         return _inject_throttling(func_or_throttle_class, throttle_class, **init_kwargs)
@@ -50,7 +50,7 @@ def _run_throttles(
         HttpRequest,
         (
             request_or_controller.context.request  # type:ignore
-            if isinstance(request_or_controller, RouteContext)
+            if isinstance(request_or_controller, ControllerBase)
             else request_or_controller
         ),
     )
