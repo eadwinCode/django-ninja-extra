@@ -39,7 +39,7 @@ class TestThrottledController:
 
     def test_requests_are_throttled_using_default_user_scope(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec"))
+            m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon='2/sec'))
             for dummy in range(4):
                 response = client.get("/throttle_user_default", user=self.user)
             assert response.status_code == 429
@@ -94,15 +94,12 @@ async def test_async_controller_throttling(monkeypatch):
     user = create_user()
 
     with monkeypatch.context() as m:
-        m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec"))
+        m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon='2/sec'))
         for dummy in range(4):
             response = await client_async.get("/throttle_user_default_async", user=user)
         assert response.status_code == 429
 
     user = create_user()
-    for idx, dummy in enumerate(range(3)):
+    for idx, dummy in enumerate(range(4)):
         response = await client_async.get("/throttle_user_3_sec_async", user=user)
-        assert response.status_code == 200
-        assert int(response._response["X-Rate-Limit-Limit"]) == 3
-        assert int(response._response["X-Rate-Limit-Remaining"]) == 3 - (idx + 1)
-        assert "X-Rate-Limit-Reset" in response._response
+    assert response.status_code == 429

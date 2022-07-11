@@ -30,13 +30,13 @@ def test_setting_imports_string_works(monkeypatch):
         )
         m.setattr(
             settings,
-            "THROTTLE_CLASS",
-            "tests.test_settings.CustomThrottlingClassImport",
+            "THROTTLE_CLASSES",
+            ["tests.test_settings.CustomThrottlingClassImport",]
         )
 
         assert isinstance(settings.INJECTOR_MODULES[0](), CustomModuleImport)
         assert isinstance(settings.PAGINATION_CLASS(), CustomPaginationImport)
-        assert isinstance(settings.THROTTLE_CLASS(), CustomThrottlingClassImport)
+        assert isinstance(settings.THROTTLE_CLASSES[0](), CustomThrottlingClassImport)
 
     with pytest.raises(ValidationError):
         monkeypatch.setattr(
@@ -45,7 +45,7 @@ def test_setting_imports_string_works(monkeypatch):
 
     with pytest.raises(ValidationError):
         monkeypatch.setattr(
-            settings, "THROTTLE_CLASS", ["tests.test_settings.CustomModuleImport"]
+            settings, "THROTTLE_CLASSES", "tests.test_settings.CustomModuleImport"
         )
 
     with pytest.raises(ValidationError):
