@@ -116,4 +116,3 @@ You will see the automatic interactive API documentation (provided by <a href="h
 ![Swagger UI](docs/docs/images/ui_swagger_preview_readme.gif)
 ## What next?
 - To support this project, please give star it on Github
-- API Throttling
