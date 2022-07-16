@@ -48,6 +48,7 @@ nav:
   - Pagination: tutorial/pagination.md
   - Error Handling: tutorial/custom_exception.md
   - Versioning: tutorial/versioning.md
+  - Throttling: tutorial/throttling.md
   - Testing: tutorial/testing.md
 - Settings: settings.md
 - Dependency Injection: service_module_injector.md

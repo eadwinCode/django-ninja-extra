@@ -31,7 +31,9 @@ def test_setting_imports_string_works(monkeypatch):
         m.setattr(
             settings,
             "THROTTLE_CLASSES",
-            ["tests.test_settings.CustomThrottlingClassImport",]
+            [
+                "tests.test_settings.CustomThrottlingClassImport",
+            ],
         )
 
         assert isinstance(settings.INJECTOR_MODULES[0](), CustomModuleImport)

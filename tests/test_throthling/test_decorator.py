@@ -59,7 +59,7 @@ class TestThrottling:
 
     def test_requests_are_throttled_using_default_user_scope(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon='2/sec'))
+            m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon="2/sec"))
             for dummy in range(4):
                 response = client.get("/throttle_user_default", user=self.user)
             assert response.status_code == 429
@@ -164,7 +164,9 @@ class TestThrottling:
                 User3SecRateThrottle.rate = "1/sec"
 
                 for dummy in range(24):
-                    response = client.get("/throttling_multiple_throttle", user=self.user)
+                    response = client.get(
+                        "/throttling_multiple_throttle", user=self.user
+                    )
 
                 assert response.status_code == 429
                 assert int(response._response["retry-after"]) == 60
@@ -273,7 +275,7 @@ async def test_async_throttling(monkeypatch):
     user = create_user()
 
     with monkeypatch.context() as m:
-        m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon='2/sec'))
+        m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon="2/sec"))
         for dummy in range(4):
             response = await client_async.get("/throttle_user_default_async", user=user)
         assert response.status_code == 429

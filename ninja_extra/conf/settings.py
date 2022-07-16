@@ -20,6 +20,7 @@ NinjaExtra_SETTINGS_DEFAULTS = dict(
         "ninja_extra.throttling.AnonRateThrottle",
         "ninja_extra.throttling.UserRateThrottle",
     ],
+    THROTTLE_RATES={"user": None, "anon": None},
 )
 
 USER_SETTINGS = UserDefinedSettingsMapper(
@@ -36,7 +37,9 @@ class NinjaExtraSettings(Schema):
         "ninja_extra.pagination.LimitOffsetPagination",
     )
     PAGINATION_PER_PAGE: int = Field(100)
-    THROTTLE_RATES: Dict[str, Optional[str]] = Field({"user": None, "anon": None})
+    THROTTLE_RATES: Dict[str, Optional[str]] = Field(
+        {"user": "1000/day", "anon": "100/day"}
+    )
     THROTTLE_CLASSES: List[Any] = []
     NUM_PROXIES: Optional[int] = None
     INJECTOR_MODULES: List[Any] = []
