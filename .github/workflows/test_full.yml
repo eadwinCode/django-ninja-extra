@@ -26,18 +26,6 @@ jobs:
 #        run: pip install pytest pytest-asyncio pytest-django injector==0.19.0 django-ninja asgiref contextlib2
 #      - name: Test
 #        run: pytest
-  documentation:
-    name: Deploy docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v2
-
-      - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   codestyle:
     runs-on: ubuntu-latest
 
@@ -60,4 +48,4 @@ jobs:
       - name: mypy
         run: mypy ninja_extra
       - name: Build and Deploy Document
-        run: mkdocs build && mkdocs gh-deploy --force
+        run: mkdocs gh-deploy --force

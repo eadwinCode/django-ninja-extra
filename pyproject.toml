@@ -70,6 +70,5 @@ test = [
 doc = [
     "mkdocs",
     "mkdocs-material",
-    "markdown-include",
     "mkautodoc"
 ]
