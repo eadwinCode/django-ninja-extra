@@ -21,7 +21,5 @@ jobs:
         run: flit install --symlink
       - name: Test
         run: pytest --cov=ninja_extra --cov-report=xml tests
-      - name: Publish Document
-        run: make doc-deploy
       - name: Coverage
         uses: codecov/codecov-action@v1

@@ -47,3 +47,5 @@ jobs:
         run: flake8 ninja_extra tests
       - name: mypy
         run: mypy ninja_extra
+      - name: Publish Document
+        run: make doc-deploy
