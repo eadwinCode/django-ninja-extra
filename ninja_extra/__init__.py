@@ -1,6 +1,6 @@
 """Django Ninja Extra - Class Based Utility and more for Django Ninja(Fast Django REST framework)"""
 
-__version__ = "0.15.2"
+__version__ = "0.15.4"
 
 import django
 
@@ -17,7 +17,9 @@ from ninja_extra.controllers import (
 from ninja_extra.controllers.route import route
 from ninja_extra.dependency_resolver import get_injector, service_resolver
 from ninja_extra.main import NinjaExtraAPI
+from ninja_extra.pagination import paginate
 from ninja_extra.router import Router
+from ninja_extra.throttling import throttle
 
 if django.VERSION < (3, 2):  # pragma: no cover
     default_app_config = "ninja_extra.apps.NinjaExtraConfig"
@@ -42,4 +44,6 @@ __all__ = [
     "service_resolver",
     "lazy",
     "Router",
+    "throttle",
+    "paginate",
 ]

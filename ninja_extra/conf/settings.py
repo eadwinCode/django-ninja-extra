@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 from django.conf import settings as django_settings
 from django.test.signals import setting_changed
@@ -16,6 +16,11 @@ class UserDefinedSettingsMapper:
 NinjaExtra_SETTINGS_DEFAULTS = dict(
     INJECTOR_MODULES=[],
     PAGINATION_CLASS="ninja_extra.pagination.LimitOffsetPagination",
+    THROTTLE_CLASSES=[
+        "ninja_extra.throttling.AnonRateThrottle",
+        "ninja_extra.throttling.UserRateThrottle",
+    ],
+    THROTTLE_RATES={"user": None, "anon": None},
 )
 
 USER_SETTINGS = UserDefinedSettingsMapper(
@@ -32,10 +37,21 @@ class NinjaExtraSettings(Schema):
         "ninja_extra.pagination.LimitOffsetPagination",
     )
     PAGINATION_PER_PAGE: int = Field(100)
+    THROTTLE_RATES: Dict[str, Optional[str]] = Field(
+        {"user": "1000/day", "anon": "100/day"}
+    )
+    THROTTLE_CLASSES: List[Any] = []
+    NUM_PROXIES: Optional[int] = None
     INJECTOR_MODULES: List[Any] = []
 
     @validator("INJECTOR_MODULES", pre=True)
     def pre_injector_module_validate(cls, value: Any) -> Any:
+        if not isinstance(value, list):
+            raise ValueError("Invalid data type")
+        return value
+
+    @validator("THROTTLE_CLASSES", pre=True)
+    def pre_throttling_class_validate(cls, value: Any) -> Any:
         if not isinstance(value, list):
             raise ValueError("Invalid data type")
         return value
