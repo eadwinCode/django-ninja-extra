@@ -102,7 +102,7 @@ class CustomAnonRateThrottle(AnonRateThrottle):
 # **API Reference**
 
 ## **AnonRateThrottle**
-`AnonRateThrottle` model defined for throttling unauthenticated users using their IP address as key to throttle against.
+`AnonRateThrottle` model is for throttling unauthenticated users using their IP address as key to throttle against.
 It is suitable for restricting rate of requests from an unknown source
 
 Request Permission is determined by:
@@ -110,7 +110,7 @@ Request Permission is determined by:
 - `anon` scope defined in `THROTTLE_RATES` in `NINJA_EXTRA` settings in `settings.py` 
 
 ## **UserRateThrottle**
-`UserRateThrottle` model defined for throttling authenticated users using user id or pk to generate a key to throttle against.
+`UserRateThrottle` model is for throttling authenticated users using user id or pk to generate a key to throttle against.
 Unauthenticated requests will fall back to using the IP address of the incoming request to generate a unique key to throttle against.
 
 Request Permission is determined by:
@@ -145,7 +145,8 @@ NINJA_EXTRA = {
 }
 ```
 ## **DynamicRateThrottle**
-`DynamicRateThrottle` model defined for throttling authenticated and unauthenticated users. Its key feature is in the ability to dynamically set scope where its used.
+`DynamicRateThrottle` model is for throttling authenticated and unauthenticated users in similar way as `UserRateThrottle`. 
+Its key feature is in the ability to dynamically set `scope` where its used.
 for an example:
 we can defined a scope in settings
 
