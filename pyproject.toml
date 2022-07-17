@@ -67,4 +67,8 @@ test = [
     "mypy==0.931",
     "django-stubs",
 ]
-doc = []
+doc = [
+    "mkdocs",
+    "mkdocs-material",
+    "markdown-include"
+]
