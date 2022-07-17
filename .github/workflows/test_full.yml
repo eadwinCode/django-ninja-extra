@@ -34,7 +34,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.9
       - name: Install Flit
         run: pip install flit
       - name: Install Dependencies
@@ -47,5 +47,5 @@ jobs:
         run: flake8 ninja_extra tests
       - name: mypy
         run: mypy ninja_extra
-      - name: Publish Document
-        run: make doc-deploy
+      - name: Build and Deploy Document
+        run: mkdocs build && mkdocs gh-deploy --force
