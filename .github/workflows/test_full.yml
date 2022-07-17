@@ -47,5 +47,3 @@ jobs:
         run: flake8 ninja_extra tests
       - name: mypy
         run: mypy ninja_extra
-      - name: Build and Deploy Document
-        run: mkdocs build && mkdocs gh-deploy --force
