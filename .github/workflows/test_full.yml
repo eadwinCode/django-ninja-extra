@@ -26,7 +26,7 @@ jobs:
 #        run: pip install pytest pytest-asyncio pytest-django injector==0.19.0 django-ninja asgiref contextlib2
 #      - name: Test
 #        run: pytest
-  Publish Document:
+  documentation:
     name: Deploy docs
     runs-on: ubuntu-latest
     steps:
