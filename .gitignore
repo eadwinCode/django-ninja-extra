@@ -9,6 +9,7 @@ dist
 test.py
 
 docs/site
+site/
 
 .DS_Store
 .idea
