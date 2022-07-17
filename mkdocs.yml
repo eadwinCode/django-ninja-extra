@@ -27,9 +27,9 @@ theme:
   language: en
   icon:
     repo: fontawesome/brands/git-alt
+
 plugins:
 - search
-- mkdocstrings
 
 nav:
 - Index: index.md
