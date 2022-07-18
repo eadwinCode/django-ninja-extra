@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/tutorial/throttling/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.24c991ad.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -514,8 +514,6 @@
       </a>
       
         
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -539,6 +537,33 @@
         <li class="md-nav__item">
   <a href="#throttling-policy-settings" class="md-nav__link">
     Throttling Policy Settings
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clients-identification" class="md-nav__link">
+    Clients Identification
+  </a>
+  
+    <nav class="md-nav" aria-label="Clients Identification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limit-clients-proxies" class="md-nav__link">
+    Limit Clients Proxies
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#throttling-model-cache-setup" class="md-nav__link">
+    Throttling Model Cache setup
   </a>
   
 </li>
@@ -614,8 +639,6 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -643,6 +666,33 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#clients-identification" class="md-nav__link">
+    Clients Identification
+  </a>
+  
+    <nav class="md-nav" aria-label="Clients Identification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limit-clients-proxies" class="md-nav__link">
+    Limit Clients Proxies
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#throttling-model-cache-setup" class="md-nav__link">
+    Throttling Model Cache setup
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -659,14 +709,14 @@
                 <h1 id="throttling"><strong>Throttling</strong></h1>
 <p>Throttling can be seen as a permission that determines if a request should be authorized. 
 It indicates a temporary state used to control the rate of requests that clients can make to an API.</p>
-<p>```python
-from ninja_extra import NinjaExtraAPI, throttle
-api = NinjaExtraAPI()</p>
-<p>@api.get('/users')
-@throttle  # this will apply default throttle classes [UserRateThrottle, AnonRateThrottle]
-def my_throttled_endpoint(request):
-    return 'foo'
-```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">throttle</span>
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">()</span>
+
+<span class="nd">@api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="nd">@throttle</span>  <span class="c1"># this will apply default throttle classes [UserRateThrottle, AnonRateThrottle]</span>
+<span class="k">def</span> <span class="nf">my_throttled_endpoint</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;foo&#39;</span>
+</code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>The above example won't be throttled because the default scope for <code>UserRateThrottle</code> and <code>AnonRateThrottle</code>
@@ -676,47 +726,50 @@ is <code>none</code></p>
 <p>Django-ninja-extra throttle supposes multiple throttles which is useful to impose different
 constraints, which could be burst throttling rate or sustained throttling rates, on an API.
 for example, you might want to limit a user to a maximum of 60 requests per minute, and 1000 requests per day.</p>
-<p>```python
-from ninja_extra import NinjaExtraAPI, throttle
-from ninja_extra.throttling import UserRateThrottle
-api = NinjaExtraAPI()</p>
-<p>class User60MinRateThrottle(UserRateThrottle):
-    rate = "60/min"
-    scope = "minutes"</p>
-<p>class User1000PerDayRateThrottle(UserRateThrottle):
-    rate = "1000/day"
-    scope = "days"</p>
-<p>@api.get('/users')
-@throttle(User60MinRateThrottle, User1000PerDayRateThrottle)
-def my_throttled_endpoint(request):
-    return 'foo'</p>
-<p>```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">throttle</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.throttling</span> <span class="kn">import</span> <span class="n">UserRateThrottle</span>
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">User60MinRateThrottle</span><span class="p">(</span><span class="n">UserRateThrottle</span><span class="p">):</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="s2">&quot;60/min&quot;</span>
+    <span class="n">scope</span> <span class="o">=</span> <span class="s2">&quot;minutes&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">User1000PerDayRateThrottle</span><span class="p">(</span><span class="n">UserRateThrottle</span><span class="p">):</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="s2">&quot;1000/day&quot;</span>
+    <span class="n">scope</span> <span class="o">=</span> <span class="s2">&quot;days&quot;</span>
+
+<span class="nd">@api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="nd">@throttle</span><span class="p">(</span><span class="n">User60MinRateThrottle</span><span class="p">,</span> <span class="n">User1000PerDayRateThrottle</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_throttled_endpoint</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;foo&#39;</span>
+</code></pre></div>
 <h2 id="throttling-policy-settings"><strong>Throttling Policy Settings</strong></h2>
 <p>You can set globally default throttling classes and rates in your project <code>settings.py</code> by overriding the keys below:
-```python</p>
-<h1 id="django-settingspy">django settings.py</h1>
-<p>NINJA_EXTRA = {
-    'THROTTLE_CLASSES': [
-        "ninja_extra.throttling.AnonRateThrottle",
-        "ninja_extra.throttling.UserRateThrottle",
-    ],
-    'THROTTLE_RATES': {
-        'user': '1000/day',
-        'anon': '100/day',
-    },
-    'NUM_PROXIES': None
-}
-<code>``
-The rate descriptions used in</code>THROTTLE_RATES<code>may include</code>second<code>,</code>minute<code>,</code>hour<code>or</code>day` as the throttle period.</p>
-<p>```python
-from ninja_extra import NinjaExtraAPI, throttle
-from ninja_extra.throttling import UserRateThrottle</p>
-<p>api = NinjaExtraAPI()</p>
-<p>@api.get('/users')
-@throttle(UserRateThrottle)
-def my_throttled_endpoint(request):
-    return 'foo'
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># django settings.py</span>
+<span class="n">NINJA_EXTRA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;THROTTLE_CLASSES&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ninja_extra.throttling.AnonRateThrottle&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ninja_extra.throttling.UserRateThrottle&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s1">&#39;THROTTLE_RATES&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;1000/day&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;anon&#39;</span><span class="p">:</span> <span class="s1">&#39;100/day&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;NUM_PROXIES&#39;</span><span class="p">:</span> <span class="kc">None</span>
+<span class="p">}</span>
+</code></pre></div>
+The rate descriptions used in <code>THROTTLE_RATES</code> may include <code>second</code>, <code>minute</code>, <code>hour</code> or <code>day</code> as the throttle period.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">throttle</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.throttling</span> <span class="kn">import</span> <span class="n">UserRateThrottle</span>
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">()</span>
+
+<span class="nd">@api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="nd">@throttle</span><span class="p">(</span><span class="n">UserRateThrottle</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_throttled_endpoint</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;foo&#39;</span>
+</code></pre></div>
 <h2 id="clients-identification"><strong>Clients Identification</strong></h2>
 <p>Clients are identified by x-Forwarded-For in HTTP header and REMOTE_ADDR from WSGI variable.
 These are unique identities which identifies clients IP addresses used for throttling.
@@ -733,12 +786,13 @@ It is important to understand that if you configure the <code>NUM_PROXIES</code>
 <p>The throttling models used in django-ninja-extra utilizes Django cache backend. It uses the <code>default</code> value of <a href=""><code>LocMemCache</code></a>
 See Django's <a href="https://docs.djangoproject.com/en/stable/topics/cache/#setting-up-the-cache">cache documentation</a> for more details.</p>
 <p>If you dont want to use the default cache defined in throttle model, here is an example on how to define a different cache for a throttling model
-```python</p>
-<p>from django.core.cache import caches
-from ninja_extra.throttling import AnonRateThrottle</p>
-<p>class CustomAnonRateThrottle(AnonRateThrottle):
-    cache = caches['alternate']
-```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">caches</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.throttling</span> <span class="kn">import</span> <span class="n">AnonRateThrottle</span>
+
+
+<span class="k">class</span> <span class="nc">CustomAnonRateThrottle</span><span class="p">(</span><span class="n">AnonRateThrottle</span><span class="p">):</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">caches</span><span class="p">[</span><span class="s1">&#39;alternate&#39;</span><span class="p">]</span>
+</code></pre></div></p>
 <h1 id="api-reference"><strong>API Reference</strong></h1>
 <h2 id="anonratethrottle"><strong>AnonRateThrottle</strong></h2>
 <p><code>AnonRateThrottle</code> model is for throttling unauthenticated users using their IP address as key to throttle against.
@@ -753,56 +807,58 @@ Unauthenticated requests will fall back to using the IP address of the incoming 
 - <code>rate</code> defined in derived class
 - <code>user</code> scope defined in <code>THROTTLE_RATES</code> in <code>NINJA_EXTRA</code> settings in <code>settings.py</code> </p>
 <p>You can use multiple user throttle rates for a <code>UserRateThrottle</code> model, for example:
-```python</p>
-<h1 id="examplethrottlespy">example/throttles.py</h1>
-<p>from ninja_extra.throttling import UserRateThrottle</p>
-<p>class BurstRateThrottle(UserRateThrottle):
-    scope = 'burst'</p>
-<p>class SustainedRateThrottle(UserRateThrottle):
-    scope = 'sustained'
-```</p>
-<p>```python</p>
-<h1 id="django-settingspy_1">django settings.py</h1>
-<p>NINJA_EXTRA = {
-    'THROTTLE_CLASSES': [
-        'example.throttles.BurstRateThrottle',
-        'example.throttles.SustainedRateThrottle'
-    ],
-    'THROTTLE_RATES': {
-        'burst': '60/min',
-        'sustained': '1000/day'
-    }
-}
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># example/throttles.py</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.throttling</span> <span class="kn">import</span> <span class="n">UserRateThrottle</span>
+
+
+<span class="k">class</span> <span class="nc">BurstRateThrottle</span><span class="p">(</span><span class="n">UserRateThrottle</span><span class="p">):</span>
+    <span class="n">scope</span> <span class="o">=</span> <span class="s1">&#39;burst&#39;</span>
+
+
+<span class="k">class</span> <span class="nc">SustainedRateThrottle</span><span class="p">(</span><span class="n">UserRateThrottle</span><span class="p">):</span>
+    <span class="n">scope</span> <span class="o">=</span> <span class="s1">&#39;sustained&#39;</span>
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># django settings.py</span>
+<span class="n">NINJA_EXTRA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;THROTTLE_CLASSES&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;example.throttles.BurstRateThrottle&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;example.throttles.SustainedRateThrottle&#39;</span>
+    <span class="p">],</span>
+    <span class="s1">&#39;THROTTLE_RATES&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;burst&#39;</span><span class="p">:</span> <span class="s1">&#39;60/min&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sustained&#39;</span><span class="p">:</span> <span class="s1">&#39;1000/day&#39;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 <h2 id="dynamicratethrottle"><strong>DynamicRateThrottle</strong></h2>
 <p><code>DynamicRateThrottle</code> model is for throttling authenticated and unauthenticated users in similar way as <code>UserRateThrottle</code>. 
 Its key feature is in the ability to dynamically set <code>scope</code> where its used.
 for an example:
 we can defined a scope in settings</p>
-<p>```python</p>
-<h1 id="django-settingspy_2">django settings.py</h1>
-<p>NINJA_EXTRA = {
-    'THROTTLE_RATES': {
-        'burst': '60/min',
-        'sustained': '1000/day'
-    }
-}
-```</p>
-<p>```python</p>
-<h1 id="apipy">api.py</h1>
-<p>from ninja_extra import NinjaExtraAPI, throttle
-from ninja_extra.throttling import DynamicRateThrottle
-api = NinjaExtraAPI()</p>
-<p>@api.get('/users')
-@throttle(DynamicRateThrottle, scope='burst')
-def get_users(request):
-    return 'foo'</p>
-<p>@api.get('/users/<int:id>')
-@throttle(DynamicRateThrottle, scope='sustained')
-def get_user_by_id(request, id: int):
-    return 'foo'
-<code>``
-Here, we dynamically applied</code>sustained<code>rates and</code>burst<code>rates to</code>get_users<code>and</code>get_user_by_id` respectively</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># django settings.py</span>
+<span class="n">NINJA_EXTRA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;THROTTLE_RATES&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;burst&#39;</span><span class="p">:</span> <span class="s1">&#39;60/min&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sustained&#39;</span><span class="p">:</span> <span class="s1">&#39;1000/day&#39;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># api.py</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">throttle</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.throttling</span> <span class="kn">import</span> <span class="n">DynamicRateThrottle</span>
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">()</span>
+
+<span class="nd">@api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="nd">@throttle</span><span class="p">(</span><span class="n">DynamicRateThrottle</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;burst&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_users</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;foo&#39;</span>
+
+<span class="nd">@api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/users/&lt;int:id&gt;&#39;</span><span class="p">)</span>
+<span class="nd">@throttle</span><span class="p">(</span><span class="n">DynamicRateThrottle</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;sustained&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_user_by_id</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s1">&#39;foo&#39;</span>
+</code></pre></div>
+Here, we dynamically applied <code>sustained</code> rates and <code>burst</code> rates to <code>get_users</code> and <code>get_user_by_id</code> respectively</p>
                 
               
               
@@ -875,10 +931,10 @@ Here, we dynamically applied</code>sustained<code>rates and</code>burst<code>rat
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../../assets/javascripts/bundle.bc35569b.min.js"></script>
       
     
   </body>

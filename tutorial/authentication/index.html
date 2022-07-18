@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/tutorial/authentication/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.24c991ad.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -388,8 +388,6 @@
       </a>
       
         
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -621,8 +619,6 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -675,31 +671,36 @@
 <h2 id="automatic-openapi-schema"><strong>Automatic OpenAPI schema</strong></h2>
 <p>Here's an example where the client, in order to authenticate, needs to pass a header:</p>
 <p><code>Authorization: Bearer supersecret</code></p>
-<p>```Python
-from ninja.security import HttpBearer
-from ninja_extra import api_controller, route
-from ninja.constants import NOT_SET</p>
-<p>class AuthBearer(HttpBearer):
-    def authenticate(self, request, token):
-        if token == "supersecret":
-            return token</p>
-<p>@api_controller(tags=['My Operations'], auth=NOT_SET, permissions=[])
-class MyController:
-    @route.get("/bearer", auth=AuthBearer())
-    def bearer(self):
-        return {"token": self.request.auth}</p>
-<p>```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja.security</span> <span class="kn">import</span> <span class="n">HttpBearer</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">route</span>
+<span class="kn">from</span> <span class="nn">ninja.constants</span> <span class="kn">import</span> <span class="n">NOT_SET</span>
+
+
+<span class="k">class</span> <span class="nc">AuthBearer</span><span class="p">(</span><span class="n">HttpBearer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;supersecret&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">token</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;My Operations&#39;</span><span class="p">],</span> <span class="n">auth</span><span class="o">=</span><span class="n">NOT_SET</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[])</span>
+<span class="k">class</span> <span class="nc">MyController</span><span class="p">:</span>
+    <span class="nd">@route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/bearer&quot;</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">AuthBearer</span><span class="p">())</span>
+    <span class="k">def</span> <span class="nf">bearer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">auth</span><span class="p">}</span>
+</code></pre></div>
 <h2 id="global-authentication"><strong>Global authentication</strong></h2>
 <p>In case you need to secure <strong>all</strong> route methods defined in <code>api</code> and APIController, you can pass the <code>auth</code> argument to the <code>NinjaExtraAPI</code> constructor:</p>
-<p>```Python
-from ninja_extra import NinjaExtraAPI
-from ninja.security import HttpBearer</p>
-<p>class GlobalAuth(HttpBearer):
-    def authenticate(self, request, token):
-        if token == "supersecret":
-            return token</p>
-<p>api = NinjaExtraAPI(auth=GlobalAuth())</p>
-<p>```
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span>
+<span class="kn">from</span> <span class="nn">ninja.security</span> <span class="kn">import</span> <span class="n">HttpBearer</span>
+
+
+<span class="k">class</span> <span class="nc">GlobalAuth</span><span class="p">(</span><span class="n">HttpBearer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">authenticate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;supersecret&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">token</span>
+
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">auth</span><span class="o">=</span><span class="n">GlobalAuth</span><span class="p">())</span>
+</code></pre></div>
 Read more on django-ninja <a href="https://django-ninja.rest-framework.com/tutorial/authentication/">authentication</a></p>
 <h2 id="jwt-authentication"><strong>JWT Authentication</strong></h2>
 <p>if you want to use JWT authentication. See <a href="https://pypi.org/project/django-ninja-jwt/">ninja-jwt</a></p>
@@ -775,10 +776,10 @@ Read more on django-ninja <a href="https://django-ninja.rest-framework.com/tutor
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../../assets/javascripts/bundle.bc35569b.min.js"></script>
       
     
   </body>

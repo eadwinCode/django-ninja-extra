@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/tutorial/versioning/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.24c991ad.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -500,8 +500,6 @@
       </a>
       
         
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -614,8 +612,6 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -661,45 +657,49 @@
 <p>With <strong>Django Ninja Extra</strong>, it's very much easy to run multiple API versions from a single Django project.</p>
 <p>All you have to do is create two or more NinjaAPI instances with different <code>version</code> arguments:</p>
 <p><strong><code>api_v1.py</code></strong>:</p>
-<p>```Python
-from ninja_extra import NinjaExtraAPI, route, api_controller</p>
-<p>@api_controller
-class MyV1Controller:
-    @route.get('/hello')
-    def hello(self):
-        return {'message': 'Hello from V1'}</p>
-<div class="codehilite"><pre><span></span><code><span class="nv">@route</span><span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="s1">&#39;/example&#39;</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">example</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="err">:</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="err">{</span><span class="s1">&#39;message&#39;</span><span class="err">:</span><span class="w"> </span><span class="s1">&#39;Hello from V1 Example&#39;</span><span class="err">}</span><span class="w"></span>
-</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">route</span><span class="p">,</span> <span class="n">api_controller</span>
 
-<p>api = NinjaExtraAPI(version='1.0.0')
-api.register_controllers(MyV1Controller)
-```</p>
+<span class="nd">@api_controller</span>
+<span class="k">class</span> <span class="nc">MyV1Controller</span><span class="p">:</span>
+    <span class="nd">@route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/hello&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello from V1&#39;</span><span class="p">}</span>
+
+    <span class="nd">@route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/example&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello from V1 Example&#39;</span><span class="p">}</span>
+
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+<span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span><span class="n">MyV1Controller</span><span class="p">)</span>
+</code></pre></div>
 <p>api_<strong>v2</strong>.py:
 You can reuse your APIControllers and make modifications to specific routes.</p>
-<p>```Python
-from ninja_extra import NinjaExtraAPI, route, api_controller
-from .api_v1 import MyV1Controller</p>
-<p>@api_controller
-class MyV2Controller(MyV1Controller):
-    @route.get('/example')
-    def example(self):
-        return {'message': 'Hello from V2 Example'}</p>
-<p>api = NinjaExtraAPI(version='2.0.0')
-api.register_controllers(MyV2Controller)
-```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">route</span><span class="p">,</span> <span class="n">api_controller</span>
+<span class="kn">from</span> <span class="nn">.api_v1</span> <span class="kn">import</span> <span class="n">MyV1Controller</span>
+
+<span class="nd">@api_controller</span>
+<span class="k">class</span> <span class="nc">MyV2Controller</span><span class="p">(</span><span class="n">MyV1Controller</span><span class="p">):</span>
+    <span class="nd">@route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/example&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello from V2 Example&#39;</span><span class="p">}</span>
+
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;2.0.0&#39;</span><span class="p">)</span>
+<span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span><span class="n">MyV2Controller</span><span class="p">)</span>
+</code></pre></div>
 <p>and then in <strong>urls.py</strong>:</p>
-<p>```Python hl_lines="8 9"
-...
-from api_v1 import api as api_v1
-from api_v2 import api as api_v2</p>
-<p>urlpatterns = [
-    ...
-    path('api/v1/', api_v1.urls),
-    path('api/v2/', api_v2.urls),
-]</p>
-<p>```</p>
+<div class="highlight"><pre><span></span><code><span class="o">...</span>
+<span class="kn">from</span> <span class="nn">api_v1</span> <span class="kn">import</span> <span class="n">api</span> <span class="k">as</span> <span class="n">api_v1</span>
+<span class="kn">from</span> <span class="nn">api_v2</span> <span class="kn">import</span> <span class="n">api</span> <span class="k">as</span> <span class="n">api_v2</span>
+
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="o">...</span>
+<span class="hll">    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;api/v1/&#39;</span><span class="p">,</span> <span class="n">api_v1</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+</span><span class="hll">    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;api/v2/&#39;</span><span class="p">,</span> <span class="n">api_v2</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+</span><span class="p">]</span>
+</code></pre></div>
 <p>Now you can go to different OpenAPI docs pages for each version:</p>
 <ul>
 <li>http://127.0.0.1/api/<strong>v1</strong>/docs</li>
@@ -707,18 +707,22 @@ from api_v2 import api as api_v2</p>
 </ul>
 <h2 id="different-business-logic"><strong>Different business logic</strong></h2>
 <p>In the same way, you can define a different API for different components or areas:</p>
-<p>```Python
-...</p>
-<p>api = NinjaExtraAPI(auth=token_auth, urls_namespace='public_api')
-...</p>
-<p>api_private = NinjaExtraAPI(auth=session_auth, urls_namespace='private_api')
-...</p>
-<p>urlpatterns = [
-    ...
-    path('api/', api.urls),
-    path('internal-api/', api_private.urls),
-]</p>
-<p>```</p>
+<div class="highlight"><pre><span></span><code><span class="o">...</span>
+
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">auth</span><span class="o">=</span><span class="n">token_auth</span><span class="p">,</span> <span class="n">urls_namespace</span><span class="o">=</span><span class="s1">&#39;public_api&#39;</span><span class="p">)</span>
+<span class="o">...</span>
+
+<span class="n">api_private</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">auth</span><span class="o">=</span><span class="n">session_auth</span><span class="p">,</span> <span class="n">urls_namespace</span><span class="o">=</span><span class="s1">&#39;private_api&#39;</span><span class="p">)</span>
+<span class="o">...</span>
+
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="o">...</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;api/&#39;</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+    <span class="n">path</span><span class="p">(</span><span class="s1">&#39;internal-api/&#39;</span><span class="p">,</span> <span class="n">api_private</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+<span class="p">]</span>
+</code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you use different <strong>NinjaExtraAPI</strong> instances, you need to define different <code>version</code>s or different <code>urls_namespace</code>s.
@@ -796,10 +800,10 @@ This is the same with <strong>NinjaAPI</strong> instances</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../../assets/javascripts/bundle.bc35569b.min.js"></script>
       
     
   </body>

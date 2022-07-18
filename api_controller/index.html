@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/api_controller/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.24c991ad.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -298,8 +298,6 @@
       </a>
       
         
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -621,8 +619,6 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -680,9 +676,9 @@ Don't get me wrong, there are still great libraries. In fact, some features of D
 <p>So I designed APIController to extend Django-Ninja to class-based and have something more flexible to adapt to recent software design patterns out there.</p>
 <p>So if you enjoy class-based controls for building API, welcome aboard.</p>
 <h2 id="controllerbase">ControllerBase</h2>
-<p><code>python
-class ControllerBase(ABC):
-    ...</code>
+<p><div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ControllerBase</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="o">...</span>
+</code></pre></div>
 APIController decorates any class with <code>ControllerBase</code> if its not inheriting from it.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
@@ -690,52 +686,54 @@ APIController decorates any class with <code>ControllerBase</code> if its not in
 </div>
 <h2 id="quick-example">Quick Example</h2>
 <p>Let's create an APIController to manage Django user model</p>
-<p>```python
-import uuid
-from typing import List
-from ninja import ModelSchema
-from ninja_extra import (
-    http_get, http_post, http_generic, http_delete,
-    api_controller, status, ControllerBase, pagination
-)
-from ninja_extra.controllers.response import Detail
-from django.contrib.auth import get_user_model</p>
-<p>class UserSchema(ModelSchema):
-    class Config:
-        model = get_user_model()
-        model_fields = ['username', 'email', 'first_name']</p>
-<p>@api_controller('/users')
-class UsersController(ControllerBase):
-    user_model = get_user_model()</p>
-<div class="codehilite"><pre><span></span><code><span class="nv">@http_post</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">create_user</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="k">user</span><span class="err">:</span><span class="w"> </span><span class="n">UserSchema</span><span class="p">)</span><span class="err">:</span><span class="w"></span>
-<span class="w">    </span><span class="err">#</span><span class="w"> </span><span class="n">just</span><span class="w"> </span><span class="n">simulating</span><span class="w"> </span><span class="n">created</span><span class="w"> </span><span class="k">user</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">Id</span><span class="p">(</span><span class="n">uuid</span><span class="p">.</span><span class="n">uuid4</span><span class="p">())</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">ninja</span> <span class="kn">import</span> <span class="n">ModelSchema</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">http_get</span><span class="p">,</span> <span class="n">http_post</span><span class="p">,</span> <span class="n">http_generic</span><span class="p">,</span> <span class="n">http_delete</span><span class="p">,</span>
+    <span class="n">api_controller</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">ControllerBase</span><span class="p">,</span> <span class="n">pagination</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.controllers.response</span> <span class="kn">import</span> <span class="n">Detail</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth</span> <span class="kn">import</span> <span class="n">get_user_model</span>
 
-<span class="nv">@http_generic</span><span class="p">(</span><span class="s1">&#39;/{int:user_id}&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">methods</span><span class="o">=[</span><span class="n">&#39;put&#39;, &#39;patch&#39;</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="n">response</span><span class="o">=</span><span class="n">UserSchema</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">update_user</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="nf">user_id</span><span class="err">:</span><span class="w"> </span><span class="nc">int</span><span class="p">)</span><span class="err">:</span><span class="w"></span>
-<span class="w">    </span><span class="ss">&quot;&quot;&quot; Django Ninja will serialize Django ORM model to schema provided as `response`&quot;&quot;&quot;</span><span class="w"></span>
-<span class="w">    </span><span class="k">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">get_object_or_exception</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">user_model</span><span class="p">,</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="nf">user_id</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">user</span><span class="w"></span>
 
-<span class="nv">@http_delete</span><span class="p">(</span><span class="s1">&#39;/{int:user_id}&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">response</span><span class="o">=</span><span class="n">Detail</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="p">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">))</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">delete_user</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="nf">user_id</span><span class="err">:</span><span class="w"> </span><span class="nc">int</span><span class="p">)</span><span class="err">:</span><span class="w"></span>
-<span class="w">    </span><span class="k">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">get_object_or_exception</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">user_model</span><span class="p">,</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="nf">user_id</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="k">user</span><span class="p">.</span><span class="k">delete</span><span class="p">()</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">create_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="p">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span><span class="w"></span>
+<span class="k">class</span> <span class="nc">UserSchema</span><span class="p">(</span><span class="n">ModelSchema</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">get_user_model</span><span class="p">()</span>
+        <span class="n">model_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;first_name&#39;</span><span class="p">]</span>
 
-<span class="nv">@http_get</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">response</span><span class="o">=</span><span class="n">List</span><span class="o">[</span><span class="n">UserSchema</span><span class="o">]</span><span class="p">)</span><span class="w"></span>
-<span class="nv">@pagination</span><span class="p">.</span><span class="n">paginate</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">list_user</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="err">:</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">user_model</span><span class="p">.</span><span class="n">objects</span><span class="p">.</span><span class="ow">all</span><span class="p">()</span><span class="w"></span>
 
-<span class="nv">@http_get</span><span class="p">(</span><span class="s1">&#39;/{user_id}&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">response</span><span class="o">=</span><span class="n">UserSchema</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">get_user_by_id</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="nf">user_id</span><span class="err">:</span><span class="w"> </span><span class="nc">int</span><span class="p">)</span><span class="err">:</span><span class="w"></span>
-<span class="w">    </span><span class="k">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">self</span><span class="p">.</span><span class="n">get_object_or_exception</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">user_model</span><span class="p">,</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="nf">user_id</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">user</span><span class="w"></span>
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">UsersController</span><span class="p">(</span><span class="n">ControllerBase</span><span class="p">):</span>
+    <span class="n">user_model</span> <span class="o">=</span> <span class="n">get_user_model</span><span class="p">()</span>
+
+    <span class="nd">@http_post</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">UserSchema</span><span class="p">):</span>
+        <span class="c1"># just simulating created user</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Id</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+    <span class="nd">@http_generic</span><span class="p">(</span><span class="s1">&#39;/{int:user_id}&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;put&#39;</span><span class="p">,</span> <span class="s1">&#39;patch&#39;</span><span class="p">],</span> <span class="n">response</span><span class="o">=</span><span class="n">UserSchema</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">update_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Django Ninja will serialize Django ORM model to schema provided as `response`&quot;&quot;&quot;</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object_or_exception</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_model</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span>
+
+    <span class="nd">@http_delete</span><span class="p">(</span><span class="s1">&#39;/{int:user_id}&#39;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">Detail</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">delete_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object_or_exception</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_model</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_response</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span>
+
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">List</span><span class="p">[</span><span class="n">UserSchema</span><span class="p">])</span>
+    <span class="nd">@pagination</span><span class="o">.</span><span class="n">paginate</span>
+    <span class="k">def</span> <span class="nf">list_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{user_id}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">UserSchema</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_user_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object_or_exception</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_model</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span>
 </code></pre></div>
-
-<p>```</p>
                 
               
               
@@ -808,10 +806,10 @@ class UsersController(ControllerBase):
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../assets/javascripts/bundle.bc35569b.min.js"></script>
       
     
   </body>

@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/tutorial/pagination/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.24c991ad.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -472,8 +472,6 @@
       </a>
       
         
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -504,6 +502,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
   
 </li>
       
@@ -620,8 +625,6 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -655,6 +658,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -678,45 +688,49 @@
 </ul>
 <h3 id="changing-default-pagination-class">Changing Default Pagination Class</h3>
 <p>To change the default pagination class, you need to add a <code>NINJA_EXTRA</code> variable in <code>settings.py</code> with a key <code>PAGINATION_CLASS</code> and value defining path to pagination class
-```python</p>
-<h1 id="django-project-settingspy">Django project settings.py</h1>
-<p>INSTALLED_APPS = [
-    ...
-]
-NINJA_EXTRA={
-    'PAGINATION_CLASS': 'ninja_extra.pagination.PageNumberPaginationExtra'
-}
-```</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Django project settings.py</span>
+<span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="o">...</span>
+<span class="p">]</span>
+<span class="n">NINJA_EXTRA</span><span class="o">=</span><span class="p">{</span>
+    <span class="s1">&#39;PAGINATION_CLASS&#39;</span><span class="p">:</span> <span class="s1">&#39;ninja_extra.pagination.PageNumberPaginationExtra&#39;</span>
+<span class="p">}</span>
+</code></pre></div></p>
 <h2 id="usage"><strong>Usage</strong></h2>
-<p>```python
-from typing import List
-from ninja_extra.pagination import (
-    paginate, PageNumberPaginationExtra, PaginatedResponseSchema
-)
-from ninja_extra import api_controller, route, NinjaExtraAPI
-from ninja import ModelSchema
-from django.contrib.auth import get_user_model</p>
-<p>user_model = get_user_model()</p>
-<p>class UserSchema(ModelSchema):
-    class Config:
-        model = user_model
-        model_fields = ['username', 'email']</p>
-<p>@api_controller('/users')
-class UserController:
-    @route.get('', response=PaginatedResponseSchema[UserSchema])
-    @paginate(PageNumberPaginationExtra, page_size=50)
-    def get_users(self):
-        return user_model.objects.all()</p>
-<div class="codehilite"><pre><span></span><code><span class="nv">@route</span><span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="s1">&#39;/limit&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">response</span><span class="o">=</span><span class="n">List</span><span class="o">[</span><span class="n">UserSchema</span><span class="o">]</span><span class="p">)</span><span class="w"></span>
-<span class="nv">@paginate</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">get_users_with_limit</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="err">:</span><span class="w"></span>
-<span class="w">    </span><span class="err">#</span><span class="w"> </span><span class="n">this</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="k">use</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="n">paginator</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ninja_extra</span><span class="p">.</span><span class="n">pagination</span><span class="p">.</span><span class="n">LimitOffsetPagination</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">user_model</span><span class="p">.</span><span class="n">objects</span><span class="p">.</span><span class="ow">all</span><span class="p">()</span><span class="w"></span>
-</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.pagination</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">paginate</span><span class="p">,</span> <span class="n">PageNumberPaginationExtra</span><span class="p">,</span> <span class="n">PaginatedResponseSchema</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">route</span><span class="p">,</span> <span class="n">NinjaExtraAPI</span>
+<span class="kn">from</span> <span class="nn">ninja</span> <span class="kn">import</span> <span class="n">ModelSchema</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth</span> <span class="kn">import</span> <span class="n">get_user_model</span>
 
-<p>api = NinjaExtraAPI(title='Pagination Test')
-api.register_controllers(UserController)
-```</p>
+<span class="n">user_model</span> <span class="o">=</span> <span class="n">get_user_model</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">UserSchema</span><span class="p">(</span><span class="n">ModelSchema</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">user_model</span>
+        <span class="n">model_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">]</span>
+
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s1">&#39;/users&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">UserController</span><span class="p">:</span>
+    <span class="nd">@route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">PaginatedResponseSchema</span><span class="p">[</span><span class="n">UserSchema</span><span class="p">])</span>
+    <span class="nd">@paginate</span><span class="p">(</span><span class="n">PageNumberPaginationExtra</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_users</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">user_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="nd">@route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/limit&#39;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">List</span><span class="p">[</span><span class="n">UserSchema</span><span class="p">])</span>
+    <span class="nd">@paginate</span>
+    <span class="k">def</span> <span class="nf">get_users_with_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># this will use default paginator class - ninja_extra.pagination.LimitOffsetPagination</span>
+        <span class="k">return</span> <span class="n">user_model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Pagination Test&#39;</span><span class="p">)</span>
+<span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span><span class="n">UserController</span><span class="p">)</span>
+</code></pre></div>
 <p><img alt="Preview" src="../../images/pagination_example.gif" /></p>
                 
               
@@ -790,10 +804,10 @@ api.register_controllers(UserController)
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../../assets/javascripts/bundle.bc35569b.min.js"></script>
       
     
   </body>

@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/tutorial/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.24c991ad.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -374,8 +374,6 @@
       </a>
       
         
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -406,6 +404,13 @@
         <li class="md-nav__item">
   <a href="#first-steps" class="md-nav__link">
     First steps
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-operation-methods" class="md-nav__link">
+    Defining operation methods
   </a>
   
 </li>
@@ -621,8 +626,6 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -657,6 +660,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#defining-operation-methods" class="md-nav__link">
+    Defining operation methods
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -678,38 +688,41 @@ And most especially assumes you know how to use <strong>Django Ninja</strong></p
 <p>A lot of content here is drawn from Django-Ninja. So a lot would make sense if you understand the Django-Ninja framework first.</p>
 </div>
 <h2 id="installation"><strong>Installation</strong></h2>
-<p><code>pip install django-ninja-extra</code></p>
+<div class="highlight"><pre><span></span><code>pip install django-ninja-extra
+</code></pre></div>
 <p>After installation, add <code>ninja_extra</code> to your <code>INSTALLED_APPS</code></p>
-<p><code>Python 
-INSTALLED_APPS = [
-    ...,
-    'ninja_extra',
-]</code></p>
+<div class="highlight"><pre><span></span><code><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="s1">&#39;ninja_extra&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+</code></pre></div>
 <h2 id="create-a-django-project"><strong>Create a Django project</strong></h2>
 <p>(If you already have an existing Django project, skip to the next step).</p>
 <p>Start a new Django project (or use an existing one).</p>
-<p><code>django-admin startproject myproject</code></p>
+<div class="highlight"><pre><span></span><code>django-admin startproject myproject
+</code></pre></div>
 <h2 id="first-steps"><strong>First steps</strong></h2>
 <p>Let's create a module for our API.  Create an <strong>api.py</strong> file in the same directory location as <strong>urls.py</strong>:</p>
 <p><code>api.py</code></p>
-<p>```Python
-from ninja_extra import NinjaExtraAPI</p>
-<p>api = NinjaExtraAPI()</p>
-<h1 id="function-definition-using-django-ninja-default-router">function definition using Django-Ninja default router</h1>
-<p>@api.get("/hello")
-def hello(request):
-    return "Hello world"</p>
-<p>```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span>
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">()</span>
+
+<span class="c1"># function definition using Django-Ninja default router</span>
+<span class="nd">@api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/hello&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;Hello world&quot;</span>
+</code></pre></div>
 <p>Now go to <strong>urls.py</strong> and add the following:</p>
-<p>```Python hl_lines="3 7"
-from django.contrib import admin
-from django.urls import path
-from .api import api</p>
-<p>urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", api.urls),
-]
-```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span> <span class="nn">django.urls</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="hll"><span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">api</span>
+</span>
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">path</span><span class="p">(</span><span class="s2">&quot;admin/&quot;</span><span class="p">,</span> <span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+<span class="hll">    <span class="n">path</span><span class="p">(</span><span class="s2">&quot;api/&quot;</span><span class="p">,</span> <span class="n">api</span><span class="o">.</span><span class="n">urls</span><span class="p">),</span>
+</span><span class="p">]</span>
+</code></pre></div>
 <h2 id="defining-operation-methods"><strong>Defining operation methods</strong></h2>
 <p>"Operation" can be one of the HTTP "methods":</p>
 <ul>
@@ -724,42 +737,42 @@ from .api import api</p>
 The same operation is exposed to APIControllers with the <code>route</code> class. 
 The <code>route</code> class is an extra decorator that converts APIController instance methods to route function or endpoint.</p>
 <p>On the other hand, the <code>router</code> here is a short form of the <code>ControllerRouter</code> class,  an adapter class, which is an that only adapts APIController to the Django-Ninja router. It also provides global control of all routes defined in any APIController class.
-```Python
-from ninja_extra import (
-    api_controller, 
-    http_get, http_post, http_put, http_delete, http_patch, http_generic
-)
-from ninja.constants import NOT_SET</p>
-<p>@api_controller('', tags=['My Operations'], auth=NOT_SET, permissions=[])
-class MyAPIController:
-    @http_get("/path")
-    def get_operation(self):
-        ...</p>
-<div class="codehilite"><pre><span></span><code><span class="nv">@http_post</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">post_operation</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span><span class="w"></span>
-<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">api_controller</span><span class="p">,</span> 
+    <span class="n">http_get</span><span class="p">,</span> <span class="n">http_post</span><span class="p">,</span> <span class="n">http_put</span><span class="p">,</span> <span class="n">http_delete</span><span class="p">,</span> <span class="n">http_patch</span><span class="p">,</span> <span class="n">http_generic</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ninja.constants</span> <span class="kn">import</span> <span class="n">NOT_SET</span>
 
-<span class="nv">@http_put</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">put_operation</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span><span class="w"></span>
-<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;My Operations&#39;</span><span class="p">],</span> <span class="n">auth</span><span class="o">=</span><span class="n">NOT_SET</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[])</span>
+<span class="k">class</span> <span class="nc">MyAPIController</span><span class="p">:</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
 
-<span class="nv">@http_delete</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">delete_operation</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span><span class="w"></span>
-<span class="w">    </span><span class="p">...</span><span class="w"></span>
+    <span class="nd">@http_post</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">post_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
 
-<span class="nv">@http_patch</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span><span class="w"></span>
-<span class="n">def</span><span class="w"> </span><span class="n">patch_operation</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span><span class="w"></span>
-<span class="w">    </span><span class="p">...</span><span class="w"></span>
+    <span class="nd">@http_put</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">put_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
 
-<span class="c1"># If you need to handle multiple methods with a single function, you can use the `generic` method as shown above</span><span class="w"></span>
-<span class="nv">@http_generic</span><span class="p">(</span><span class="err">[</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PATCH&quot;</span><span class="err">]</span><span class="p">)</span><span class="w"> </span>
-<span class="n">def</span><span class="w"> </span><span class="n">mixed</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="o">:</span><span class="w"></span>
-<span class="w">    </span><span class="p">...</span><span class="w"></span>
+    <span class="nd">@http_delete</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">delete_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+    <span class="nd">@http_patch</span><span class="p">(</span><span class="s2">&quot;/path&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">patch_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+    <span class="c1"># If you need to handle multiple methods with a single function, you can use the `generic` method as shown above</span>
+    <span class="nd">@http_generic</span><span class="p">([</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;PATCH&quot;</span><span class="p">])</span> 
+    <span class="k">def</span> <span class="nf">mixed</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span><span class="n">MyAPIController</span><span class="p">)</span>
 </code></pre></div>
-
-<p>api.register_controllers(MyAPIController)
-<code>``
-To have a complete Controller setup, the APIController must be decorated with</code>ControllerRouter` before it's been registered.</p>
+To have a complete Controller setup, the APIController must be decorated with <code>ControllerRouter</code> before it's been registered.</p>
                 
               
               
@@ -832,10 +845,10 @@ To have a complete Controller setup, the APIController must be decorated with</c
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../assets/javascripts/bundle.bc35569b.min.js"></script>
       
     
   </body>

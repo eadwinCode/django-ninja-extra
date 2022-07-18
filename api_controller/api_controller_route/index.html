@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/api_controller/api_controller_route/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.24c991ad.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -312,8 +312,6 @@
       </a>
       
         
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -732,8 +730,6 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -899,17 +895,18 @@
 <p><code>ControllerRoute</code> or <code>route</code> is not the same with <strong>django-ninja</strong> <code>router</code> and can't be used interchangeably.</p>
 </div>
 <p>For example
-```python
-from ninja_extra import route, api_controller
-from ninja_extra.controllers import RouteFunction</p>
-<p>@api_controller
-class MyController:
-    @route.get('/test')
-    def test(self):
-        return {'message': 'test'}</p>
-<p>assert isinstance(MyController.test, RouteFunction) # true</p>
-<p><code>``
-The</code>route` has predefined method that helps create the following operations and their names proceeds its operation</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">route</span><span class="p">,</span> <span class="n">api_controller</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.controllers</span> <span class="kn">import</span> <span class="n">RouteFunction</span>
+
+<span class="nd">@api_controller</span>
+<span class="k">class</span> <span class="nc">MyController</span><span class="p">:</span>
+    <span class="nd">@route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/test&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;test&#39;</span><span class="p">}</span>
+
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">MyController</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="n">RouteFunction</span><span class="p">)</span> <span class="c1"># true</span>
+</code></pre></div>
+The <code>route</code> has predefined method that helps create the following operations and their names proceeds its operation</p>
 <ul>
 <li>GET</li>
 <li>POST</li>
@@ -990,18 +987,19 @@ The</code>route` has predefined method that helps create the following operation
 <p><strong>Django-Ninja-Extra</strong> <code>route</code> class also supports async endpoint definition just like in Django-Ninja.
 This is only available on Django &gt; 3.0.</p>
 <p>For Example</p>
-<p>```python
-import asyncio
-from ninja_extra import http_get, api_controller
-from ninja_extra.controllers import AsyncRouteFunction</p>
-<p>@api_controller
-class MyController:
-    @http_get("/say-after")
-    async def say_after(self, delay: int, word: str):
-        await asyncio.sleep(delay)
-        return {'saying': word}</p>
-<p>assert isinstance(MyController.say_after, AsyncRouteFunction) # true</p>
-<p>```</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">http_get</span><span class="p">,</span> <span class="n">api_controller</span>
+<span class="kn">from</span> <span class="nn">ninja_extra.controllers</span> <span class="kn">import</span> <span class="n">AsyncRouteFunction</span>
+
+<span class="nd">@api_controller</span>
+<span class="k">class</span> <span class="nc">MyController</span><span class="p">:</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/say-after&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">say_after</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">word</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;saying&#39;</span><span class="p">:</span> <span class="n">word</span><span class="p">}</span>
+
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">MyController</span><span class="o">.</span><span class="n">say_after</span><span class="p">,</span> <span class="n">AsyncRouteFunction</span><span class="p">)</span> <span class="c1"># true</span>
+</code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>Read more on Django-Ninja <a href="https://django-ninja.rest-framework.com/async-support/#quick-example">Async Support</a></p>
@@ -1078,10 +1076,10 @@ class MyController:
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../../assets/javascripts/bundle.bc35569b.min.js"></script>
       
     
   </body>
