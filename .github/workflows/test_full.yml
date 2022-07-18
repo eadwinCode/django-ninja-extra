@@ -48,4 +48,4 @@ jobs:
       - name: mypy
         run: mypy ninja_extra
       - name: Build and Deploy Document
-        run: mkdocs gh-deploy --force
+        run: make doc-deploy

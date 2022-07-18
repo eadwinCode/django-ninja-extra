@@ -54,7 +54,6 @@ nav:
 - Dependency Injection: service_module_injector.md
 
 markdown_extensions:
-  - mkautodoc
-  - admonition
-  - pymdownx.highlight
-  - pymdownx.superfences
+- codehilite
+- admonition
+- pymdownx.superfences
