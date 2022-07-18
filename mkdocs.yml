@@ -27,9 +27,9 @@ theme:
   language: en
   icon:
     repo: fontawesome/brands/git-alt
+
 plugins:
 - search
-- mkdocstrings
 
 nav:
 - Index: index.md
@@ -54,7 +54,6 @@ nav:
 - Dependency Injection: service_module_injector.md
 
 markdown_extensions:
-- markdown_include.include
 - codehilite
 - admonition
 - pymdownx.superfences
