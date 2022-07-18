@@ -23,3 +23,5 @@ jobs:
           FLIT_USERNAME: ${{ secrets.FLIT_USERNAME }}
           FLIT_PASSWORD: ${{ secrets.FLIT_PASSWORD }}
         run: flit publish
+      - name: Deploy Documentation
+        run: make doc-deploy
