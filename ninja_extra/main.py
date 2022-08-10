@@ -14,6 +14,11 @@ from ninja_extra import exceptions, router
 from ninja_extra.controllers.base import APIController, ControllerBase
 from ninja_extra.controllers.registry import ControllerRegistry
 
+try:
+    from ninja.constants import NOT_SET_TYPE  # type:ignore
+except Exception:
+    NOT_SET_TYPE = type(NOT_SET)
+
 __all__ = [
     "NinjaExtraAPI",
 ]
@@ -30,7 +35,7 @@ class NinjaExtraAPI(NinjaAPI):
         docs_url: Optional[str] = "/docs",
         urls_namespace: Optional[str] = None,
         csrf: bool = False,
-        auth: Union[Sequence[Callable], Callable, object] = NOT_SET,
+        auth: Union[Sequence[Callable], Callable, NOT_SET_TYPE] = NOT_SET,
         renderer: Optional[BaseRenderer] = None,
         parser: Optional[Parser] = None,
         app_name: str = "ninja",
