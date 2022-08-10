@@ -11,13 +11,9 @@ from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
 
 from ninja_extra import exceptions, router
+from ninja_extra.compatible import NOT_SET_TYPE
 from ninja_extra.controllers.base import APIController, ControllerBase
 from ninja_extra.controllers.registry import ControllerRegistry
-
-try:
-    from ninja.constants import NOT_SET_TYPE  # type:ignore
-except Exception:
-    NOT_SET_TYPE = type(NOT_SET)
 
 __all__ = [
     "NinjaExtraAPI",
