@@ -9,6 +9,7 @@ from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
+from ninja.types import TCallable
 
 from ninja_extra import exceptions, router
 from ninja_extra.compatible import NOT_SET_TYPE
@@ -29,6 +30,7 @@ class NinjaExtraAPI(NinjaAPI):
         description: str = "",
         openapi_url: Optional[str] = "/openapi.json",
         docs_url: Optional[str] = "/docs",
+        docs_decorator: Optional[Callable[[TCallable], TCallable]] = None,
         urls_namespace: Optional[str] = None,
         csrf: bool = False,
         auth: Union[Sequence[Callable], Callable, NOT_SET_TYPE] = NOT_SET,
@@ -42,6 +44,7 @@ class NinjaExtraAPI(NinjaAPI):
             description=description,
             openapi_url=openapi_url,
             docs_url=docs_url,
+            docs_decorator=docs_decorator,
             urls_namespace=urls_namespace,
             csrf=csrf,
             auth=auth,
