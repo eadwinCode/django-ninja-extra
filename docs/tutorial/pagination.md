@@ -9,6 +9,17 @@
 - func_or_pgn_class: Defines a route function or a Pagination Class. default: `ninja_extra.pagination.LimitOffsetPagination`
 - paginator_params: extra parameters for initialising Pagination Class
 
+!!! info
+    When using `ninja_extra.pagination.LimitOffsetPagination`, you should use `NinjaPaginationResponseSchema` as pagination response schema wrapper
+    eg: 
+    ```python
+    
+    @route.get('', response=NinjaPaginationResponseSchema[UserSchema])
+    @paginate()
+    def list_items(self):
+        return item_model.objects.all()
+    ```
+
 ### Changing Default Pagination Class
 To change the default pagination class, you need to add a `NINJA_EXTRA` variable in `settings.py` with a key `PAGINATION_CLASS` and value defining path to pagination class
 ```python
