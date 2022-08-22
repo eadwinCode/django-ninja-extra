@@ -1,5 +1,6 @@
 import inspect
 import re
+import traceback
 import uuid
 from abc import ABC
 from typing import (
@@ -26,9 +27,11 @@ from django.urls import path as django_path
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI, Router
 from ninja.constants import NOT_SET
+from ninja.pagination import PaginationBase
 from ninja.security.base import AuthBase
 from ninja.signature import is_async
 from ninja.utils import normalize_path
+from pydantic import BaseModel as PydanticModel
 
 from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
@@ -43,6 +46,8 @@ from ninja_extra.shortcuts import (
 )
 from ninja_extra.types import PermissionType
 
+from ..pagination import PageNumberPaginationExtra, PaginatedResponseSchema
+from .model_controller_builder import ModelControllerBuilder
 from .registry import ControllerRegistry
 from .response import Detail, Id, Ok
 from .route.route_functions import AsyncRouteFunction, RouteFunction
@@ -220,6 +225,65 @@ class ControllerBase(ABC):
         )
 
 
+class ModelControllerBase(ControllerBase):
+    model: Model = None
+
+    model_schema: PydanticModel = None
+    create_schema: PydanticModel = None
+    update_schema: PydanticModel = None
+
+    pagination_class: Type[PaginationBase] = PageNumberPaginationExtra
+    pagination_response_schema: Type[PydanticModel] = PaginatedResponseSchema
+
+    def get_queryset(self) -> QuerySet:
+        return self.model.objects.all()
+
+    def perform_create(self, schema: PydanticModel, **kwargs: Any) -> Any:
+        data = schema.dict()
+        data.update(kwargs)
+
+        try:
+            instance = self.model._default_manager.create(**data)
+            return instance
+        except TypeError:
+            tb = traceback.format_exc()
+            msg = (
+                "Got a `TypeError` when calling `%s.%s.create()`. "
+                "This may be because you have a writable field on the "
+                "serializer class that is not a valid argument to "
+                "`%s.%s.create()`. You may need to make the field "
+                "read-only, or override the %s.create() method to handle "
+                "this correctly.\nOriginal exception was:\n %s"
+                % (
+                    self.model.__name__,
+                    self.model._default_manager.name,
+                    self.model.__name__,
+                    self.model._default_manager.name,
+                    self.__class__.__name__,
+                    tb,
+                )
+            )
+            raise TypeError(msg)
+
+    def perform_update(
+        self, instance: Model, schema: PydanticModel, **kwargs: Any
+    ) -> Any:
+        data = schema.dict(exclude_none=True)
+        data.update(kwargs)
+        for attr, value in data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+    def perform_patch(
+        self, instance: Model, schema: PydanticModel, **kwargs: Any
+    ) -> Any:
+        return self.perform_update(instance=instance, schema=schema, **kwargs)
+
+    def perform_delete(self, instance: Model) -> Any:
+        instance.delete()
+
+
 class APIController:
     _PATH_PARAMETER_COMPONENT_RE = r"{(?:(?P<converter>[^>:]+):)?(?P<parameter>[^>]+)}"
 
@@ -337,6 +401,11 @@ class APIController:
             self.tags = [tag]
 
         self._controller_class = cls
+
+        if issubclass(cls, ModelControllerBase):
+            builder = ModelControllerBuilder(cls, self)
+            builder.register_model_routes()
+
         bases = inspect.getmro(cls)
         for base_cls in reversed(bases):
             if base_cls not in [ControllerBase, ABC, object]:
