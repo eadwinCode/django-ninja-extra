@@ -1,4 +1,4 @@
-from .base import ControllerBase, api_controller
+from .base import ControllerBase, ModelControllerBase, api_controller
 from .response import Detail, Id, Ok
 from .route import (
     Route,
@@ -32,4 +32,5 @@ __all__ = [
     "Id",
     "Detail",
     "RouteContext",
+    "ModelControllerBase",
 ]
