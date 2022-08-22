@@ -9,7 +9,6 @@ from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
-from ninja.types import TCallable
 
 from ninja_extra import exceptions, router
 from ninja_extra.compatible import NOT_SET_TYPE
