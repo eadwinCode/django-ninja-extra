@@ -1,5 +1,5 @@
 from importlib import import_module
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, Any
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
@@ -30,13 +30,13 @@ class NinjaExtraAPI(NinjaAPI):
         description: str = "",
         openapi_url: Optional[str] = "/openapi.json",
         docs_url: Optional[str] = "/docs",
-        docs_decorator: Optional[Callable[[TCallable], TCallable]] = None,
         urls_namespace: Optional[str] = None,
         csrf: bool = False,
         auth: Union[Sequence[Callable], Callable, NOT_SET_TYPE] = NOT_SET,
         renderer: Optional[BaseRenderer] = None,
         parser: Optional[Parser] = None,
         app_name: str = "ninja",
+        **kwargs: Any
     ) -> None:
         super(NinjaExtraAPI, self).__init__(
             title=title,
@@ -44,12 +44,12 @@ class NinjaExtraAPI(NinjaAPI):
             description=description,
             openapi_url=openapi_url,
             docs_url=docs_url,
-            docs_decorator=docs_decorator,
             urls_namespace=urls_namespace,
             csrf=csrf,
             auth=auth,
             renderer=renderer,
             parser=parser,
+            **kwargs
         )
         self.app_name = app_name
         self.exception_handler(exceptions.APIException)(self.api_exception_handler)
