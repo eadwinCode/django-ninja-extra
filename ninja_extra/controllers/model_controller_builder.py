@@ -5,6 +5,7 @@ from ninja.params import Body, Path
 
 from .. import status
 from ..pagination import paginate
+from .response import Detail
 from .route import http_delete, http_get, http_patch, http_post, http_put
 
 if t.TYPE_CHECKING:
@@ -29,10 +30,10 @@ class ModelControllerBuilder:
         )
         self._model_schema = controller_base_cls.model_schema
         model_pk = getattr(
-            controller_base_cls.model._meta.pk,  # type: ignore
+            controller_base_cls.model._meta.pk,
             "name",
-            getattr(controller_base_cls.model._meta.pk, "attname"),  # type: ignore
-        )  # type:ignore
+            getattr(controller_base_cls.model._meta.pk, "attname"),
+        )
         internal_type = controller_base_cls.model._meta.pk.get_internal_type()
         self._pk_type: t.Type = TYPES.get(internal_type, str)
         self._model_name = model_pk
@@ -45,7 +46,9 @@ class ModelControllerBuilder:
             response={201: self._model_schema},
             url_name=f"{self._model_name}-create",
         )
-        def create_item(self: "ModelControllerBase", data: create_schema):
+        def create_item(
+            self: "ModelControllerBase", data: create_schema = Body(default=...)
+        ):
             instance = self.perform_create(data)
             return instance
 
@@ -127,6 +130,10 @@ class ModelControllerBuilder:
         self._api_controller_instance.add_controller_route_function(get_item)
 
     def _register_list_items_endpoint(self) -> None:
+        paginate_kwargs = dict()
+        if self._base_cls.paginate_by:
+            paginate_kwargs.update(page_size=self._base_cls.paginate_by)
+
         @http_get(
             "/",
             response={
@@ -134,7 +141,7 @@ class ModelControllerBuilder:
             },
             url_name=f"{self._model_name}-list",
         )
-        @paginate(self._pagination_class)
+        @paginate(self._pagination_class, **paginate_kwargs)
         def list_items(self: "ModelControllerBase"):
             return self.get_queryset()
 
@@ -149,7 +156,9 @@ class ModelControllerBuilder:
         )
 
         @http_delete(
-            _path, url_name=f"{self._model_name}-delete", response={204: t.Any}
+            _path,
+            url_name=f"{self._model_name}-delete",
+            response=Detail(status_code=204),
         )
         def delete_item(
             self: "ModelControllerBase",
@@ -158,9 +167,7 @@ class ModelControllerBuilder:
             obj = self.get_object_or_exception(self.model, pk=pk)
             self.check_object_permissions(obj)
             self.perform_delete(instance=obj)
-            return self.create_response(
-                message="", status_code=status.HTTP_204_NO_CONTENT
-            )
+            return self.Detail(message="", status_code=status.HTTP_204_NO_CONTENT)
 
         delete_item.api_controller = self._api_controller_instance
         self._api_controller_instance.add_controller_route_function(delete_item)

@@ -234,12 +234,13 @@ class ModelControllerBase(ControllerBase):
 
     pagination_class: Type[PaginationBase] = PageNumberPaginationExtra
     pagination_response_schema: Type[PydanticModel] = PaginatedResponseSchema
+    paginate_by: int = None
 
     def get_queryset(self) -> QuerySet:
         return self.model.objects.all()
 
     def perform_create(self, schema: PydanticModel, **kwargs: Any) -> Any:
-        data = schema.dict()
+        data = schema.dict(by_alias=True)
         data.update(kwargs)
 
         try:
