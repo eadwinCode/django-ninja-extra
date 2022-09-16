@@ -33,7 +33,6 @@ Let's create an APIController to manage Django user model
 
 ```python
 import uuid
-from typing import List
 from ninja import ModelSchema
 from ninja_extra import (
     http_get, http_post, http_generic, http_delete,
@@ -53,7 +52,7 @@ class UserSchema(ModelSchema):
 class UsersController(ControllerBase):
     user_model = get_user_model()
 
-    @http_post('')
+    @http_post()
     def create_user(self, user: UserSchema):
         # just simulating created user
         return self.Id(uuid.uuid4())
@@ -70,7 +69,7 @@ class UsersController(ControllerBase):
         user.delete()
         return self.create_response('', status_code=status.HTTP_204_NO_CONTENT)
 
-    @http_get('', response=pagination.PaginatedResponseSchema[UserSchema])
+    @http_get("", response=pagination.PaginatedResponseSchema[UserSchema])
     @pagination.paginate(pagination.PageNumberPaginationExtra, page_size=50)
     def list_user(self):
         return self.user_model.objects.all()
