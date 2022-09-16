@@ -7,7 +7,7 @@ from pydantic import BaseModel as PydanticModel
 from .. import status
 from ..pagination import paginate
 from .response import Detail
-from .route import http_delete, http_get, http_patch, http_post, http_put
+from .route import route
 
 if t.TYPE_CHECKING:
     from .base import APIController, ModelControllerBase
@@ -38,12 +38,11 @@ class ModelControllerBuilder:
         internal_type = controller_base_cls.model._meta.pk.get_internal_type()
         self._pk_type: t.Type = TYPES.get(internal_type, str)
         self._model_name = model_pk
-        self.validate_model_builder()
 
     def _register_create_endpoint(self) -> None:
         create_schema = self._create_schema
 
-        @http_post(
+        @route.post(
             "/",
             response={201: self._model_schema},
             url_name=f"{self._model_name}-create",
@@ -66,7 +65,7 @@ class ModelControllerBuilder:
             self._model_name,
         )
 
-        @http_put(
+        @route.put(
             _path,
             response={200: self._model_schema},
             url_name=f"{self._model_name}-put",
@@ -93,7 +92,7 @@ class ModelControllerBuilder:
             self._model_name,
         )
 
-        @http_patch(
+        @route.patch(
             _path,
             response={200: self._model_schema},
             url_name=f"{self._model_name}-patch",
@@ -119,7 +118,7 @@ class ModelControllerBuilder:
             self._model_name,
         )
 
-        @http_get(
+        @route.get(
             _path,
             response={200: self._model_schema},
             url_name=f"{self._model_name}-get-item",
@@ -140,7 +139,7 @@ class ModelControllerBuilder:
         if self._base_cls.paginate_by:
             paginate_kwargs.update(page_size=self._base_cls.paginate_by)
 
-        @http_get(
+        @route.get(
             "/",
             response={
                 200: self._base_cls.pagination_response_schema[self._model_schema]
@@ -161,7 +160,7 @@ class ModelControllerBuilder:
             self._model_name,
         )
 
-        @http_delete(
+        @route.delete(
             _path,
             url_name=f"{self._model_name}-delete",
             response=Detail(status_code=204),
