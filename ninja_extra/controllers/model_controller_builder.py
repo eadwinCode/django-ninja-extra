@@ -1,15 +1,11 @@
 import typing as t
-
 from ninja.orm.fields import TYPES
 from ninja.params import Body, Path
-
-from ninja_extra.schemas import ModelControllerSchema
-
 from .. import status
 from ..pagination import paginate
 from .response import Detail
 from .route import http_delete, http_get, http_patch, http_post, http_put
-
+from pydantic import BaseModel as PydanticModel
 if t.TYPE_CHECKING:
     from .base import APIController, ModelControllerBase
 
@@ -23,11 +19,11 @@ class ModelControllerBuilder:
         self._base_cls = controller_base_cls
         self._api_controller_instance = api_controller_instance
         self._pagination_class = controller_base_cls.pagination_class
-        self._create_schema: t.Type[ModelControllerSchema] = (
+        self._create_schema: t.Type[PydanticModel] = (
             controller_base_cls.create_schema or controller_base_cls.model_schema
         )
 
-        self._update_schema: t.Type[ModelControllerSchema] = (
+        self._update_schema: t.Type[PydanticModel] = (
             controller_base_cls.update_schema or controller_base_cls.model_schema
         )
         self._model_schema = controller_base_cls.model_schema
@@ -52,7 +48,7 @@ class ModelControllerBuilder:
         def create_item(
             self: "ModelControllerBase", data: create_schema = Body(default=...)
         ):
-            instance = data.perform_create()
+            instance = self.perform_create(data)
             assert instance, "`perform_create()` must return a value"
             return instance
 
@@ -79,7 +75,7 @@ class ModelControllerBuilder:
         ):
             obj = self.get_object_or_exception(self.model, pk=pk)
             self.check_object_permissions(obj)
-            instance = data.perform_update(instance=obj)
+            instance = self.perform_update(instance=obj, schema=data)
             assert instance, "`perform_update()` must return a value"
             return instance
 
@@ -106,7 +102,7 @@ class ModelControllerBuilder:
         ):
             obj = self.get_object_or_exception(self.model, pk=pk)
             self.check_object_permissions(obj)
-            instance = data.perform_patch(instance=obj)
+            instance = self.perform_patch(instance=obj, schema=data)
             assert instance, "`perform_patch()` must return a value"
             return instance
 
@@ -173,7 +169,7 @@ class ModelControllerBuilder:
         ):
             obj = self.get_object_or_exception(self.model, pk=pk)
             self.check_object_permissions(obj)
-            obj.delete()
+            self.perform_delete(instance=obj)
             return self.Detail(message="", status_code=status.HTTP_204_NO_CONTENT)
 
         delete_item.api_controller = self._api_controller_instance
@@ -186,31 +182,3 @@ class ModelControllerBuilder:
         self._register_patch_endpoint()
         self._register_list_items_endpoint()
         self._register_update_endpoint()
-
-    def validate_model_builder(self):
-        if self._model_schema:
-            if not issubclass(self._model_schema, ModelControllerSchema):
-                raise Exception(
-                    f"{self._model_schema} must be a subclass of `ModelControllerSchema`"
-                )
-            assert (
-                self._model_schema.Config.model
-            ), f"{self._model_schema} must define model attr in Config"
-
-        if self._update_schema:
-            if not issubclass(self._update_schema, ModelControllerSchema):
-                raise Exception(
-                    f"{self._update_schema} must be a subclass of `ModelControllerSchema`"
-                )
-            assert (
-                self._update_schema.Config.model
-            ), f"{self._update_schema} must define model attr in Config"
-
-        if self._create_schema:
-            if not issubclass(self._create_schema, ModelControllerSchema):
-                raise Exception(
-                    f"{self._create_schema} must be a subclass of `ModelControllerSchema`"
-                )
-            assert (
-                self._create_schema.Config.model
-            ), f"{self._create_schema} must define model attr in Config"

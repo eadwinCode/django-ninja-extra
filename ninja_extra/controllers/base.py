@@ -1,5 +1,6 @@
 import inspect
 import re
+import traceback
 import uuid
 from abc import ABC
 from typing import (
@@ -38,7 +39,6 @@ from ninja_extra.helper import get_function_name
 from ninja_extra.operation import Operation, PathView
 from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.permissions.base import OperationHolderMixin
-from ninja_extra.schemas import ModelControllerSchema
 from ninja_extra.shortcuts import (
     fail_silently,
     get_object_or_exception,
@@ -228,9 +228,9 @@ class ControllerBase(ABC):
 class ModelControllerBase(ControllerBase):
     model: Model = None
 
-    model_schema: Type[ModelControllerSchema] = None
-    create_schema: Type[ModelControllerSchema] = None
-    update_schema: Type[ModelControllerSchema] = None
+    model_schema: Type[PydanticModel] = None
+    create_schema: Type[PydanticModel] = None
+    update_schema: Type[PydanticModel] = None
 
     pagination_class: Type[PaginationBase] = PageNumberPaginationExtra
     pagination_response_schema: Type[PydanticModel] = PaginatedResponseSchema
@@ -238,6 +238,51 @@ class ModelControllerBase(ControllerBase):
 
     def get_queryset(self) -> QuerySet:
         return self.model.objects.all()
+
+    def perform_create(self, schema: PydanticModel, **kwargs: Any) -> Any:
+        data = schema.dict(by_alias=True)
+        data.update(kwargs)
+
+        try:
+            instance = self.model._default_manager.create(**data)
+            return instance
+        except TypeError:
+            tb = traceback.format_exc()
+            msg = (
+                "Got a `TypeError` when calling `%s.%s.create()`. "
+                "This may be because you have a writable field on the "
+                "serializer class that is not a valid argument to "
+                "`%s.%s.create()`. You may need to make the field "
+                "read-only, or override the %s.create() method to handle "
+                "this correctly.\nOriginal exception was:\n %s"
+                % (
+                    self.model.__name__,
+                    self.model._default_manager.name,
+                    self.model.__name__,
+                    self.model._default_manager.name,
+                    self.__class__.__name__,
+                    tb,
+                )
+            )
+            raise TypeError(msg)
+
+    def perform_update(
+        self, instance: Model, schema: PydanticModel, **kwargs: Any
+    ) -> Any:
+        data = schema.dict(exclude_none=True)
+        data.update(kwargs)
+        for attr, value in data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+    def perform_patch(
+        self, instance: Model, schema: PydanticModel, **kwargs: Any
+    ) -> Any:
+        return self.perform_update(instance=instance, schema=schema, **kwargs)
+
+    def perform_delete(self, instance: Model) -> Any:
+        instance.delete()
 
 
 class APIController:

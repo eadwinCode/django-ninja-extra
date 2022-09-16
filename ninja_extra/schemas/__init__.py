@@ -1,7 +1,6 @@
 import typing as t
 
 from .response import (
-    ModelControllerSchema,
     NinjaPaginationResponseSchema,
     PaginatedResponseSchema,
     RouteParameter,
@@ -10,8 +9,7 @@ from .response import (
 __all__ = [
     "PaginatedResponseSchema",
     "RouteParameter",
-    "NinjaPaginationResponseSchema",
-    "ModelControllerSchema"
+    "NinjaPaginationResponseSchema"
 ]
 
 
