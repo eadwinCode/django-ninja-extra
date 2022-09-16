@@ -198,7 +198,7 @@ class ModelControllerBuilder:
             action_registration = self.__dict__.get(
                 f"_register_{action}_endpoint", None
             )
-            if not f"_register_{action}_endpoint":
+            if not action_registration:
                 raise Exception(
                     f"`{action}` action in `class[{self._base_cls.__name__}]` "
                     f"is not recognized as ModelController action"
