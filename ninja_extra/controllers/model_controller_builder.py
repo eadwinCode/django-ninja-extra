@@ -1,11 +1,14 @@
 import typing as t
+
 from ninja.orm.fields import TYPES
 from ninja.params import Body, Path
+from pydantic import BaseModel as PydanticModel
+
 from .. import status
 from ..pagination import paginate
 from .response import Detail
 from .route import http_delete, http_get, http_patch, http_post, http_put
-from pydantic import BaseModel as PydanticModel
+
 if t.TYPE_CHECKING:
     from .base import APIController, ModelControllerBase
 
