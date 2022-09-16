@@ -5,6 +5,7 @@ from ninja.params import Body, Path
 from pydantic import BaseModel as PydanticModel
 
 from .. import status
+from ..constants import DELETE, GET, PATCH, POST, PUT
 from ..pagination import paginate
 from .response import Detail
 from .route import route
@@ -14,6 +15,15 @@ if t.TYPE_CHECKING:
 
 
 class ModelControllerBuilder:
+    model_allowed_routes_actions = [
+        "create",
+        "read",
+        "update",
+        "patch",
+        "delete",
+        "list",
+    ]
+
     def __init__(
         self,
         controller_base_cls: t.Type["ModelControllerBase"],
@@ -22,6 +32,9 @@ class ModelControllerBuilder:
         self._base_cls = controller_base_cls
         self._api_controller_instance = api_controller_instance
         self._pagination_class = controller_base_cls.pagination_class
+        self._allowed_routes = (
+            self._base_cls.allowed_routes or self.model_allowed_routes_actions
+        )
         self._create_schema: t.Type[PydanticModel] = (
             controller_base_cls.create_schema or controller_base_cls.model_schema
         )
@@ -111,7 +124,7 @@ class ModelControllerBuilder:
         patch_item.api_controller = self._api_controller_instance
         self._api_controller_instance.add_controller_route_function(patch_item)
 
-    def _register_get_item_endpoint(self) -> None:
+    def _register_get_endpoint(self) -> None:
         _pk_type = self._pk_type
         _path = "/{%s:%s}" % (
             _pk_type.__name__,
@@ -134,7 +147,7 @@ class ModelControllerBuilder:
         get_item.api_controller = self._api_controller_instance
         self._api_controller_instance.add_controller_route_function(get_item)
 
-    def _register_list_items_endpoint(self) -> None:
+    def _register_list_endpoint(self) -> None:
         paginate_kwargs = dict()
         if self._base_cls.paginate_by:
             paginate_kwargs.update(page_size=self._base_cls.paginate_by)
@@ -178,9 +191,16 @@ class ModelControllerBuilder:
         self._api_controller_instance.add_controller_route_function(delete_item)
 
     def register_model_routes(self) -> None:
-        self._register_create_endpoint()
-        self._register_delete_endpoint()
-        self._register_get_item_endpoint()
-        self._register_patch_endpoint()
-        self._register_list_items_endpoint()
-        self._register_update_endpoint()
+        assert isinstance(
+            self._allowed_routes, list
+        ), f"`class[{self._base_cls.__name__}].allowed_routes must be a list of strings`"
+        for action in self._allowed_routes:
+            action_registration = self.__dict__.get(
+                f"_register_{action}_endpoint", None
+            )
+            if not f"_register_{action}_endpoint":
+                raise Exception(
+                    f"`{action}` action in `class[{self._base_cls.__name__}]` "
+                    f"is not recognized as ModelController action"
+                )
+            action_registration()

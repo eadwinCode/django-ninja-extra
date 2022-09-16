@@ -227,6 +227,9 @@ class ControllerBase(ABC):
 
 class ModelControllerBase(ControllerBase):
     model: Model = None
+    allowed_routes: List[
+        "str"
+    ] = None  # default = ['create', 'read', 'update', 'patch', 'delete', 'list']
 
     model_schema: Type[PydanticModel] = None
     create_schema: Type[PydanticModel] = None
