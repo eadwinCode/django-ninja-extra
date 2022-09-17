@@ -5,9 +5,9 @@ class GenericModelMeta(type):
     registry: Dict = {}
 
     def __getitem__(self, wraps: Any) -> Any:
-        if (self, wraps) not in self.__class__.registry:
-            self.__class__.registry[self, wraps] = self().get_generic_type(wraps)
-        return self.__class__.registry[self, wraps]
+        if (self, wraps) not in self.registry:
+            self.registry[self, wraps] = self().get_generic_type(wraps)
+        return self.registry[self, wraps]
 
 
 @no_type_check
