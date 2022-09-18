@@ -109,9 +109,7 @@ class TestAPIController:
         assert _api_controller._prefix_has_route_param
 
         client = testing.TestClient(UsersController)
-        response = client.get(
-            "452",
-        )
+        response = client.get("452")
 
         assert response.json() == dict(organisation_id=452)
         assert [("", _api_controller)] == _api_controller.build_routers()
@@ -135,7 +133,7 @@ class TestAPIController:
 
     def test_controller_should_have_path_operation_list(self):
         _api_controller = SomeControllerWithRoute.get_api_controller()
-        assert len(_api_controller._path_operations) == 4
+        assert len(_api_controller._path_operations) == 7
 
         route_function: RouteFunction = SomeControllerWithRoute.example
         path_view = _api_controller._path_operations.get(str(route_function))
@@ -292,7 +290,10 @@ class TestAPIControllerResponse:
         response = client.get(f"/example/{_uuid_value}/generic")
 
         assert response.status_code == 201
-        assert Id[uuid.UUID](_uuid_value).convert_to_schema().dict() == response.json()
+        assert (
+            str(Id[uuid.UUID](_uuid_value).convert_to_schema().dict()["id"])
+            == response.json()["id"]
+        )
 
         ok_response = Ok[UserSchema](dict(name="John", age=56))
         result = SomeControllerWithRoute.example_with_ok_schema_response(

@@ -82,7 +82,6 @@ class TestThrottlingControllerSample:
                 "THROTTLE_RATES",
                 {"dynamic_scope": "5/min", "user": "10/sec", "anon": "10/sec"},
             )
-            for dummy in range(time_out):
-                client.get(endpoint)
-            response = client.get(endpoint)
+            for dummy in range(time_out + 1):
+                response = client.get(endpoint)
             assert response.status_code == 429
