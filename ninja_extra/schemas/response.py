@@ -24,43 +24,84 @@ class BaseNinjaResponseSchema(Schema):
     items: List[Any]
 
 
-class PaginatedResponseSchema(GenericType):
+class IdSchema(GenericType, generic_base_name="IdSchema"):
+    def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
+        class _IDSchema(Schema):
+            id: wrap_type  # type: ignore
+
+        return _IDSchema
+
+
+class OkSchema(GenericType, generic_base_name="OkSchema"):
+    def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
+        class _OKSchema(Schema):
+            detail: wrap_type  # type: ignore
+
+        return _OKSchema
+
+
+class DetailSchema(GenericType, generic_base_name="DetailSchema"):
+    def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
+        class _DetailSchema(Schema):
+            detail: wrap_type  # type: ignore
+
+        return _DetailSchema
+
+
+class PaginatedResponseSchema(GenericType, generic_base_name="PaginatedResponseSchema"):
     def get_generic_type(
         self, wrap_type: Any
     ) -> Type[BasePaginatedResponseSchema]:  # pragma: no cover
         class ListResponseSchema(BasePaginatedResponseSchema):
             results: List[wrap_type]  # type: ignore
 
-        ListResponseSchema.__name__ = (
-            f"{self.__class__.__name__}[{str(wrap_type.__name__).capitalize()}]"
-        )
         return ListResponseSchema
 
 
-class NinjaPaginationResponseSchema(GenericType):
+class NinjaPaginationResponseSchema(
+    GenericType, generic_base_name="NinjaPaginationResponseSchema"
+):
     def get_generic_type(
         self, wrap_type: Any
     ) -> Type[BaseNinjaResponseSchema]:  # pragma: no cover
         class ListNinjaResponseSchema(BaseNinjaResponseSchema):
             items: List[wrap_type]  # type: ignore
 
-        ListNinjaResponseSchema.__name__ = (
-            f"{self.__class__.__name__}[{str(wrap_type.__name__).capitalize()}]"
-        )
         return ListNinjaResponseSchema
 
 
-if sys.version_info >= (3, 8):  # pragma: no cover
+if sys.version_info >= (3, 7):  # pragma: no cover
 
     class PaginatedResponseSchema(
         GenericModel, Generic[T], BasePaginatedResponseSchema
     ):
         results: List[T]
 
+    # Pydantic GenericModels has not way of identifying the _orig
+    # __generic_model__ is more like a fix for that
+    PaginatedResponseSchema.__generic_model__ = PaginatedResponseSchema
+
     class NinjaPaginationResponseSchema(
         GenericModel, Generic[T], BaseNinjaResponseSchema
     ):
         items: List[T]
+
+    NinjaPaginationResponseSchema.__generic_model__ = NinjaPaginationResponseSchema
+
+    class IdSchema(GenericModel, Generic[T], Schema):
+        id: T
+
+    IdSchema.__generic_model__ = IdSchema
+
+    class OkSchema(GenericModel, Generic[T], Schema):
+        detail: T = "Action was successful"
+
+    OkSchema.__generic_model__ = OkSchema
+
+    class DetailSchema(GenericModel, Generic[T], Schema):
+        detail: T
+
+    DetailSchema.__generic_model__ = DetailSchema
 
 
 class RouteParameter(BaseModel):
