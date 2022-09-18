@@ -1,20 +1,30 @@
+import uuid
 from unittest.mock import Mock, patch
 
 import django
 import pytest
 from django.contrib.auth.models import Group
+from pydantic import UUID4, BaseModel
 
-from ninja_extra import NinjaExtraAPI, api_controller, exceptions, http_get, testing
-from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
-from ninja_extra.controllers.base import (
-    APIController,
-    compute_api_route_function,
-    get_route_functions,
+from ninja_extra import (
+    NinjaExtraAPI,
+    api_controller,
+    exceptions,
+    http_get,
+    http_post,
+    testing,
 )
+from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
+from ninja_extra.controllers.base import APIController, get_route_functions
 from ninja_extra.controllers.response import Detail, Id, Ok
 from ninja_extra.permissions.common import AllowAny
 
 from .utils import AsyncFakeAuth, FakeAuth
+
+
+class UserSchema(BaseModel):
+    name: str
+    age: int
 
 
 @api_controller
@@ -50,6 +60,18 @@ class SomeControllerWithRoute:
     @http_get("/example/{ex_id}/id")
     def example_with_id_response(self, ex_id: str):
         return self.Id(ex_id)
+
+    @http_get("/example/{uuid:ex_id}/generic", response=Id[uuid.UUID])
+    def example_with_id_uuid_response(self, ex_id: str):
+        return self.Id[uuid.UUID](ex_id)
+
+    @http_post("/example/ok", response=Ok[UserSchema])
+    def example_with_ok_schema_response(self, user: UserSchema):
+        return self.Ok[UserSchema](user.dict())
+
+    @http_post("/example/details", response=Detail[UserSchema])
+    def example_with_detail_schema_response(self, user: UserSchema):
+        return self.Detail[UserSchema](user.dict())
 
 
 @api_controller("", tags=["new tag"])
@@ -224,6 +246,30 @@ class TestAPIControllerResponse:
     id_response = Id("ID")
     detail_response = Detail(dict(errors=[dict(test="passed")]), status_code=302)
 
+    ok_response_generic = Ok[UserSchema](dict(name="TestName", age=23))
+    id_response_generic = Id[UserSchema](UserSchema(name="John", age=56))
+    detail_response_generic = Detail[UserSchema](
+        UserSchema(name="John", age=56), 400
+    )  # not a practice example but you get the point. LOL
+
+    def test_generic_controller_response(self):
+        # OK Response
+        assert self.ok_response_generic.get_schema() == Ok[UserSchema].get_schema()
+        assert self.ok_response_generic.convert_to_schema() == Ok[
+            UserSchema
+        ].get_schema()(detail=dict(name="TestName", age=23))
+        assert self.ok_response.status_code == Ok.status_code
+        # ID Response
+        assert self.id_response.get_schema() == Id.get_schema()
+        assert self.id_response.convert_to_schema() == Id.get_schema()(id="ID")
+        assert self.id_response.status_code == Id.status_code
+        # Detail Response
+        assert self.detail_response.get_schema() == Detail.get_schema()
+        assert self.detail_response.convert_to_schema() == Detail.get_schema()(
+            detail=dict(errors=[dict(test="passed")])
+        )
+        assert self.id_response.status_code != Detail.status_code
+
     def test_controller_response(self):
         # OK Response
         assert self.ok_response.get_schema() == Ok.get_schema()
@@ -240,7 +286,23 @@ class TestAPIControllerResponse:
         )
         assert self.id_response.status_code != Detail.status_code
 
-    def test_controller_response_works(self):
+    def test_generic_controller_response_in_route_functions_works(self):
+        _uuid_value = str(uuid.uuid4())
+        client = testing.TestClient(SomeControllerWithRoute)
+        response = client.get(f"/example/{_uuid_value}/generic")
+
+        assert response.status_code == 201
+        assert Id[uuid.UUID](_uuid_value).convert_to_schema().dict() == response.json()
+
+        ok_response = Ok[UserSchema](dict(name="John", age=56))
+        result = SomeControllerWithRoute.example_with_ok_schema_response(
+            request=Mock(), user=UserSchema(name="John", age=56)
+        )
+        assert isinstance(result, tuple)
+        assert result[1] == ok_response.convert_to_schema()
+        assert result[0] == ok_response.status_code
+
+    def test_controller_response_in_route_functions_works(self):
         detail = Detail("5242", status_code=302)
         client = testing.TestClient(SomeControllerWithRoute)
         response = client.get("/example/5242")
