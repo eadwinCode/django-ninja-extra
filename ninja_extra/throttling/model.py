@@ -243,6 +243,5 @@ class DynamicRateThrottle(SimpleRateThrottle):
             ident = request.user.pk
         else:
             ident = self.get_ident(request)
-            print("ident: ", ident)
 
         return self.cache_format % {"scope": self.scope, "ident": ident}
