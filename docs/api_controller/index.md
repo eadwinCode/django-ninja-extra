@@ -33,7 +33,6 @@ Let's create an APIController to manage Django user model
 
 ```python
 import uuid
-from typing import List
 from ninja import ModelSchema
 from ninja_extra import (
     http_get, http_post, http_generic, http_delete,
