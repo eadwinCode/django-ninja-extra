@@ -1,22 +1,26 @@
 from json import dumps as json_dumps
-from typing import Any, Callable, Dict, Type, Union
+from typing import Any, Callable, Dict, Type, Union, cast
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
+from ninja import NinjaAPI, Router
 from ninja.testing.client import NinjaClientBase, NinjaResponse
 
 from ninja_extra import ControllerBase, NinjaExtraAPI
 
 
 class NinjaExtraClientBase(NinjaClientBase):
-    def __init__(self, controller_class: Union[Type[ControllerBase], Type]) -> None:
-        api = NinjaExtraAPI()
-        assert hasattr(controller_class, "get_api_controller"), "Not a valid object"
-        controller_ninja_api_controller = controller_class.get_api_controller()
-        assert controller_ninja_api_controller
-        controller_ninja_api_controller.set_api_instance(api)
-        self._urls_cache = list(controller_ninja_api_controller.urls_paths(""))
-        super(NinjaExtraClientBase, self).__init__(api)
+    def __init__(self, router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]]):
+        if hasattr(router_or_app, "get_api_controller"):
+            api = NinjaExtraAPI()
+            controller_ninja_api_controller = router_or_app.get_api_controller()  # type: ignore
+            assert controller_ninja_api_controller
+            controller_ninja_api_controller.set_api_instance(api)
+            self._urls_cache = list(controller_ninja_api_controller.urls_paths(""))
+            router_or_app = api
+        super(NinjaExtraClientBase, self).__init__(
+            cast(Union[NinjaAPI, Router], router_or_app)
+        )
 
     def request(
         self,

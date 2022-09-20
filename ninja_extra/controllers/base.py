@@ -29,6 +29,7 @@ from ninja.security.base import AuthBase
 from ninja.signature import is_async
 from ninja.utils import normalize_path
 
+from ninja_extra.constants import THROTTLED_FUNCTION
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import ControllerPathView, Operation
@@ -44,10 +45,11 @@ from .registry import ControllerRegistry
 from .response import Detail, Id, Ok
 from .route.route_functions import AsyncRouteFunction, RouteFunction
 
-if TYPE_CHECKING:
-    from ninja_extra import NinjaExtraAPI  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
+    from ninja_extra import NinjaExtraAPI
+    from ninja_extra.throttling import BaseThrottle
 
-    from .route.context import RouteContext  # pragma: no cover
+    from .route.context import RouteContext
 
 
 class MissingAPIControllerDecoratorException(Exception):
@@ -115,6 +117,8 @@ class ControllerBase(ABC):
     # `context` variable will change based on the route function called on the APIController
     # that way we can get some specific items things that belong the route function during execution
     context: Optional["RouteContext"] = None
+    throttling_classes: List["BaseThrottle"] = []
+    throttling_init_kwargs: Optional[Dict[Any, Any]] = None
 
     Ok = Ok
     Id = Id
@@ -310,12 +314,20 @@ class APIController:
         self._tags = tag
 
     def __call__(self, cls: Type) -> Type["ControllerBase"]:
+        from ninja_extra.throttling import throttle
+
         self.auto_import = getattr(cls, "auto_import", self.auto_import)
         if not issubclass(cls, ControllerBase):
             # We force the cls to inherit from `ControllerBase` by creating another type.
             cls = type(cls.__name__, (ControllerBase, cls), {"_api_controller": self})
         else:
             cls._api_controller = self
+
+        assert isinstance(
+            cls.throttling_classes, (list, tuple)
+        ), f"Controller[{cls.__name__}].throttling_class must be a list or tuple"
+        has_throttling_classes = len(cls.throttling_classes) > 0
+        throttling_init_kwargs = cls.throttling_init_kwargs or {}
 
         if not self.tags:
             tag = str(cls.__name__).lower().replace("controller", "")
@@ -328,6 +340,11 @@ class APIController:
                 compute_api_route_function(base_cls, self)
 
         for _, v in self._controller_class_route_functions.items():
+            throttled_endpoint = v.as_view.__dict__.get(THROTTLED_FUNCTION)
+            if not throttled_endpoint and has_throttling_classes:
+                v.route.view_func = throttle(
+                    *cls.throttling_classes, **throttling_init_kwargs
+                )(v.route.view_func)
             self._add_operation_from_route_function(v)
 
         if not is_decorated_with_inject(cls.__init__):

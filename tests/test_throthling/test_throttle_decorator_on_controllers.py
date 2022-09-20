@@ -63,9 +63,8 @@ class TestThrottledController:
         # for unauthenticated user
         with monkeypatch.context() as m:
             m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for dummy in range(3):
+            for dummy in range(4):
                 client.get("/dynamic_throttling_scope")
-            response = client.get("/dynamic_throttling_scope")
             assert response.status_code == 429
 
 

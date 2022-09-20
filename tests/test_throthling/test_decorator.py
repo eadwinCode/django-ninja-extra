@@ -16,7 +16,7 @@ from .sample_models import (
     User6MinRateThrottle,
 )
 
-api = NinjaExtraAPI(urls_namespace="throttle_decorator")
+api = NinjaExtraAPI(urls_namespace="throttle_decorator_1")
 
 
 @api.get("/throttle_user_default")
@@ -239,16 +239,15 @@ class TestThrottling:
         # for unauthenticated user
         with monkeypatch.context() as m:
             m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for dummy in range(3):
-                client.get("/dynamic_throttling_scope")
-            response = client.get("/dynamic_throttling_scope")
+            for dummy in range(4):
+                response = client.get("/dynamic_throttling_scope")
             assert response.status_code == 429
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 @pytest.mark.asyncio
 async def test_async_throttling(monkeypatch):
-    api_async = NinjaExtraAPI(urls_namespace="decorator_async")
+    api_async = NinjaExtraAPI(urls_namespace="decorator_async_1")
 
     @api_async.get("/throttle_user_default_async")
     @throttle

@@ -5,17 +5,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, User
 from ninja import Schema
 
-from ninja_extra import (
-    api_controller,
-    http_delete,
-    http_generic,
-    http_get,
-    http_patch,
-    http_post,
-    http_put,
-    permissions,
-    route,
-)
+from ninja_extra import api_controller, permissions, route
 from ninja_extra.controllers import (
     AsyncRouteFunction,
     Detail,
@@ -42,42 +32,42 @@ anonymous_request.user = AnonymousUser()
     permissions=[permissions.IsAuthenticated & permissions.IsAdminUser],
 )
 class PermissionController:
-    @http_post("/example_post", auth=None)
+    @route.post("/example_post", auth=None)
     def example(self):
         return {"message": "OK"}
 
-    @http_get("/example_get", auth=None, permissions=[permissions.AllowAny])
+    @route.get("/example_get", auth=None, permissions=[permissions.AllowAny])
     def example_allow_any(self):
         return {"message": "OK"}
 
 
 @api_controller
 class SomeTestController:
-    @http_get("/example")
+    @route.get("/example")
     def example(self):
         pass
 
-    @http_post("/example")
+    @route.post("/example")
     def example_post(self):
         pass
 
-    @http_patch("/example/{ex_id}")
+    @route.patch("/example/{ex_id}")
     def example_patch(self, ex_id: str):
         pass
 
-    @http_patch("/example/{ex_id}")
+    @route.patch("/example/{ex_id}")
     def example_put(self, ex_id: str):
         pass
 
-    @http_delete("/example/{ex_id}")
+    @route.delete("/example/{ex_id}")
     def example_delete(self, ex_id: str):
         pass
 
-    @http_generic("/example/list", methods=["POST", "GET"])
+    @route.generic("/example/list", methods=["POST", "GET"])
     def example_list_create(self, ex_id: str):
         pass
 
-    @http_post("/example/operation-id", operation_id="example_post_operation_id")
+    @route.post("/example/operation-id", operation_id="example_post_operation_id")
     def example_post_operation_id(self):
         pass
 

@@ -7,6 +7,7 @@ from ninja.signature import is_async
 
 from ninja_extra import exceptions
 from ninja_extra.conf import settings
+from ninja_extra.constants import THROTTLED_FUNCTION
 from ninja_extra.controllers import ControllerBase, RouteContext
 from ninja_extra.dependency_resolver import service_resolver
 
@@ -71,6 +72,7 @@ def _inject_throttling(
     *throttle_classes: Type[BaseThrottle],
     **init_kwargs: Any,
 ) -> Callable[..., Any]:
+    setattr(func, THROTTLED_FUNCTION, True)
     if is_async(func):
         return _async_inject_throttling_handler(func, *throttle_classes, **init_kwargs)
     return _sync_inject_throttling_handler(func, *throttle_classes, **init_kwargs)
