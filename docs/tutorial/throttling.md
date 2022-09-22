@@ -177,3 +177,43 @@ def get_user_by_id(request, id: int):
     return 'foo'
 ```
 Here, we dynamically applied `sustained` rates and `burst` rates to `get_users` and `get_user_by_id` respectively
+
+
+!!! info "new in v0.15.8"
+    You can throttle all controller endpoints actions at the controller class level
+
+## **Controller Throttling**
+
+```python
+# api.py
+from ninja_extra import (
+    NinjaExtraAPI, throttle, api_controller, ControllerBase,
+    http_get
+)
+from ninja_extra.throttling import DynamicRateThrottle
+api = NinjaExtraAPI()
+
+@api_controller("/throttled-controller")
+class ThrottlingControllerSample(ControllerBase):
+    throttling_classes = [
+        DynamicRateThrottle,
+    ]
+    throttling_init_kwargs = dict(scope="sustained")
+
+    @http_get("/endpoint_1")
+    @throttle(DynamicRateThrottle, scope='burst')
+    def endpoint_1(self, request):
+        # this will override the generally throttling applied at the controller
+        return "foo"
+
+    @http_get("/endpoint_2")
+    def endpoint_2(self, request):
+        return "foo"
+
+    @http_get("/endpoint_3")
+    def endpoint_3(self, request):
+        return "foo"
+
+
+api.register_controllers(ThrottlingControllerSample)
+```
