@@ -115,5 +115,5 @@ class NinjaExtraAPI(NinjaAPI):
                 self.register_controllers(
                     *ControllerRegistry.get_controllers().values()
                 )
-            except ImportError as ex:
+            except ImportError as ex:# pragma: no cover
                 raise ex

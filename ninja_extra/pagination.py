@@ -23,8 +23,8 @@ from ninja_extra.urls import remove_query_param, replace_query_param
 
 logger = logging.getLogger()
 
-if TYPE_CHECKING:
-    from .controllers import ControllerBase  # pragma: no cover
+if TYPE_CHECKING:# pragma: no cover
+    from .controllers import ControllerBase
 
 __all__ = [
     "PageNumberPagination",
@@ -143,14 +143,14 @@ class PageNumberPaginationExtra(PaginationBase):
 
 
 @overload
-def paginate() -> Callable[..., Any]:
+def paginate() -> Callable[..., Any]:# pragma: no cover
     ...
 
 
 @overload
 def paginate(
     func_or_pgn_class: Any = NOT_SET, **paginator_params: Any
-) -> Callable[..., Any]:
+) -> Callable[..., Any]:# pragma: no cover
     ...
 
 

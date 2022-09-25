@@ -22,6 +22,11 @@ def router_op1(request):
     return "first 1"
 
 
+@first_router.post("/endpoint_1/post")
+def router_op1(request):
+    return "first 1"
+
+
 second_router_one = Router()
 
 
@@ -73,19 +78,21 @@ client = TestClient(api)
 
 
 @pytest.mark.parametrize(
-    "path,expected_status,expected_response",
+    "path,expected_status,expected_response, action",
     [
-        ("/endpoint", 200, "global"),
-        ("/first/endpoint_1", 200, "first 1"),
-        ("/first/endpoint_2", 200, "first 2"),
-        ("/first/second/endpoint_1", 200, "second 1"),
-        ("/first/second/endpoint_2", 200, "second 2"),
-        ("/first/second/endpoint_3", 200, "second 3"),
-        ("/first/second/endpoint_4", 200, "second 4"),
+        ("/endpoint", 200, "global", "get"),
+        ("/first/endpoint_1", 200, "first 1", "get"),
+        ("/first/endpoint_1/post", 200, "first 1", "post"),
+        ("/first/endpoint_2", 200, "first 2", "get"),
+        ("/first/second/endpoint_1", 200, "second 1", "get"),
+        ("/first/second/endpoint_2", 200, "second 2", "get"),
+        ("/first/second/endpoint_3", 200, "second 3", "get"),
+        ("/first/second/endpoint_4", 200, "second 4", "get"),
     ],
 )
-def test_inheritance_responses(path, expected_status, expected_response):
-    response = client.get(path)
+def test_inheritance_responses(path, expected_status, expected_response, action):
+    action_handler = getattr(client, action)
+    response = action_handler(path)
     assert response.status_code == expected_status, response.content
     assert response.json() == expected_response
 
