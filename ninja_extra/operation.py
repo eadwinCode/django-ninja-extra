@@ -190,14 +190,16 @@ class Operation(NinjaOperation):
                 )
                 return _processed_results
         except Exception as e:
-            if isinstance(e, TypeError) and "required positional argument" in str(e):
+            if isinstance(e, TypeError) and "required positional argument" in str(
+                e
+            ):  # pragma: no cover
                 msg = "Did you fail to use functools.wraps() in a decorator?"
                 msg = f"{e.args[0]}: {msg}" if e.args else msg
                 e.args = (msg,) + e.args[1:]
             return self.api.on_exception(request, e)
 
 
-class ControllerOperation(Operation): # pragma: no cover
+class ControllerOperation(Operation):  # pragma: no cover
     def _log_action(
         self,
         logger: Callable[..., Any],
@@ -401,7 +403,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             return self.api.on_exception(request, e)
 
 
-class AsyncControllerOperation(AsyncOperation, ControllerOperation): # pragma: no cover
+class AsyncControllerOperation(AsyncOperation, ControllerOperation):  # pragma: no cover
     @asynccontextmanager
     async def _prep_run(  # type:ignore
         self, request: HttpRequest, **kw: Any
@@ -513,7 +515,7 @@ class PathView(NinjaPathView):
         return operation_class
 
 
-class ControllerPathView(PathView): # pragma: no cover
+class ControllerPathView(PathView):  # pragma: no cover
     def get_operation_class(
         self, view_func: TCallable
     ) -> Type[Union[Operation, AsyncOperation]]:

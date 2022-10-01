@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Generic, Tuple, Type, TypeVar
 from django.http import HttpRequest
 from ninja.types import DictStrAny
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra.controllers.base import ControllerBase  # pragma: no cover
 
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
@@ -23,10 +23,14 @@ class OperationHolderMixin:
     def __or__(self, other: Type["BasePermission"]) -> "OperandHolder[OR]":
         return OperandHolder(OR, self, other)  # type: ignore
 
-    def __rand__(self, other: Type["BasePermission"]) -> "OperandHolder[AND]":
+    def __rand__(
+        self, other: Type["BasePermission"]
+    ) -> "OperandHolder[AND]":  # pragma: no cover
         return OperandHolder(AND, other, self)  # type: ignore
 
-    def __ror__(self, other: Type["BasePermission"]) -> "OperandHolder[OR]":
+    def __ror__(
+        self, other: Type["BasePermission"]
+    ) -> "OperandHolder[OR]":  # pragma: no cover
         return OperandHolder(OR, other, self)  # type: ignore
 
     def __invert__(self) -> "SingleOperandHolder[NOT]":

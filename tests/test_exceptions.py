@@ -1,39 +1,52 @@
 from django.test import RequestFactory
 from django.utils.translation import gettext_lazy as _
-from ninja_extra import NinjaExtraAPI, testing
-from ninja_extra import exceptions
 
-api = NinjaExtraAPI(urls_namespace='exception')
+from ninja_extra import NinjaExtraAPI, exceptions, testing
+
+api = NinjaExtraAPI(urls_namespace="exception")
 
 
 @api.get("/list_exception")
 def list_exception(request):
-    raise exceptions.APIException([
-        'some error 1',
-        'some error 2',
-    ])
+    raise exceptions.APIException(
+        [
+            "some error 1",
+            "some error 2",
+        ]
+    )
+
+
+@api.get("/list_exception_full_detail")
+def list_exception(request):
+    exception = exceptions.APIException(
+        [
+            "some error 1",
+            "some error 2",
+        ]
+    )
+    return exception.get_full_details()
 
 
 @api.get("/dict_exception")
 def dict_exception(request):
-    raise exceptions.APIException(dict(error='error 1'))
+    raise exceptions.APIException(dict(error="error 1"))
 
 
 @api.get("/dict_exception_full_detail")
 def dict_exception_full_detail(request):
-    exception = exceptions.APIException(dict(error='error 1'))
+    exception = exceptions.APIException(dict(error="error 1"))
     return exception.get_full_details()
 
 
 @api.get("/dict_exception_code_detail")
 def dict_exception_code_detail(request):
-    exception = exceptions.APIException(dict(error='error 1'))
+    exception = exceptions.APIException(dict(error="error 1"))
     return exception.get_codes()
 
 
 @api.get("/list_exception_code_detail")
 def list_exception_code_detail(request):
-    exception = exceptions.APIException(['some error'])
+    exception = exceptions.APIException(["some error"])
     return exception.get_codes()
 
 
@@ -47,30 +60,42 @@ class TestException:
 
         assert exceptions._get_error_details(lazy_example) == example
 
-        assert isinstance(exceptions._get_error_details(lazy_example), exceptions.ErrorDetail)
+        assert isinstance(
+            exceptions._get_error_details(lazy_example), exceptions.ErrorDetail
+        )
 
-        assert exceptions._get_error_details({"nested": lazy_example})["nested"] == example
+        assert (
+            exceptions._get_error_details({"nested": lazy_example})["nested"] == example
+        )
 
         assert isinstance(
-            exceptions._get_error_details({"nested": lazy_example})["nested"], exceptions.ErrorDetail
+            exceptions._get_error_details({"nested": lazy_example})["nested"],
+            exceptions.ErrorDetail,
         )
 
         assert exceptions._get_error_details([[lazy_example]])[0][0] == example
 
-        assert isinstance(exceptions._get_error_details([[lazy_example]])[0][0], exceptions.ErrorDetail)
+        assert isinstance(
+            exceptions._get_error_details([[lazy_example]])[0][0],
+            exceptions.ErrorDetail,
+        )
 
 
 class TestErrorDetail:
     def test_eq(self):
         assert exceptions.ErrorDetail("msg") == exceptions.ErrorDetail("msg")
-        assert exceptions.ErrorDetail("msg", "code") == exceptions.ErrorDetail("msg", code="code")
+        assert exceptions.ErrorDetail("msg", "code") == exceptions.ErrorDetail(
+            "msg", code="code"
+        )
 
         assert exceptions.ErrorDetail("msg") == "msg"
         assert exceptions.ErrorDetail("msg", "code") == "msg"
 
     def test_ne(self):
         assert exceptions.ErrorDetail("msg1") != exceptions.ErrorDetail("msg2")
-        assert exceptions.ErrorDetail("msg") != exceptions.ErrorDetail("msg", code="invalid")
+        assert exceptions.ErrorDetail("msg") != exceptions.ErrorDetail(
+            "msg", code="invalid"
+        )
 
         assert exceptions.ErrorDetail("msg1") != "msg2"
         assert exceptions.ErrorDetail("msg1", "code") != "msg2"
@@ -108,58 +133,84 @@ def test_bad_request():
 
 
 def test_exception_with_list_details():
-    res = client.get('list_exception')
+    res = client.get("list_exception")
     assert res.status_code == 500
-    assert res.json() == ['some error 1', 'some error 2']
+    assert res.json() == ["some error 1", "some error 2"]
+
+
+def test_exception_with_list_full_details():
+    res = client.get("list_exception_full_detail")
+    assert res.status_code == 200
+    assert res.json() == [
+        {"message": "some error 1", "code": "error"},
+        {"message": "some error 2", "code": "error"},
+    ]
 
 
 def test_exception_with_dict_details():
-    res = client.get('dict_exception')
+    res = client.get("dict_exception")
     assert res.status_code == 500
-    assert res.json() == dict(error='error 1')
+    assert res.json() == dict(error="error 1")
 
 
 def test_exception_with_full_details():
-    res = client.get('dict_exception_full_detail')
+    res = client.get("dict_exception_full_detail")
     assert res.status_code == 200
-    assert res.json() == {'error': {'message': 'error 1', 'code': 'error'}}
+    assert res.json() == {"error": {"message": "error 1", "code": "error"}}
 
 
 def test_exception_dict_exception_code_detail():
-    res = client.get('dict_exception_code_detail')
+    res = client.get("dict_exception_code_detail")
     assert res.status_code == 200
-    assert res.json() == {'error': 'error'}
+    assert res.json() == {"error": "error"}
 
 
 def test_exception_with_list_exception_code_detail():
-    res = client.get('list_exception_code_detail')
+    res = client.get("list_exception_code_detail")
     assert res.status_code == 200
-    assert res.json() == ['error']
+    assert res.json() == ["error"]
 
 
 def test_validation_error():
     exception = exceptions.ValidationError()
-    assert exception.detail == [exceptions.ErrorDetail(
-        string=exceptions.ValidationError.default_detail, code=exceptions.ValidationError.default_code)]
+    assert exception.detail == [
+        exceptions.ErrorDetail(
+            string=exceptions.ValidationError.default_detail,
+            code=exceptions.ValidationError.default_code,
+        )
+    ]
     assert exception.get_codes() == [exceptions.ValidationError.default_code]
 
-    exception = exceptions.ValidationError(['errors'])
-    assert exception.detail == ['errors']
+    exception = exceptions.ValidationError(["errors"])
+    assert exception.detail == ["errors"]
 
 
 def test_method_not_allowed_error():
     exception = exceptions.MethodNotAllowed("get")
-    assert exception.detail == exceptions.MethodNotAllowed.default_detail.format(method='get')
+    assert exception.detail == exceptions.MethodNotAllowed.default_detail.format(
+        method="get"
+    )
     assert exception.get_codes() == exceptions.MethodNotAllowed.default_code
 
-    exception = exceptions.MethodNotAllowed("get", ['errors'])
-    assert exception.detail == ['errors']
+    exception = exceptions.MethodNotAllowed("get", ["errors"])
+    assert exception.detail == ["errors"]
+
+
+def test_method_not_allowed_accepted_error():
+    exception = exceptions.NotAcceptable()
+    assert exception.detail == exceptions.NotAcceptable.default_detail
+    assert exception.get_codes() == exceptions.NotAcceptable.default_code
+
+    exception = exceptions.NotAcceptable(["errors"])
+    assert exception.detail == ["errors"]
 
 
 def test_unsupported_media_type_allowed_error():
     exception = exceptions.UnsupportedMediaType("whatever/type")
-    assert exception.detail == exceptions.UnsupportedMediaType.default_detail.format(media_type="whatever/type")
+    assert exception.detail == exceptions.UnsupportedMediaType.default_detail.format(
+        media_type="whatever/type"
+    )
     assert exception.get_codes() == exceptions.UnsupportedMediaType.default_code
 
-    exception = exceptions.UnsupportedMediaType("whatever/type", ['errors'])
-    assert exception.detail == ['errors']
+    exception = exceptions.UnsupportedMediaType("whatever/type", ["errors"])
+    assert exception.detail == ["errors"]

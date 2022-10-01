@@ -1,14 +1,18 @@
 import typing as t
 from unittest import mock
 
-from injector import Binder, Injector, Module
+import pytest
 from django.apps import apps
-from ninja_extra.modules import NinjaExtraModule
+from django.core.exceptions import ImproperlyConfigured
+from django.test import override_settings
+from injector import Binder, Injector, Module
+
 from ninja_extra.dependency_resolver import (
     get_injector,
     register_injector_modules,
     service_resolver,
 )
+from ninja_extra.modules import NinjaExtraModule
 
 
 class MyServiceModule(Module):
@@ -53,3 +57,12 @@ def test_ninja_default_module_get_context():
     app.ninja_extra_module.set_route_context(route_context)
 
     assert app.ninja_extra_module.get_route_context() is route_context
+
+
+@override_settings(INSTALLED_APPS=("tests",))
+def test_get_injector_fails_for_ninja_not_registered(monkeypatch):
+    with pytest.raises(
+        ImproperlyConfigured,
+        match="ninja_extra app is not installed. Did you forget register `ninja_extra` in `INSTALLED_APPS`",
+    ):
+        get_injector()

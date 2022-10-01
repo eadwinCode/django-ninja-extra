@@ -22,7 +22,7 @@ def router_op1(request):
     return "first 1"
 
 
-@first_router.post("/endpoint_1/post")
+@first_router.post("/endpoint_1")
 def router_op1(request):
     return "first 1"
 
@@ -82,7 +82,7 @@ client = TestClient(api)
     [
         ("/endpoint", 200, "global", "get"),
         ("/first/endpoint_1", 200, "first 1", "get"),
-        ("/first/endpoint_1/post", 200, "first 1", "post"),
+        ("/first/endpoint_1", 200, "first 1", "post"),
         ("/first/endpoint_2", 200, "first 2", "get"),
         ("/first/second/endpoint_1", 200, "second 1", "get"),
         ("/first/second/endpoint_2", 200, "second 2", "get"),

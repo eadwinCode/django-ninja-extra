@@ -26,7 +26,7 @@ class CustomPagination(PaginationBase):
 
     def paginate_queryset(self, items, request, **params):
         skip = params["pagination"].skip
-        return items[skip: skip + 5]
+        return items[skip : skip + 5]
 
 
 @api_controller
@@ -171,13 +171,25 @@ class TestPagination:
 
     def test_case4_negative_page_number(self):
         response = client.get("/items_4?page=-1").json()
-        assert response == {'detail': [{'loc': ['query', 'page'], 'msg': 'ensure this value is greater than 0',
-                                        'type': 'value_error.number.not_gt', 'ctx': {'limit_value': 0}}]}
+        assert response == {
+            "detail": [
+                {
+                    "loc": ["query", "page"],
+                    "msg": "ensure this value is greater than 0",
+                    "type": "value_error.number.not_gt",
+                    "ctx": {"limit_value": 0},
+                }
+            ]
+        }
 
     def test_case_4_can_t_exceed_page_number(self):
         response = client.get("/items_4?page=10").json()
-        assert response == {'count': 100, 'next': None, 'previous': 'http://testlocation/?page=9',
-                            'results': [90, 91, 92, 93, 94, 95, 96, 97, 98, 99]}
+        assert response == {
+            "count": 100,
+            "next": None,
+            "previous": "http://testlocation/?page=9",
+            "results": [90, 91, 92, 93, 94, 95, 96, 97, 98, 99],
+        }
 
     def test_case4(self):
         response = client.get("/items_4?page=2").json()
