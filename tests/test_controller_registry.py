@@ -32,8 +32,10 @@ def test_remove_controller_works():
 
     registry.add_controller(AutoImportTrueControllerSample)
     assert str(AutoImportTrueControllerSample) in registry.controllers
-    registry.remove_controller(AutoImportTrueControllerSample)
+    result = registry.remove_controller(AutoImportTrueControllerSample)
+    assert result
     assert str(AutoImportTrueControllerSample) not in registry.controllers
+    assert registry.remove_controller(AutoImportTrueControllerSample) is None
 
 
 def test_clear_registry_works():

@@ -153,10 +153,10 @@ class RouteFunction(object):
         finally:
             controller_instance.context = None
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return self.route.route_params.path
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         if not self.api_controller:
             return f"<RouteFunction, controller: No Controller Found, path: {self.__str__()}>"
         return f"<RouteFunction, controller: {self.api_controller.controller_class.__name__}, path: {self.__str__()}>"
@@ -181,7 +181,7 @@ class AsyncRouteFunction(RouteFunction):
         as_view.get_route_function = lambda: self  # type:ignore
         return as_view
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         if not self.api_controller:
             return f"<AsyncRouteFunction, controller: No Controller Found, path: {self.__str__()}>"
         return f"<AsyncRouteFunction, controller: {self.api_controller.controller_class.__name__}, path: {self.__str__()}>"
