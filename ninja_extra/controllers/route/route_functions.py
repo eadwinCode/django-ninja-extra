@@ -170,9 +170,11 @@ class AsyncRouteFunction(RouteFunction):
             *args: Any,
             **kwargs: Any,
         ) -> Any:
+            from asgiref.sync import sync_to_async
+
             context = context or cast(RouteContext, service_resolver(RouteContext))
             with self._prep_controller_route_execution(context, **kwargs) as ctx:
-                ctx.controller_instance.check_permissions()
+                await sync_to_async(ctx.controller_instance.check_permissions)()
                 result = await self.route.view_func(
                     ctx.controller_instance, *args, **ctx.view_func_kwargs
                 )
