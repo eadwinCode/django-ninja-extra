@@ -126,8 +126,6 @@ class Operation(NinjaOperation):
             route_function: "RouteFunction" = (
                 self.view_func.get_route_function()  # type:ignore
             )
-            if not route_function:
-                raise Exception("Route Function is missing")
 
             _api_controller = route_function.get_api_controller()
             permission_classes = (
@@ -192,14 +190,16 @@ class Operation(NinjaOperation):
                 )
                 return _processed_results
         except Exception as e:
-            if isinstance(e, TypeError) and "required positional argument" in str(e):
+            if isinstance(e, TypeError) and "required positional argument" in str(
+                e
+            ):  # pragma: no cover
                 msg = "Did you fail to use functools.wraps() in a decorator?"
                 msg = f"{e.args[0]}: {msg}" if e.args else msg
                 e.args = (msg,) + e.args[1:]
             return self.api.on_exception(request, e)
 
 
-class ControllerOperation(Operation):
+class ControllerOperation(Operation):  # pragma: no cover
     def _log_action(
         self,
         logger: Callable[..., Any],
@@ -403,7 +403,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             return self.api.on_exception(request, e)
 
 
-class AsyncControllerOperation(AsyncOperation, ControllerOperation):
+class AsyncControllerOperation(AsyncOperation, ControllerOperation):  # pragma: no cover
     @asynccontextmanager
     async def _prep_run(  # type:ignore
         self, request: HttpRequest, **kw: Any
@@ -515,7 +515,7 @@ class PathView(NinjaPathView):
         return operation_class
 
 
-class ControllerPathView(PathView):
+class ControllerPathView(PathView):  # pragma: no cover
     def get_operation_class(
         self, view_func: TCallable
     ) -> Type[Union[Operation, AsyncOperation]]:

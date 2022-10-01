@@ -29,7 +29,7 @@ class NinjaExtraModule(Module):
     def get_route_context(self) -> Optional[RouteContext]:
         try:
             return self._local.route_context  # type:ignore
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             return None
 
     def configure(self, binder: Binder) -> None:

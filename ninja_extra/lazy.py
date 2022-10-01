@@ -13,7 +13,6 @@ class LazyStrImport(LazyObject):
     def _setup(self):
         if self._wrapped is empty:
             self._wrapped = import_string(self._import_str)
-            return self._wrapped
         return self._wrapped
 
     @no_type_check

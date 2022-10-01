@@ -23,8 +23,8 @@ from ninja_extra.urls import remove_query_param, replace_query_param
 
 logger = logging.getLogger()
 
-if TYPE_CHECKING:
-    from .controllers import ControllerBase  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover
+    from .controllers import ControllerBase
 
 __all__ = [
     "PageNumberPagination",
@@ -36,20 +36,6 @@ __all__ = [
     "PaginatorOperation",
     "AsyncPaginatorOperation",
 ]
-
-
-def _positive_int(
-    integer_string: Union[str, int], strict: bool = False, cutoff: Optional[int] = None
-) -> int:
-    """
-    Cast a string to a strictly positive integer.
-    """
-    ret = int(integer_string)
-    if ret < 0 or (ret == 0 and strict):
-        raise ValueError()
-    if cutoff:
-        return min(ret, cutoff)
-    return ret
 
 
 class PageNumberPaginationExtra(PaginationBase):
@@ -89,14 +75,13 @@ class PageNumberPaginationExtra(PaginationBase):
         **params: DictStrAny,
     ) -> Any:
         assert request, "request is required"
-        page_size = self.get_page_size(pagination.page_size)
         current_page_number = pagination.page
-        paginator = self.paginator_class(queryset, page_size)
+        paginator = self.paginator_class(queryset, pagination.page_size)
         try:
             url = request.build_absolute_uri()
             page: Page = paginator.page(current_page_number)
             return self.get_paginated_response(base_url=url, page=page)
-        except InvalidPage as exc:
+        except InvalidPage as exc:  # pragma: no cover
             msg = "Invalid page. {page_number} {message}".format(
                 page_number=current_page_number, message=str(exc)
             )
@@ -132,25 +117,16 @@ class PageNumberPaginationExtra(PaginationBase):
             return remove_query_param(url, self.page_query_param)
         return replace_query_param(url, self.page_query_param, page_number)
 
-    def get_page_size(self, page_size: int) -> int:
-        if page_size:
-            try:
-                return _positive_int(page_size, strict=True, cutoff=self.max_page_size)
-            except (KeyError, ValueError):
-                pass
-
-        return self.page_size
-
 
 @overload
-def paginate() -> Callable[..., Any]:
+def paginate() -> Callable[..., Any]:  # pragma: no cover
     ...
 
 
 @overload
 def paginate(
     func_or_pgn_class: Any = NOT_SET, **paginator_params: Any
-) -> Callable[..., Any]:
+) -> Callable[..., Any]:  # pragma: no cover
     ...
 
 

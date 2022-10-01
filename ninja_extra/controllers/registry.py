@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict, Optional, Type
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra.controllers.base import ControllerBase  # pragma: no cover
 
 

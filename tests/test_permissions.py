@@ -85,6 +85,7 @@ class TestPermissionsCompositions:
             & permissions.IsAuthenticated
         )
         assert composed_perm().has_permission(request, None) is True
+        assert composed_perm().has_object_permission(request, None, None) is True
 
     @pytest.mark.django_db
     def test_several_levels_and_precedence_with_negation(self):

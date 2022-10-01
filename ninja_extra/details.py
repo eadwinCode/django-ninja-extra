@@ -22,7 +22,7 @@ class ViewSignature(NinjaViewSignature):
                     if not (path_model and name in path_model._flatten_map)
                 )
             )
-            if missing:
+            if missing:  # pragma: no cover
                 message = f"Field(s) {missing} are in the view path, but were not found in the view signature."
                 view_func = self.view_func
                 filename = inspect.getfile(view_func)

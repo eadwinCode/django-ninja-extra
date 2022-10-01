@@ -1,3 +1,4 @@
+import sys
 import uuid
 
 import pytest
@@ -76,3 +77,9 @@ def test_details_generic_response_response_model():
     assert detail_a_schema_instance.status_code == 400
     assert details_a_schema == Detail[ASchema]
     assert type(details_a_schema) == ControllerResponseMeta
+
+
+@pytest.mark.skipif(sys.version_info < (3, 7), reason="requires python >= 3.7")
+def test_generic_schema_with_k_t_fails():
+    with pytest.raises(TypeError, match="Tuple Generic Model not supported"):
+        ds = Detail[ASchema, ASchema]

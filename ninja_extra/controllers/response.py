@@ -76,9 +76,7 @@ else:
         @no_type_check
         def __class_getitem__(cls: Type[GenericControllerResponseT], item: Any) -> Any:
             if isinstance(item, tuple):
-                raise TypeError(
-                    "Cannot parameterize a concrete instantiation of a generic model"
-                )
+                raise TypeError("Tuple Generic Model not supported")
 
             _key = (cls, item)
             _cached_value = _generic_types_cache.get(_key)

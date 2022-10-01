@@ -52,7 +52,7 @@ class BaseThrottle:
 
         return "".join(xff.split()) if xff else remote_addr
 
-    def wait(self) -> Optional[float]:
+    def wait(self) -> Optional[float]:  # pragma: no cover
         """
         Optionally, return a recommended number of seconds to wait before
         the next request.

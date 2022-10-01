@@ -47,7 +47,7 @@ class SomeAPIController:
     def items_3(self, **kwargs):
         return ITEMS
 
-    @route.get("/items_4")
+    @route.get("/items_4", response=PageNumberPaginationExtra.get_response_schema(int))
     @paginate(PageNumberPaginationExtra, page_size=10, pass_parameter="pass_kwargs")
     def items_4(self, **kwargs):
         return ITEMS
@@ -164,6 +164,32 @@ class TestPagination:
                 "required": True,
             }
         ]
+
+    def test_case4_no_previous(self):
+        response = client.get("/items_4").json()
+        assert response.get("previous") is None
+
+    def test_case4_negative_page_number(self):
+        response = client.get("/items_4?page=-1").json()
+        assert response == {
+            "detail": [
+                {
+                    "loc": ["query", "page"],
+                    "msg": "ensure this value is greater than 0",
+                    "type": "value_error.number.not_gt",
+                    "ctx": {"limit_value": 0},
+                }
+            ]
+        }
+
+    def test_case_4_can_t_exceed_page_number(self):
+        response = client.get("/items_4?page=10").json()
+        assert response == {
+            "count": 100,
+            "next": None,
+            "previous": "http://testlocation/?page=9",
+            "results": [90, 91, 92, 93, 94, 95, 96, 97, 98, 99],
+        }
 
     def test_case4(self):
         response = client.get("/items_4?page=2").json()
@@ -332,3 +358,7 @@ class TestAsyncOperations:
             data = response.json()
             assert data.get("items")
             assert data["items"] == ITEMS[10:20]
+
+
+def test_pagination_extra_get_schema():
+    pass

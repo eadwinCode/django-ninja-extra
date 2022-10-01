@@ -1,8 +1,10 @@
 import django
 import pytest
-from ninja.testing import TestAsyncClient
+from django.conf import settings
+from ninja.security import APIKeyCookie
+from ninja.testing import TestAsyncClient, TestClient
 
-from ninja_extra import NinjaExtraAPI
+from ninja_extra import NinjaExtraAPI, exceptions
 from ninja_extra.security import (
     AsyncAPIKeyCookie,
     AsyncAPIKeyHeader,
@@ -35,6 +37,13 @@ class KeyCookie(AsyncAPIKeyCookie):
             return key
 
 
+class SyncKeyCookie(APIKeyCookie):
+    def authenticate(self, request, key):
+        if key == "keycookiersecret":
+            return key
+        raise exceptions.NotAuthenticated()
+
+
 class BasicAuth(AsyncHttpBasicAuth):
     async def authenticate(self, request, username, password):
         if username == "admin" and password == "secret":
@@ -51,11 +60,82 @@ async def demo_operation(request):
     return {"auth": request.auth}
 
 
+def sync_demo_operation(request):
+    return {"auth": request.auth}
+
+
 class MockUser(str):
     is_authenticated = True
 
 
 BODY_UNAUTHORIZED_DEFAULT = dict(detail="Unauthorized")
+
+if not django.VERSION < (3, 1):
+
+    class TestAsyncCSRFClient(TestAsyncClient):
+        def _build_request(self, *args, **kwargs):
+            request = super()._build_request(*args, **kwargs)
+            request._dont_enforce_csrf_checks = False
+            return request
+
+    csrf_OFF = NinjaExtraAPI(urls_namespace="csrf_OFF")
+    csrf_ON = NinjaExtraAPI(urls_namespace="csrf_ON", csrf=True)
+
+    @csrf_OFF.post("/post")
+    async def post_off(request):
+        return {"success": True}
+
+    @csrf_ON.post("/post")
+    async def post_on(request):
+        return {"success": True}
+
+    @csrf_ON.post("/post-async-sync-auth", auth=SyncKeyCookie())
+    async def auth_with_sync_auth(request):
+        return {"success": True}
+
+    TOKEN = "1bcdefghij2bcdefghij3bcdefghij4bcdefghij5bcdefghij6bcdefghijABCD"
+    COOKIES = {settings.CSRF_COOKIE_NAME: TOKEN}
+
+    @pytest.mark.asyncio
+    async def test_auth_with_sync_auth_fails():
+        async_client = TestAsyncClient(csrf_ON)
+        res = await async_client.post("/post-async-sync-auth")
+        assert res.status_code == 401
+        assert res.json() == {"detail": "Authentication credentials were not provided."}
+
+    @pytest.mark.asyncio
+    async def test_auth_with_sync_auth_works():
+        async_client = TestAsyncClient(csrf_ON)
+        res = await async_client.post(
+            "/post-async-sync-auth", COOKIES={"key": "keycookiersecret"}
+        )
+        assert res.status_code == 200
+        assert res.json() == {"success": True}
+
+    @pytest.mark.asyncio
+    async def test_csrf_off():
+        async_client = TestAsyncCSRFClient(csrf_OFF)
+        res = await async_client.post("/post", COOKIES=COOKIES)
+        assert res.status_code == 200
+
+    @pytest.mark.asyncio
+    async def test_csrf_on():
+        async_client = TestAsyncCSRFClient(csrf_ON)
+        res = await async_client.post("/post", COOKIES=COOKIES)
+        assert res.status_code == 403
+
+        # check with token in formdata
+        response = await async_client.post(
+            "/post", {"csrfmiddlewaretoken": TOKEN}, COOKIES=COOKIES
+        )
+        assert response.status_code == 200
+
+        # check with headers
+        response = await async_client.post(
+            "/post", COOKIES=COOKIES, headers={"X-CSRFTOKEN": TOKEN}
+        )
+        assert response.status_code == 200
+
 
 if not django.VERSION < (3, 1):
     api = NinjaExtraAPI(csrf=True, urls_namespace="async_auth")
@@ -145,3 +225,15 @@ async def test_auth(path, kwargs, expected_code, expected_body, settings):
         response = await client.get(path, **kwargs)
         assert response.status_code == expected_code
         assert response.json() == expected_body
+
+
+def test_auth_failure():
+    sync_api = NinjaExtraAPI(csrf=True)
+    sync_api.get(
+        f"/sync-cookie-auth", auth=SyncKeyCookie(), operation_id="sync-cookie-auth"
+    )(sync_demo_operation)
+
+    sync_client = TestClient(sync_api)
+    res = sync_client.get("sync-cookie-auth")
+    assert res.status_code == 401
+    assert res.json() == {"detail": "Authentication credentials were not provided."}

@@ -1,0 +1,46 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev:  v2.3.0
+  hooks:
+  - id: check-merge-conflict
+- repo: https://github.com/asottile/yesqa
+  rev: v1.3.0
+  hooks:
+  - id: yesqa
+- repo: local
+  hooks:
+    - id: code_formatting
+      args: []
+      name: Code Formatting
+      entry: "make fmt"
+      types: [python]
+      language_version: python3.6
+      language: python
+    - id: code_linting
+      args: [ ]
+      name: Code Linting
+      entry: "make lint"
+      types: [ python ]
+      language_version: python3.6
+      language: python
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: end-of-file-fixer
+    exclude: >-
+      ^examples/[^/]*\.svg$
+  - id: requirements-txt-fixer
+  - id: trailing-whitespace
+    types: [python]
+  - id: check-case-conflict
+  - id: check-json
+  - id: check-xml
+  - id: check-executables-have-shebangs
+  - id: check-toml
+  - id: check-xml
+  - id: check-yaml
+  - id: debug-statements
+  - id: check-added-large-files
+  - id: check-symlinks
+  - id: debug-statements
+    exclude: ^tests/
