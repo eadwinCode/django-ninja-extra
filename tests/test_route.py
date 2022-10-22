@@ -195,15 +195,18 @@ class TestControllerRoute:
         ],
     )
     def test_route_generates_required_route_definitions(self, func, methods, kwargs):
+        def view_func(request):
+            pass
+
         route_method = getattr(route, func)
-        route_instance: Route = (
+        route_instance: RouteFunction = (
             route_method("/", methods=methods, **kwargs)
             if func == "generic"
             else route_method("/", **kwargs)
-        )
-        assert route_instance.route_params.methods == methods
+        )(view_func)
+        assert route_instance.route.route_params.methods == methods
         for k, v in kwargs.items():
-            assert getattr(route_instance.route_params, k) == v
+            assert getattr(route_instance.route.route_params, k) == v
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")

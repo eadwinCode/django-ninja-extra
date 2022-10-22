@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, List, Optional, Type, Union, cast
+from typing import Any, Callable, List, Optional, Type, Union, cast
 
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
@@ -17,395 +17,6 @@ class RouteInvalidParameterException(Exception):
     pass
 
 
-def http_get(
-    path: str = "",
-    *,
-    auth: Any = NOT_SET,
-    response: Union[Any, List[Any]] = NOT_SET,
-    operation_id: Optional[str] = None,
-    summary: Optional[str] = None,
-    description: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    deprecated: Optional[bool] = None,
-    by_alias: bool = False,
-    exclude_unset: bool = False,
-    exclude_defaults: bool = False,
-    exclude_none: bool = False,
-    url_name: Optional[str] = None,
-    include_in_schema: bool = True,
-    permissions: Optional[List[Type[BasePermission]]] = None,
-) -> "Route":
-    """
-    A GET Operation method decorator
-     eg.
-
-    ```python
-    @http_get()
-    def get_operation(self):
-    ...
-    ```
-    :param path: uniques endpoint path string
-    :param auth: endpoint authentication method. default: `NOT_SET`
-    :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
-    :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
-    :param summary: describes your endpoint. default: `None`
-    :param description: other description of your endpoint. default: `None`
-    :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
-    :param deprecated: declares an endpoint deprecated. default: `None`
-    :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
-    :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
-    :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
-    :param permissions: collection permission classes. default: `None`
-    :return: Route[GET]
-    """
-    return Route(
-        path,
-        [GET],
-        auth=auth,
-        response=response,
-        operation_id=operation_id,
-        summary=summary,
-        description=description,
-        tags=tags,
-        deprecated=deprecated,
-        by_alias=by_alias,
-        exclude_unset=exclude_unset,
-        exclude_defaults=exclude_defaults,
-        exclude_none=exclude_none,
-        url_name=url_name,
-        include_in_schema=include_in_schema,
-        permissions=permissions,
-    )
-
-
-def http_post(
-    path: str = "",
-    *,
-    auth: Any = NOT_SET,
-    response: Union[Any, List[Any]] = NOT_SET,
-    operation_id: Optional[str] = None,
-    summary: Optional[str] = None,
-    description: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    deprecated: Optional[bool] = None,
-    by_alias: bool = False,
-    exclude_unset: bool = False,
-    exclude_defaults: bool = False,
-    exclude_none: bool = False,
-    url_name: Optional[str] = None,
-    include_in_schema: bool = True,
-    permissions: Optional[List[Type[BasePermission]]] = None,
-) -> "Route":
-    """
-    A POST Operation method decorator
-    eg.
-
-    ```python
-     @http_post()
-     def post_operation(self,  create_schema: Schema):
-        ...
-    ```
-    :param path: uniques endpoint path string
-    :param auth: endpoint authentication method. default: `NOT_SET`
-    :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
-    :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
-    :param summary: describes your endpoint. default: `None`
-    :param description: other description of your endpoint. default: `None`
-    :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
-    :param deprecated: declares an endpoint deprecated. default: `None`
-    :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
-    :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
-    :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
-    :param permissions: collection permission classes. default: `None`
-    :return: Route[POST]
-    """
-    return Route(
-        path,
-        [POST],
-        auth=auth,
-        response=response,
-        operation_id=operation_id,
-        summary=summary,
-        description=description,
-        tags=tags,
-        deprecated=deprecated,
-        by_alias=by_alias,
-        exclude_unset=exclude_unset,
-        exclude_defaults=exclude_defaults,
-        exclude_none=exclude_none,
-        url_name=url_name,
-        include_in_schema=include_in_schema,
-        permissions=permissions,
-    )
-
-
-def http_delete(
-    path: str = "",
-    *,
-    auth: Any = NOT_SET,
-    response: Union[Any, List[Any]] = NOT_SET,
-    operation_id: Optional[str] = None,
-    summary: Optional[str] = None,
-    description: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    deprecated: Optional[bool] = None,
-    by_alias: bool = False,
-    exclude_unset: bool = False,
-    exclude_defaults: bool = False,
-    exclude_none: bool = False,
-    url_name: Optional[str] = None,
-    include_in_schema: bool = True,
-    permissions: Optional[List[Type[BasePermission]]] = None,
-) -> "Route":
-    """
-    A DELETE Operation method decorator
-    eg.
-
-    ```python
-    @http_delete('/{int:some_id}')
-    def delete_operation(self, some_id: int):
-        ...
-    ```
-    :param path: uniques endpoint path string
-    :param auth: endpoint authentication method. default: `NOT_SET`
-    :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
-    :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
-    :param summary: describes your endpoint. default: `None`
-    :param description: other description of your endpoint. default: `None`
-    :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
-    :param deprecated: declares an endpoint deprecated. default: `None`
-    :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
-    :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
-    :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
-    :param permissions: collection permission classes. default: `None`
-    :return: Route[DELETE]
-    """
-    return Route(
-        path,
-        [DELETE],
-        auth=auth,
-        response=response,
-        operation_id=operation_id,
-        summary=summary,
-        description=description,
-        tags=tags,
-        deprecated=deprecated,
-        by_alias=by_alias,
-        exclude_unset=exclude_unset,
-        exclude_defaults=exclude_defaults,
-        exclude_none=exclude_none,
-        url_name=url_name,
-        include_in_schema=include_in_schema,
-        permissions=permissions,
-    )
-
-
-def http_patch(
-    path: str = "",
-    *,
-    auth: Any = NOT_SET,
-    response: Union[Any, List[Any]] = NOT_SET,
-    operation_id: Optional[str] = None,
-    summary: Optional[str] = None,
-    description: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    deprecated: Optional[bool] = None,
-    by_alias: bool = False,
-    exclude_unset: bool = False,
-    exclude_defaults: bool = False,
-    exclude_none: bool = False,
-    url_name: Optional[str] = None,
-    include_in_schema: bool = True,
-    permissions: Optional[List[Type[BasePermission]]] = None,
-) -> "Route":
-    """
-    A PATCH Operation method decorator
-    eg.
-
-    ```python
-
-    @http_patch('/{int:some_id}')
-    def patch_operation(self,  some_id: int):
-        ...
-    ```
-    :param path: uniques endpoint path string
-    :param auth: endpoint authentication method. default: `NOT_SET`
-    :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
-    :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
-    :param summary: describes your endpoint. default: `None`
-    :param description: other description of your endpoint. default: `None`
-    :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
-    :param deprecated: declares an endpoint deprecated. default: `None`
-    :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
-    :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
-    :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
-    :param permissions: collection permission classes. default: `None`
-    :return: Route[PATCH]
-    """
-    return Route(
-        path,
-        [PATCH],
-        auth=auth,
-        response=response,
-        operation_id=operation_id,
-        summary=summary,
-        description=description,
-        tags=tags,
-        deprecated=deprecated,
-        by_alias=by_alias,
-        exclude_unset=exclude_unset,
-        exclude_defaults=exclude_defaults,
-        exclude_none=exclude_none,
-        url_name=url_name,
-        include_in_schema=include_in_schema,
-        permissions=permissions,
-    )
-
-
-def http_put(
-    path: str = "",
-    *,
-    auth: Any = NOT_SET,
-    response: Union[Any, List[Any]] = NOT_SET,
-    operation_id: Optional[str] = None,
-    summary: Optional[str] = None,
-    description: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    deprecated: Optional[bool] = None,
-    by_alias: bool = False,
-    exclude_unset: bool = False,
-    exclude_defaults: bool = False,
-    exclude_none: bool = False,
-    url_name: Optional[str] = None,
-    include_in_schema: bool = True,
-    permissions: Optional[List[Type[BasePermission]]] = None,
-) -> "Route":
-    """
-     A PUT Operation method decorator
-    eg.
-
-    ```python
-
-    @http_put('/{int:some_id}')
-    def put_operation(self, some_id: int):
-        ...
-    ```
-     :param path: uniques endpoint path string
-     :param auth: endpoint authentication method. default: `NOT_SET`
-     :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
-     :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
-     :param summary: describes your endpoint. default: `None`
-     :param description: other description of your endpoint. default: `None`
-     :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
-     :param deprecated: declares an endpoint deprecated. default: `None`
-     :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
-     :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
-     :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
-     :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
-     :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
-     :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
-     :param permissions: collection permission classes. default: `None`
-     :return: Route[PUT]
-    """
-    return Route(
-        path,
-        [PUT],
-        auth=auth,
-        response=response,
-        operation_id=operation_id,
-        summary=summary,
-        description=description,
-        tags=tags,
-        deprecated=deprecated,
-        by_alias=by_alias,
-        exclude_unset=exclude_unset,
-        exclude_defaults=exclude_defaults,
-        exclude_none=exclude_none,
-        url_name=url_name,
-        include_in_schema=include_in_schema,
-        permissions=permissions,
-    )
-
-
-def http_generic(
-    path: str = "",
-    *,
-    methods: List[str],
-    auth: Any = NOT_SET,
-    response: Union[Any, List[Any]] = NOT_SET,
-    operation_id: Optional[str] = None,
-    summary: Optional[str] = None,
-    description: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    deprecated: Optional[bool] = None,
-    by_alias: bool = False,
-    exclude_unset: bool = False,
-    exclude_defaults: bool = False,
-    exclude_none: bool = False,
-    url_name: Optional[str] = None,
-    include_in_schema: bool = True,
-    permissions: Optional[List[Type[BasePermission]]] = None,
-) -> "Route":
-    """
-    A Custom Operation method decorator, for creating route with more than one operation
-    eg.
-
-    ```python
-
-    @http_generic('', methods=['POST', 'GET'])
-    def list_create(self, some_schema: Optional[Schema] = None):
-       ...
-    ```
-    :param path: uniques endpoint path string
-    :param methods: List of operations `GET, PUT, PATCH, DELETE, POST`
-    :param auth: endpoint authentication method. default: `NOT_SET`
-    :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
-    :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
-    :param summary: describes your endpoint. default: `None`
-    :param description: other description of your endpoint. default: `None`
-    :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
-    :param deprecated: declares an endpoint deprecated. default: `None`
-    :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
-    :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
-    :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
-    :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
-    :param permissions: collection permission classes. default: `None`
-    :return: Route[PATCH]
-    """
-    return Route(
-        path,
-        methods,
-        auth=auth,
-        response=response,
-        operation_id=operation_id,
-        summary=summary,
-        description=description,
-        tags=tags,
-        deprecated=deprecated,
-        by_alias=by_alias,
-        exclude_unset=exclude_unset,
-        exclude_defaults=exclude_defaults,
-        exclude_none=exclude_none,
-        url_name=url_name,
-        include_in_schema=include_in_schema,
-        permissions=permissions,
-    )
-
-
 class Route(object):
     """
     APIController Class Route definition method decorator
@@ -413,18 +24,13 @@ class Route(object):
     """
 
     permissions: Optional[Optional[List[Type[BasePermission]]]] = None
-    get = http_get
-    patch = http_patch
-    put = http_put
-    delete = http_delete
-    post = http_post
-    generic = http_generic
 
     def __init__(
         self,
+        view_func: TCallable,
+        *,
         path: str,
         methods: List[str],
-        *,
         auth: Any = NOT_SET,
         response: Union[Any, List[Any]] = NOT_SET,
         operation_id: Optional[str] = None,
@@ -493,16 +99,490 @@ class Route(object):
             include_in_schema=include_in_schema,
         )
         self.route_params = ninja_route_params
-        self.is_async = False
+        self.is_async = is_async(view_func)
         self.permissions = permissions
+        self.view_func = view_func
 
-    def __call__(self, view_func: TCallable) -> RouteFunction:
+    @classmethod
+    def _create_route_function(
+        cls,
+        view_func: TCallable,
+        *,
+        path: str,
+        methods: List[str],
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> RouteFunction:
+        route_obj = cls(
+            view_func,
+            path=path,
+            methods=methods,
+            auth=auth,
+            response=response,
+            operation_id=operation_id,
+            summary=summary,
+            description=description,
+            tags=tags,
+            deprecated=deprecated,
+            by_alias=by_alias,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            url_name=url_name,
+            include_in_schema=include_in_schema,
+            permissions=permissions,
+        )
         route_function_class = RouteFunction
-        if is_async(view_func):
+        if route_obj.is_async:
             route_function_class = AsyncRouteFunction
 
-        self.view_func = view_func
-        return route_function_class(route=self)
+        return route_function_class(route=route_obj)
+
+    @classmethod
+    def get(
+        cls,
+        path: str = "",
+        *,
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> Callable[[TCallable], RouteFunction]:
+        """
+        A GET Operation method decorator
+         eg.
+
+        ```python
+        @http_get()
+        def get_operation(self):
+        ...
+        ```
+        :param path: uniques endpoint path string
+        :param auth: endpoint authentication method. default: `NOT_SET`
+        :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
+        :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
+        :param summary: describes your endpoint. default: `None`
+        :param description: other description of your endpoint. default: `None`
+        :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
+        :param deprecated: declares an endpoint deprecated. default: `None`
+        :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
+        :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
+        :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
+        :param permissions: collection permission classes. default: `None`
+        :return: Route[GET]
+        """
+
+        def decorator(view_func: TCallable) -> RouteFunction:
+            return cls._create_route_function(
+                view_func,
+                path=path,
+                methods=[GET],
+                auth=auth,
+                response=response,
+                operation_id=operation_id,
+                summary=summary,
+                description=description,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                url_name=url_name,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+            )
+
+        return decorator
+
+    @classmethod
+    def post(
+        cls,
+        path: str = "",
+        *,
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> Callable[[TCallable], RouteFunction]:
+        """
+        A POST Operation method decorator
+        eg.
+
+        ```python
+         @http_post()
+         def post_operation(self,  create_schema: Schema):
+            ...
+        ```
+        :param path: uniques endpoint path string
+        :param auth: endpoint authentication method. default: `NOT_SET`
+        :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
+        :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
+        :param summary: describes your endpoint. default: `None`
+        :param description: other description of your endpoint. default: `None`
+        :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
+        :param deprecated: declares an endpoint deprecated. default: `None`
+        :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
+        :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
+        :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
+        :param permissions: collection permission classes. default: `None`
+        :return: Route[POST]
+        """
+
+        def decorator(view_func: TCallable) -> RouteFunction:
+            return cls._create_route_function(
+                view_func,
+                path=path,
+                methods=[POST],
+                auth=auth,
+                response=response,
+                operation_id=operation_id,
+                summary=summary,
+                description=description,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                url_name=url_name,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+            )
+
+        return decorator
+
+    @classmethod
+    def delete(
+        cls,
+        path: str = "",
+        *,
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> Callable[[TCallable], RouteFunction]:
+        """
+        A DELETE Operation method decorator
+        eg.
+
+        ```python
+        @http_delete('/{int:some_id}')
+        def delete_operation(self, some_id: int):
+            ...
+        ```
+        :param path: uniques endpoint path string
+        :param auth: endpoint authentication method. default: `NOT_SET`
+        :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
+        :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
+        :param summary: describes your endpoint. default: `None`
+        :param description: other description of your endpoint. default: `None`
+        :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
+        :param deprecated: declares an endpoint deprecated. default: `None`
+        :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
+        :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
+        :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
+        :param permissions: collection permission classes. default: `None`
+        :return: Route[DELETE]
+        """
+
+        def decorator(view_func: TCallable) -> RouteFunction:
+            return cls._create_route_function(
+                view_func,
+                path=path,
+                methods=[DELETE],
+                auth=auth,
+                response=response,
+                operation_id=operation_id,
+                summary=summary,
+                description=description,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                url_name=url_name,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+            )
+
+        return decorator
+
+    @classmethod
+    def patch(
+        cls,
+        path: str = "",
+        *,
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> Callable[[TCallable], RouteFunction]:
+        """
+        A PATCH Operation method decorator
+        eg.
+
+        ```python
+
+        @http_patch('/{int:some_id}')
+        def patch_operation(self,  some_id: int):
+            ...
+        ```
+        :param path: uniques endpoint path string
+        :param auth: endpoint authentication method. default: `NOT_SET`
+        :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
+        :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
+        :param summary: describes your endpoint. default: `None`
+        :param description: other description of your endpoint. default: `None`
+        :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
+        :param deprecated: declares an endpoint deprecated. default: `None`
+        :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
+        :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
+        :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
+        :param permissions: collection permission classes. default: `None`
+        :return: Route[PATCH]
+        """
+
+        def decorator(view_func: TCallable) -> RouteFunction:
+            return cls._create_route_function(
+                view_func,
+                path=path,
+                methods=[PATCH],
+                auth=auth,
+                response=response,
+                operation_id=operation_id,
+                summary=summary,
+                description=description,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                url_name=url_name,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+            )
+
+        return decorator
+
+    @classmethod
+    def put(
+        cls,
+        path: str = "",
+        *,
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> Callable[[TCallable], RouteFunction]:
+        """
+         A PUT Operation method decorator
+        eg.
+
+        ```python
+
+        @http_put('/{int:some_id}')
+        def put_operation(self, some_id: int):
+            ...
+        ```
+         :param path: uniques endpoint path string
+         :param auth: endpoint authentication method. default: `NOT_SET`
+         :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
+         :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
+         :param summary: describes your endpoint. default: `None`
+         :param description: other description of your endpoint. default: `None`
+         :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
+         :param deprecated: declares an endpoint deprecated. default: `None`
+         :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
+         :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
+         :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
+         :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
+         :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
+         :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
+         :param permissions: collection permission classes. default: `None`
+         :return: Route[PUT]
+        """
+
+        def decorator(view_func: TCallable) -> RouteFunction:
+            return cls._create_route_function(
+                view_func,
+                path=path,
+                methods=[PUT],
+                auth=auth,
+                response=response,
+                operation_id=operation_id,
+                summary=summary,
+                description=description,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                url_name=url_name,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+            )
+
+        return decorator
+
+    @classmethod
+    def generic(
+        cls,
+        path: str = "",
+        *,
+        methods: List[str],
+        auth: Any = NOT_SET,
+        response: Union[Any, List[Any]] = NOT_SET,
+        operation_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        deprecated: Optional[bool] = None,
+        by_alias: bool = False,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        url_name: Optional[str] = None,
+        include_in_schema: bool = True,
+        permissions: Optional[List[Type[BasePermission]]] = None,
+    ) -> Callable[[TCallable], RouteFunction]:
+        """
+        A Custom Operation method decorator, for creating route with more than one operation
+        eg.
+
+        ```python
+
+        @http_generic('', methods=['POST', 'GET'])
+        def list_create(self, some_schema: Optional[Schema] = None):
+           ...
+        ```
+        :param path: uniques endpoint path string
+        :param methods: List of operations `GET, PUT, PATCH, DELETE, POST`
+        :param auth: endpoint authentication method. default: `NOT_SET`
+        :param response: `dict[status_code, schema]` or `Schema` used validated returned response. default: `None`
+        :param operation_id: unique id that distinguishes `operation` in path view. default: `None`
+        :param summary: describes your endpoint. default: `None`
+        :param description: other description of your endpoint. default: `None`
+        :param tags: list of strings for grouping endpoints only for documentation purpose. default: `None`
+        :param deprecated: declares an endpoint deprecated. default: `None`
+        :param by_alias: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_unset: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_defaults: pydantic schema filters applied to `response` schema object. default: `False`
+        :param exclude_none: pydantic schema filters applied to `response` schema object. default: `False`
+        :param url_name: a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
+        :param include_in_schema: indicates whether an endpoint should appear on the swagger documentation
+        :param permissions: collection permission classes. default: `None`
+        :return: Route[PATCH]
+        """
+
+        def decorator(view_func: TCallable) -> RouteFunction:
+            return cls._create_route_function(
+                view_func,
+                path=path,
+                methods=methods,
+                auth=auth,
+                response=response,
+                operation_id=operation_id,
+                summary=summary,
+                description=description,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                url_name=url_name,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+            )
+
+        return decorator
 
 
 route = Route
+
+http_get = route.get
+http_patch = route.patch
+
+http_put = route.put
+http_delete = route.delete
+
+http_post = route.post
+http_generic = route.generic
