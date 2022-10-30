@@ -4,13 +4,27 @@ from ninja.testing import TestClient
 from ninja_extra import NinjaExtraAPI, Router
 from ninja_extra.operation import PathView
 
+from .schemas import UserSchema
+
 api = NinjaExtraAPI(urls_namespace="ninja_router")
 
 
 @api.get("/endpoint")
 # view->api
-def global_op(request):
+def global_op(request) -> str:
     return "global"
+
+
+@api.get("/return_type_response")
+# view->api
+def return_type_response(request) -> UserSchema:
+    return dict(name="Eadwin", age=20)
+
+
+@api.get("/return_type_response-2")
+# view->api
+def return_type_response(request) -> UserSchema:
+    return UserSchema(name="Eadwin", age=20)
 
 
 first_router = Router()
@@ -105,3 +119,15 @@ def test_router_path_view():
     global_op_path_view = api.default_router.path_operations.get("/endpoint")
     assert router_op1_path_view
     assert isinstance(global_op_path_view, PathView)
+
+
+def test_return_response_type():
+    res = client.get("/return_type_response")
+    assert res.status_code == 200
+    data = res.json()
+    assert data == {"name": "Eadwin", "age": 20}
+
+    res = client.get("/return_type_response-2")
+    assert res.status_code == 200
+    data = res.json()
+    assert data == {"name": "Eadwin", "age": 20}
