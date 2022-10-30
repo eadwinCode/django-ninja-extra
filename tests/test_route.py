@@ -4,6 +4,7 @@ import django
 import pytest
 from django.contrib.auth.models import AnonymousUser, User
 from ninja import Schema
+from ninja.constants import NOT_SET
 
 from ninja_extra import api_controller, permissions, route
 from ninja_extra.controllers import (
@@ -11,7 +12,6 @@ from ninja_extra.controllers import (
     Detail,
     Id,
     Ok,
-    Route,
     RouteFunction,
     RouteInvalidParameterException,
 )
@@ -20,6 +20,7 @@ from ninja_extra.controllers.route.context import RouteContext
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions import AllowAny
 
+from .schemas import UserSchema
 from .utils import FakeAuth
 
 anonymous_request = Mock()
@@ -71,6 +72,10 @@ class SomeTestController:
     def example_post_operation_id(self):
         pass
 
+    @route.get("/example/return-response-as-schema")
+    def function_return_as_response_schema(self) -> UserSchema:
+        pass
+
 
 class TestControllerRoute:
     @pytest.mark.parametrize(
@@ -113,6 +118,14 @@ class TestControllerRoute:
             SomeTestController.example.as_view.get_route_function()
             == SomeTestController.example
         )
+
+    def test_controller_route_should_use_userschema_as_response(self):
+        route_function: RouteFunction = SomeTestController.example
+        assert route_function.route.route_params.response == NOT_SET
+        route_function: RouteFunction = (
+            SomeTestController.function_return_as_response_schema
+        )
+        assert route_function.route.route_params.response == UserSchema
 
     def test_route_generic_invalid_parameters(self):
         with pytest.raises(RouteInvalidParameterException) as ex:

@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Callable, List, Optional, Type, Union, cast
+from typing import Any, Callable, List, Optional, Type, Union, cast, get_type_hints
 
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
@@ -125,6 +125,8 @@ class Route(object):
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
     ) -> RouteFunction:
+        if response is NOT_SET:
+            response = get_type_hints(view_func).get("return") or NOT_SET
         route_obj = cls(
             view_func,
             path=path,

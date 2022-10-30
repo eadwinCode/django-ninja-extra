@@ -45,7 +45,12 @@ class EventController:
     def list_events_example_2(self):
         return list(Event.objects.all())
 
-    @http_get("/{int:id}", response=EventSchema)
-    def get_event(self, id: int):
+    @http_get("/{int:id}")
+    def get_event(self, id: int) -> EventSchema:
         event = get_object_or_404(Event, id=id)
         return event
+
+    @http_get("/{int:id}/from-orm")
+    def get_event_from_orm(self, id: int) -> EventSchema:
+        event = get_object_or_404(Event, id=id)
+        return EventSchema.from_orm(event)
