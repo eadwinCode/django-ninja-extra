@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, get_type_hints
 
 from ninja.constants import NOT_SET
 from ninja.router import Router as NinjaRouter
@@ -40,6 +40,10 @@ class Router(NinjaRouter):
             self.path_operations[path] = path_view
         else:
             path_view = self.path_operations[path]
+
+        if response is NOT_SET:
+            response = get_type_hints(view_func).get("return") or NOT_SET
+
         path_view.add_operation(
             path=path,
             methods=methods,
