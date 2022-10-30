@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 import django
 import pytest
 from django.contrib.auth.models import Group
-from pydantic import UUID4, BaseModel
 
 from ninja_extra import (
     NinjaExtraAPI,
@@ -19,12 +18,8 @@ from ninja_extra.controllers.base import APIController, get_route_functions
 from ninja_extra.controllers.response import Detail, Id, Ok
 from ninja_extra.permissions.common import AllowAny
 
+from .schemas import UserSchema
 from .utils import AsyncFakeAuth, FakeAuth
-
-
-class UserSchema(BaseModel):
-    name: str
-    age: int
 
 
 @api_controller

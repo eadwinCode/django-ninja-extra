@@ -49,13 +49,20 @@ class TestEventController:
         ]
         assert event_schema == data
 
-    def test_get_event_works(self):
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/{event_id}",
+            "/{event_id}/from-orm",
+        ],
+    )
+    def test_get_event_works(self, path):
         object_data = self.dummy_data.copy()
         object_data.update(title=f"{object_data['title']}_get")
 
         event = Event.objects.create(**object_data)
         client = TestClient(EventController)
-        response = client.get(f"/{event.id}")
+        response = client.get(path.format(event_id=event.id))
         assert response.status_code == 200
         data = response.json()
         event_schema = json.loads(EventSchema.from_orm(event).json())
