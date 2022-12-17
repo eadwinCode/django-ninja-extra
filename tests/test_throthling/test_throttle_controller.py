@@ -36,7 +36,7 @@ client = TestClient(ThrottlingControllerSample)
 
 
 class TestThrottlingControllerSample:
-    def setup(self):
+    def setup_method(self):
         self.user = ThrottlingMockUser("Ninja")
         self.user.set_id(uuid.uuid4())
 

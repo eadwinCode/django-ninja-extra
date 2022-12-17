@@ -15,7 +15,7 @@ from ninja_extra.throttling import (
 
 @pytest.mark.django_db
 class TestAnonRateThrottle:
-    def setup(self):
+    def setup_method(self):
         self.throttle = AnonRateThrottle()
         self.request = HttpRequest()
         self.request.user = None
@@ -31,7 +31,7 @@ class TestAnonRateThrottle:
 
 
 class TestBaseThrottle:
-    def setup(self):
+    def setup_method(self):
         self.throttling = BaseThrottle()
         self.request = HttpRequest()
 
@@ -75,7 +75,7 @@ class TestBaseThrottle:
 
 
 class TestSimpleRateThrottle:
-    def setup(self):
+    def setup_method(self):
         SimpleRateThrottle.scope = "anon"
 
     def test_get_rate_raises_error_if_scope_is_missing(self):
@@ -125,7 +125,7 @@ class TestSimpleRateThrottle:
 
 
 class TestUserRateThrottle:
-    def setup(self):
+    def setup_method(self):
         self.throttle = UserRateThrottle()
         self.request = HttpRequest()
         self.request.user = None
@@ -148,7 +148,7 @@ class TestUserRateThrottle:
 
 
 class TestDynamicRateThrottle:
-    def setup(self):
+    def setup_method(self):
         self.request = HttpRequest()
         self.request.user = None
 

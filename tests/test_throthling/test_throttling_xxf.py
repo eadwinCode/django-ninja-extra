@@ -29,7 +29,7 @@ client = TestClient(api)
 
 
 class XffTestingBase:
-    def setup(self):
+    def setup_method(self):
         cache.clear()
         self.meta = dict(
             REMOTE_ADDR="3.3.3.3", HTTP_X_FORWARDED_FOR="0.0.0.0, 1.1.1.1, 2.2.2.2"

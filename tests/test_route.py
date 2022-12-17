@@ -16,7 +16,10 @@ from ninja_extra.controllers import (
     RouteInvalidParameterException,
 )
 from ninja_extra.controllers.base import get_all_controller_route_function
-from ninja_extra.controllers.route.context import RouteContext
+from ninja_extra.controllers.route.context import (
+    RouteContext,
+    get_route_execution_context,
+)
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.permissions import AllowAny
 
@@ -352,7 +355,7 @@ class TestAPIControllerRoutePermission:
 
     def test_route_prep_controller_route_execution_context_works(self):
         route_function: RouteFunction = SomeTestController.example
-        context = route_function.get_route_execution_context(request=anonymous_request)
+        context = get_route_execution_context(request=anonymous_request)
         with route_function._prep_controller_route_execution(context=context) as ctx:
             assert isinstance(ctx.controller_instance, SomeTestController)
             assert ctx.controller_instance.context
@@ -362,7 +365,7 @@ class TestAPIControllerRoutePermission:
         self,
     ):
         route_function: RouteFunction = SomeTestController.example
-        context = route_function.get_route_execution_context(request=anonymous_request)
+        context = get_route_execution_context(request=anonymous_request)
         with pytest.raises(Exception):
             with route_function._prep_controller_route_execution(
                 context=context
