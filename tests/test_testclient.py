@@ -28,10 +28,10 @@ class TestTestClient:
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
-@pytest.mark.asyncio
 class TestTestAsyncClient:
     if not django.VERSION < (3, 1):
 
+        @pytest.mark.asyncio
         async def test_add_async_works(self):
             client = TestAsyncClient(router)
             res = await client.get("/add-async", query=dict(a=4, b=6))
