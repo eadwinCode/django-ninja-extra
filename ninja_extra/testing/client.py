@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from urllib.parse import urlencode
 
 from ninja import NinjaAPI, Router
+from ninja.responses import NinjaJSONEncoder
 from ninja.testing.client import NinjaClientBase, NinjaResponse
 
 from ninja_extra import ControllerBase, NinjaExtraAPI
@@ -31,7 +32,7 @@ class NinjaExtraClientBase(NinjaClientBase):
         **request_params: Any,
     ) -> "NinjaResponse":
         if json is not None:
-            request_params["body"] = json_dumps(json)
+            request_params["body"] = json_dumps(json, cls=NinjaJSONEncoder)
         if "query" in request_params and isinstance(request_params["query"], dict):
             query = request_params.pop("query")
             url_encode = urlencode(query)
