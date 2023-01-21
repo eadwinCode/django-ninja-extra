@@ -1,6 +1,6 @@
 # **Authentication**
 
-**Django Ninja Extra** provides the same API for authorization and authentication as in **Django-Ninja**.
+**Django Ninja Extra** offers the same API for authorization and authentication as in **Django Ninja**, ensuring consistency and ease of use across both packages.
 
 ## **Automatic OpenAPI schema**
 
