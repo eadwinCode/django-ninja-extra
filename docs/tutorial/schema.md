@@ -17,3 +17,6 @@ Ninja Schema converts your Django ORM models to Pydantic schemas with more Pydan
 
 !!! info
     Visit [Ninja Schema](https://pypi.org/project/ninja-schema/) for More information
+
+## Accessing Request Object in Schema
+Django Ninja Extra provides `RouteContext` object which available during request lifecycle. The `RouteContext` holds

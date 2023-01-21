@@ -50,6 +50,7 @@ nav:
   - Versioning: tutorial/versioning.md
   - Throttling: tutorial/throttling.md
   - Testing: tutorial/testing.md
+- RouteContext: route_context.md
 - Settings: settings.md
 - Dependency Injection: service_module_injector.md
 
