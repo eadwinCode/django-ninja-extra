@@ -165,4 +165,4 @@ It also provides a response argument of type `pagination.PaginatedResponseSchema
 
 The `get_user_by_id` method uses `http_get` decorator and accepts a `user_id` argument of type int and a response argument of type UserSchema which will be used to serialize the user object.
 
-The UsersController also use self.get_object_or_exception(self.user_model, id=user_id) which is a helper method that will raise an exception if the user object is not found.
+The UsersController also use `self.get_object_or_exception(self.user_model, id=user_id)` which is a helper method that will raise an exception if the user object is not found.
