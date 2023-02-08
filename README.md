@@ -110,3 +110,10 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
 ![Swagger UI](docs/docs/images/ui_swagger_preview_readme.gif)
+
+## ⭐ Project Star Lords
+
+Many thanks to the kind individuals who leave a star.
+Your support is much appreciated!
+
+[![Django-Ninja-Extra Star Lords](https://reporoster.com/stars/eadwinCode/django-ninja-extra)](https://github.com/eadwinCode/django-ninja-extra//stargazers)
