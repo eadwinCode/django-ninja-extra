@@ -111,9 +111,3 @@ You will see the automatic interactive API documentation (provided by <a href="h
 
 ![Swagger UI](docs/docs/images/ui_swagger_preview_readme.gif)
 
-## ⭐ Project Star Lords
-
-Many thanks to the kind individuals who leave a star.
-Your support is much appreciated!
-
-[![Django-Ninja-Extra Star Lords](https://reporoster.com/stars/eadwinCode/django-ninja-extra)](https://github.com/eadwinCode/django-ninja-extra//stargazers)
