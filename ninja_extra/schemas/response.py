@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Generic, List, Optional, Type, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
 from ninja import Schema
 from ninja.constants import NOT_SET
@@ -120,3 +120,4 @@ class RouteParameter(BaseModel):
     exclude_none: bool = False
     url_name: Optional[str] = None
     include_in_schema: bool = True
+    openapi_extra: Optional[Dict[str, Any]]
