@@ -1,5 +1,15 @@
 import inspect
-from typing import Any, Callable, List, Optional, Type, Union, cast, get_type_hints
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Type,
+    Union,
+    cast,
+    get_type_hints,
+)
 
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
@@ -45,6 +55,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         if not isinstance(methods, list):
@@ -97,6 +108,7 @@ class Route(object):
             exclude_none=exclude_none,
             url_name=url_name,
             include_in_schema=include_in_schema,
+            openapi_extra=openapi_extra,
         )
         self.route_params = ninja_route_params
         self.is_async = is_async(view_func)
@@ -124,6 +136,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> RouteFunction:
         if response is NOT_SET:
             response = get_type_hints(view_func).get("return") or NOT_SET
@@ -145,6 +158,7 @@ class Route(object):
             url_name=url_name,
             include_in_schema=include_in_schema,
             permissions=permissions,
+            openapi_extra=openapi_extra,
         )
         route_function_class = RouteFunction
         if route_obj.is_async:
@@ -171,6 +185,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
         A GET Operation method decorator
@@ -218,6 +233,7 @@ class Route(object):
                 url_name=url_name,
                 include_in_schema=include_in_schema,
                 permissions=permissions,
+                openapi_extra=openapi_extra,
             )
 
         return decorator
@@ -241,6 +257,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
         A POST Operation method decorator
@@ -288,6 +305,7 @@ class Route(object):
                 url_name=url_name,
                 include_in_schema=include_in_schema,
                 permissions=permissions,
+                openapi_extra=openapi_extra,
             )
 
         return decorator
@@ -311,6 +329,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
         A DELETE Operation method decorator
@@ -358,6 +377,7 @@ class Route(object):
                 url_name=url_name,
                 include_in_schema=include_in_schema,
                 permissions=permissions,
+                openapi_extra=openapi_extra,
             )
 
         return decorator
@@ -381,6 +401,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
         A PATCH Operation method decorator
@@ -429,6 +450,7 @@ class Route(object):
                 url_name=url_name,
                 include_in_schema=include_in_schema,
                 permissions=permissions,
+                openapi_extra=openapi_extra,
             )
 
         return decorator
@@ -452,6 +474,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
          A PUT Operation method decorator
@@ -500,6 +523,7 @@ class Route(object):
                 url_name=url_name,
                 include_in_schema=include_in_schema,
                 permissions=permissions,
+                openapi_extra=openapi_extra,
             )
 
         return decorator
@@ -524,6 +548,7 @@ class Route(object):
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
         permissions: Optional[List[Type[BasePermission]]] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
         A Custom Operation method decorator, for creating route with more than one operation
@@ -573,6 +598,7 @@ class Route(object):
                 url_name=url_name,
                 include_in_schema=include_in_schema,
                 permissions=permissions,
+                openapi_extra=openapi_extra,
             )
 
         return decorator

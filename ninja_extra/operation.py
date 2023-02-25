@@ -7,6 +7,7 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
+    Dict,
     Iterator,
     List,
     Optional,
@@ -50,11 +51,11 @@ class Operation(NinjaOperation):
         methods: List[str],
         view_func: Callable,
         *,
-        url_name: Optional[str] = None,
+        url_name: str = None,
         **kwargs: Any,
     ) -> None:
         self.is_coroutine = is_async(view_func)
-        self.url_name = url_name
+        self.url_name = url_name  # type: ignore
         super().__init__(path, methods, view_func, **kwargs)
         self.signature = ViewSignature(self.path, self.view_func)
 
@@ -479,6 +480,7 @@ class PathView(NinjaPathView):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Operation:
         if url_name:
             self.url_name = url_name
@@ -500,6 +502,7 @@ class PathView(NinjaPathView):
             exclude_none=exclude_none,
             include_in_schema=include_in_schema,
             url_name=url_name,
+            openapi_extra=openapi_extra,
         )
 
         self.operations.append(operation)

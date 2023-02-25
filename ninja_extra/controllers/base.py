@@ -382,9 +382,7 @@ class APIController:
             route = route.lstrip("/")
             for op in path_view.operations:
                 op = cast(Operation, op)
-                yield django_path(
-                    route, path_view.get_view(), name=cast(str, op.url_name)
-                )
+                yield django_path(route, path_view.get_view(), name=op.url_name)
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<controller - {self.controller_class.__name__}>"
@@ -432,6 +430,7 @@ class APIController:
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Operation:
         auth = self.auth if auth == NOT_SET else auth
 
@@ -459,6 +458,7 @@ class APIController:
             exclude_none=exclude_none,
             url_name=url_name,
             include_in_schema=include_in_schema,
+            openapi_extra=openapi_extra,
         )
         return operation
 
