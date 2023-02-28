@@ -21,6 +21,8 @@ NinjaExtra_SETTINGS_DEFAULTS = dict(
         "ninja_extra.throttling.UserRateThrottle",
     ],
     THROTTLE_RATES={"user": None, "anon": None},
+    ORDERING_CLASS="ninja_extra.ordering.Ordering",
+    SEARCHING_CLASS="ninja_extra.searching.Search"
 )
 
 USER_SETTINGS = UserDefinedSettingsMapper(
@@ -43,6 +45,12 @@ class NinjaExtraSettings(Schema):
     THROTTLE_CLASSES: List[Any] = []
     NUM_PROXIES: Optional[int] = None
     INJECTOR_MODULES: List[Any] = []
+    ORDERING_CLASS: Any = Field(
+        "ninja_extra.ordering.Ordering",
+    )
+    SEARCHING_CLASS: Any = Field(
+        "ninja_extra.searching.Search",
+    )
 
     @validator("INJECTOR_MODULES", pre=True)
     def pre_injector_module_validate(cls, value: Any) -> Any:

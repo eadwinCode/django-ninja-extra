@@ -2,7 +2,7 @@ import inspect
 import logging
 from collections import OrderedDict
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast, overload
+from typing import TYPE_CHECKING, Any, Callable, Optional, Type, Union, cast, overload, List, Tuple
 
 from asgiref.sync import sync_to_async
 from django.core.paginator import InvalidPage, Page, Paginator
@@ -180,6 +180,8 @@ class PaginatorOperation:
         self.view_func = view_func
 
         paginator_view = self.get_view_function()
+        _ninja_contribute_args: List[Tuple] = getattr(self.view_func, "_ninja_contribute_args", [])
+        paginator_view._ninja_contribute_args = _ninja_contribute_args
         add_ninja_contribute_args(
             paginator_view,
             (
