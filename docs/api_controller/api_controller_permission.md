@@ -38,6 +38,36 @@ class PermissionController:
     def must_be_authenticated(self, word: str):
         return dict(says=word)
 ```
+!!! Note
+    New in v0.18.8
+    Controller Permission and Route Function `permissions` can now take `BasePermission` instance.
+    
+    For example, we can pass the `ReadOnly` instance to the `permission` parameter.
+    ```python
+    from ninja_extra import permissions, api_controller, http_get
+    
+    class ReadOnly(permissions.BasePermission):
+        def has_permission(self, request, view):
+            return request.method in permissions.SAFE_METHODS
+    
+    @api_controller(permissions=[permissions.IsAuthenticated | ReadOnly()])
+    ...
+    ```
+For example:
+```python
+from ninja_extra import permissions
+
+class UserWithPermission(permissions.BasePermission):
+    def __init__(self, permission: str) -> None:
+        self._permission = permission
+    
+    def has_permission(self, request, view):
+        return request.user.has_perm(self._permission)
+    
+# in controller or route function
+permissions=[UserWithPermission('blog.add')]
+```
+
 ## **Permissions Supported Operands**
 - & (and) eg: `permissions.IsAuthenticated & ReadOnly`
 - | (or) eg: `permissions.IsAuthenticated | ReadOnly`

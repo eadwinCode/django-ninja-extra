@@ -130,7 +130,7 @@ class Operation(NinjaOperation):
 
             _api_controller = route_function.get_api_controller()
             permission_classes = (
-                route_function.route.permissions or _api_controller.permission_classes
+                route_function.route.permissions or _api_controller.permission_classes  # type: ignore[assignment]
             )
 
         return get_route_execution_context(
