@@ -39,7 +39,7 @@ class PermissionController:
         return dict(says=word)
 ```
 !!! Note
-    New in v0.18.8
+    New in **v0.18.7**
     Controller Permission and Route Function `permissions` can now take `BasePermission` instance.
     
     For example, we can pass the `ReadOnly` instance to the `permission` parameter.
