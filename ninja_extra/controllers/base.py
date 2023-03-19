@@ -34,6 +34,7 @@ from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import ControllerPathView, Operation
 from ninja_extra.permissions import AllowAny, BasePermission
+from ninja_extra.permissions.base import OperationHolderMixin
 from ninja_extra.shortcuts import (
     fail_silently,
     get_object_or_exception,
@@ -168,7 +169,10 @@ class ControllerBase(ABC):
             return
 
         for permission_class in self.context.permission_classes:
-            permission_instance = permission_class()
+            if isinstance(permission_class, (type, OperationHolderMixin)):
+                permission_instance = permission_class()  # type: ignore[operator]
+            else:
+                permission_instance = permission_class
             yield permission_instance
 
     def check_permissions(self) -> None:

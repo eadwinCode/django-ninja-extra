@@ -54,7 +54,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -112,7 +114,7 @@ class Route(object):
         )
         self.route_params = ninja_route_params
         self.is_async = is_async(view_func)
-        self.permissions = permissions
+        self.permissions = permissions  # type: ignore[assignment]
         self.view_func = view_func
 
     @classmethod
@@ -135,7 +137,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> RouteFunction:
         if response is NOT_SET:
@@ -184,7 +188,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
@@ -256,7 +262,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
@@ -328,7 +336,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
@@ -400,7 +410,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
@@ -473,7 +485,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """
@@ -547,7 +561,9 @@ class Route(object):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[List[Type[BasePermission]]] = None,
+        permissions: Optional[
+            List[Union[Type[BasePermission], BasePermission, Any]]
+        ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> Callable[[TCallable], RouteFunction]:
         """

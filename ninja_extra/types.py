@@ -1,4 +1,4 @@
-from typing import List, Type, Union
+from typing import Any, List, Type, Union
 
 from ninja_extra.permissions.base import (
     BasePermission,
@@ -6,6 +6,6 @@ from ninja_extra.permissions.base import (
     SingleOperandHolder,
 )
 
-PermissionType = Union[
-    List[Type[BasePermission]], List[OperandHolder], List[SingleOperandHolder], List
+PermissionType = List[
+    Union[Type[BasePermission], OperandHolder, SingleOperandHolder, BasePermission, Any]
 ]
