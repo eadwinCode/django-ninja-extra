@@ -22,7 +22,7 @@ NinjaExtra_SETTINGS_DEFAULTS = dict(
     ],
     THROTTLE_RATES={"user": None, "anon": None},
     ORDERING_CLASS="ninja_extra.ordering.Ordering",
-    SEARCHING_CLASS="ninja_extra.searching.Search"
+    SEARCHING_CLASS="ninja_extra.searching.Searching",
 )
 
 USER_SETTINGS = UserDefinedSettingsMapper(
@@ -49,7 +49,7 @@ class NinjaExtraSettings(Schema):
         "ninja_extra.ordering.Ordering",
     )
     SEARCHING_CLASS: Any = Field(
-        "ninja_extra.searching.Search",
+        "ninja_extra.searching.Searching",
     )
 
     @validator("INJECTOR_MODULES", pre=True)
@@ -66,6 +66,18 @@ class NinjaExtraSettings(Schema):
 
     @validator("PAGINATION_CLASS", pre=True)
     def pre_pagination_class_validate(cls, value: Any) -> Any:
+        if isinstance(value, list):
+            raise ValueError("Invalid data type")
+        return value
+
+    @validator("ORDERING_CLASS", pre=True)
+    def pre_ordering_class_validate(cls, value: Any) -> Any:
+        if isinstance(value, list):
+            raise ValueError("Invalid data type")
+        return value
+
+    @validator("SEARCHING_CLASS", pre=True)
+    def pre_searching_class_validate(cls, value: Any) -> Any:
         if isinstance(value, list):
             raise ValueError("Invalid data type")
         return value
