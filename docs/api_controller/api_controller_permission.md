@@ -53,20 +53,20 @@ class PermissionController:
     @api_controller(permissions=[permissions.IsAuthenticated | ReadOnly()])
     ...
     ```
-For example:
-```python
-from ninja_extra import permissions
-
-class UserWithPermission(permissions.BasePermission):
-    def __init__(self, permission: str) -> None:
-        self._permission = permission
+    For example:
+    ```python
+    from ninja_extra import permissions
     
-    def has_permission(self, request, view):
-        return request.user.has_perm(self._permission)
-    
-# in controller or route function
-permissions=[UserWithPermission('blog.add')]
-```
+    class UserWithPermission(permissions.BasePermission):
+        def __init__(self, permission: str) -> None:
+            self._permission = permission
+        
+        def has_permission(self, request, view):
+            return request.user.has_perm(self._permission)
+        
+    # in controller or route function
+    permissions=[UserWithPermission('blog.add')]
+    ```
 
 ## **Permissions Supported Operands**
 - & (and) eg: `permissions.IsAuthenticated & ReadOnly`

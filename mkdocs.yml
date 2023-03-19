@@ -3,7 +3,7 @@ site_description: Django Ninja Extra - Adds more power to Django Ninja RESTful a
 site_url: https://eadwincode.github.io/django-ninja-extra/
 repo_name: eadwinCode/django-ninja
 repo_url: https://github.com/eadwinCode/django-ninja-extra
-edit_uri: ''
+edit_uri: 'https://github.com/eadwinCode/django-ninja-extra/docs'
 
 theme:
   name: material
