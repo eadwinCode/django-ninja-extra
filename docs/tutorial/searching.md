@@ -2,7 +2,7 @@
 
 **Django Ninja Extra** provides an intuitive searching model using `searching` decoration from the Django-Ninja-Extra searching module. It expects a Queryset from as a route function result.
 
-> This feature was inspired by the [DRF SearchFilter][drf-search]
+> This feature was inspired by the [DRF SearchFilter](https://www.django-rest-framework.org/api-guide/filtering/#searchfilter)
 
 ## **Properties**
 
@@ -36,7 +36,7 @@ NINJA_EXTRA={
 
   * '^' Starts-with search.
   * '=' Exact matches.
-  * '@' Full-text search.  (Currently only supported Django's [PostgreSQL backend][postgres-search].)
+  * '@' Full-text search.  (Currently only supported Django's [PostgreSQL backend](https://docs.djangoproject.com/en/stable/ref/contrib/postgres/search/).)
   * '$' Regex search.
 
   For example:
@@ -88,6 +88,3 @@ api.register_controllers(UserController)
 >    def get_users(self):
 >        return user_model.objects.all()
 > ```
-
-[postgres-search]: https://docs.djangoproject.com/en/stable/ref/contrib/postgres/search/
-[drf-search]: https://www.django-rest-framework.org/api-guide/filtering/#searchfilter

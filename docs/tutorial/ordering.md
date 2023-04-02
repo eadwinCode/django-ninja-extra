@@ -2,7 +2,7 @@
 
 **Django Ninja Extra** provides an intuitive ordering model using `ordering` decoration from the Django-Ninja-Extra ordering module. It expects a Queryset from as a route function result.
 
-> This feature was inspired by the [DRF OrderingFilter][drf-ordering]
+> This feature was inspired by the [DRF OrderingFilter](https://www.django-rest-framework.org/api-guide/filtering/#orderingfilter)
 
 ## **Properties**
 
@@ -79,5 +79,3 @@ api.register_controllers(UserController)
 >    def get_users(self):
 >        return user_model.objects.all()
 > ```
-
-[drf-ordering]: https://www.django-rest-framework.org/api-guide/filtering/#orderingfilter
