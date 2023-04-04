@@ -46,6 +46,9 @@ nav:
   - Form Request: tutorial/form.md
   - Schema: tutorial/schema.md
   - Pagination: tutorial/pagination.md
+  - Filtering:
+    - Ordering: tutorial/ordering.md
+    - Searching: tutorial/searching.md
   - Error Handling: tutorial/custom_exception.md
   - Versioning: tutorial/versioning.md
   - Throttling: tutorial/throttling.md

@@ -14,14 +14,14 @@ repos:
       name: Code Formatting
       entry: "make fmt"
       types: [python]
-      language_version: python3.8
+      language_version: python3
       language: python
     - id: code_linting
       args: [ ]
       name: Code Linting
       entry: "make lint"
       types: [ python ]
-      language_version: python3.8
+      language_version: python3
       language: python
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v2.3.0
