@@ -1,4 +1,5 @@
 import inspect
+import operator
 from typing import List
 
 import django
@@ -26,10 +27,17 @@ class CustomOrdering(OrderingBase):
     class Input(Schema):
         order_by: str
 
-    def ordering_queryset(self, queryset, ordering_input):
-        if ordering_input.order_by:
-            return queryset.order_by(ordering_input.order_by)
-        return queryset.order_by("id")
+    def ordering_queryset(self, items, ordering_input):
+        field = ordering_input.order_by
+        if field:
+            if isinstance(items, list):
+                return sorted(
+                    items,
+                    key=operator.attrgetter(field[int(field.startswith("-")) :]),
+                    reverse=field.startswith("-"),
+                )
+            return items.order_by(ordering_input.order_by)
+        return items
 
 
 class CategorySchema(Schema):
@@ -58,6 +66,31 @@ class SomeAPIController:
     @ordering(Ordering, ordering_fields=["title"], pass_parameter="pass_kwargs")
     def items_4(self, **kwargs):
         return Category.objects.all()
+
+    @route.get("/items_5", response=List[CategorySchema])
+    @ordering(Ordering, ordering_fields=["title"])
+    def items_5(self, **kwargs):
+        return [category for category in Category.objects.all()]
+
+    @route.get("/items_6", response=List[CategorySchema])
+    @ordering
+    def items_6(self):
+        return [CategorySchema(title=f"title_{i}") for i in range(3)]
+
+    @route.get("/items_7", response=List[CategorySchema])
+    @ordering
+    def items_7(self):
+        return []
+
+    @route.get("/items_8", response=List[CategorySchema])
+    @ordering
+    def items_8(self):
+        return [dict(title=f"title_{i}") for i in range(3)]
+
+    @route.get("/items_9", response=List[int])
+    @ordering
+    def items_9(self):
+        return [i for i in range(3)]
 
 
 api = NinjaExtraAPI()
@@ -159,6 +192,32 @@ class TestOrdering:
             }
         ]
 
+    def test_case5(self):
+        for i in range(3):
+            Category.objects.create(title=f"title_{i}")
+        response = client.get("/items_5?ordering=-title").json()
+        assert response[0]["title"] == "title_2"
+
+    def test_case_with_empty_items5(self):
+        response = client.get("/items_5?ordering=-title").json()
+        assert len(response) == 0
+
+    def test_case6(self):
+        response = client.get("/items_6?ordering=-title").json()
+        assert response[0]["title"] == "title_2"
+
+    def test_case_with_empty(self):
+        response = client.get("/items_7?ordering=-title").json()
+        assert len(response) == 0
+
+    def test_case8(self):
+        response = client.get("/items_8?ordering=-title").json()
+        assert response[0]["title"] == "title_2"
+
+    def test_case9(self):
+        response = client.get("/items_9?ordering=-title").json()
+        assert response[0] == 0
+
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 @pytest.mark.asyncio
@@ -171,23 +230,47 @@ class TestAsyncOrdering:
             @route.get("/items_1", response=List[CategorySchema])
             @ordering  # WITHOUT brackets (should use default pagination)
             async def items_1(self):
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
 
             @route.get("/items_2", response=List[CategorySchema])
             @ordering()  # with brackets (should use default pagination)
             async def items_2(self, someparam: int = 0):
                 # also having custom param `someparam` - that should not be lost
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
 
             @route.get("/items_3", response=List[CategorySchema])
             @ordering(CustomOrdering, pass_parameter="pass_kwargs")
             async def items_3(self, **kwargs):
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
 
             @route.get("/items_4", response=List[CategorySchema])
             @ordering(Ordering, ordering_fields=["title"], pass_parameter="pass_kwargs")
             async def items_4(self, **kwargs):
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
+
+            @route.get("/items_6", response=List[CategorySchema])
+            @ordering
+            async def items_6(self):
+                return await sync_to_async(list)(
+                    [CategorySchema(title=f"title_{i}") for i in range(3)]
+                )
+
+            @route.get("/items_7", response=List[CategorySchema])
+            @ordering
+            async def items_7(self):
+                return await sync_to_async(list)([])
+
+            @route.get("/items_8", response=List[CategorySchema])
+            @ordering
+            async def items_8(self):
+                return await sync_to_async(list)(
+                    [dict(title=f"title_{i}") for i in range(3)]
+                )
+
+            @route.get("/items_9", response=List[int])
+            @ordering
+            async def items_9(self):
+                return await sync_to_async(list)([i for i in range(3)])
 
         api_async = NinjaExtraAPI()
         api_async.register_controllers(AsyncSomeAPIController)
@@ -285,3 +368,23 @@ class TestAsyncOrdering:
                     "required": False,
                 }
             ]
+
+        async def test_case6(self):
+            response = await self.client.get("/items_6?ordering=-title")
+            data = response.json()
+            assert data[0]["title"] == "title_2"
+
+        async def test_case_with_empty(self):
+            response = await self.client.get("/items_7?ordering=-title")
+            data = response.json()
+            assert len(data) == 0
+
+        async def test_case8(self):
+            response = await self.client.get("/items_8?ordering=-title")
+            data = response.json()
+            assert data[0]["title"] == "title_2"
+
+        async def test_case9(self):
+            response = await self.client.get("/items_9?ordering=-title")
+            data = response.json()
+            assert data[0] == 0

@@ -1,4 +1,5 @@
 import inspect
+import operator
 from typing import List
 
 import django
@@ -26,10 +27,17 @@ class CustomSearch(SearchingBase):
     class Input(Schema):
         srch: str
 
-    def searching_queryset(self, queryset, searching_input):
+    def searching_queryset(self, items, searching_input):
         if searching_input.srch:
-            return queryset.filter(title__icontains=searching_input.srch)
-        return queryset
+            if isinstance(items, list):
+                return [
+                    item
+                    for item in items
+                    if searching_input.srch.lower()
+                    in operator.attrgetter("title")(item).lower()
+                ]
+            return items.filter(title__icontains=searching_input.srch)
+        return items
 
 
 class CategorySchema(Schema):
@@ -193,28 +201,38 @@ class TestAsyncSearch:
             @route.get("/items_1", response=List[CategorySchema])
             @searching  # WITHOUT brackets (should use default pagination)
             async def items_1(self):
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
 
             @route.get("/items_2", response=List[CategorySchema])
             @searching()  # with brackets (should use default pagination)
             async def items_2(self, someparam: int = 0):
                 # also having custom param `someparam` - that should not be lost
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
 
             @route.get("/items_3", response=List[CategorySchema])
             @searching(CustomSearch, pass_parameter="pass_kwargs")
             async def items_3(self, **kwargs):
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
 
             @route.get("/items_4", response=List[CategorySchema])
             @searching(Searching, search_fields=["title"], pass_parameter="pass_kwargs")
             async def items_4(self, **kwargs):
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
 
             @route.get("/items_5", response=List[CategorySchema])
             @searching(search_fields=["=title"], pass_parameter="pass_kwargs")
             async def items_5(self, **kwargs):
-                return await sync_to_async(Category.objects.all)()
+                return await sync_to_async(list)(Category.objects.all())
+
+            @route.get("/items_6", response=List[CategorySchema])
+            @searching(search_fields=["^title"], pass_parameter="pass_kwargs")
+            async def items_6(self, **kwargs):
+                return await sync_to_async(list)(Category.objects.all())
+
+            @route.get("/items_7", response=List[CategorySchema])
+            @searching(search_fields=["$title"], pass_parameter="pass_kwargs")
+            async def items_7(self, **kwargs):
+                return await sync_to_async(list)(Category.objects.all())
 
         api_async = NinjaExtraAPI()
         api_async.register_controllers(AsyncSomeAPIController)
@@ -328,3 +346,17 @@ class TestAsyncSearch:
                     "required": False,
                 }
             ]
+
+        async def test_case6(self):
+            for i in range(3):
+                await sync_to_async(Category.objects.create)(title=f"title_{i}")
+            response = await self.client.get("/items_6?search=title_2")
+            data = response.json()
+            assert data[0]["title"] == "title_2"
+
+        async def test_case7(self):
+            for i in range(3):
+                await sync_to_async(Category.objects.create)(title=f"title_{i}")
+            response = await self.client.get("/items_7?search=_2")
+            data = response.json()
+            assert data[0]["title"] == "title_2"

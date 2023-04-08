@@ -1,6 +1,6 @@
 # **Searching**
 
-**Django Ninja Extra** provides an intuitive searching model using `searching` decoration from the Django-Ninja-Extra searching module. It expects a Queryset from as a route function result.
+**Django Ninja Extra** provides an intuitive searching model using `searching` decoration from the Django-Ninja-Extra searching module. It expects a Queryset or a List from as a route function result.
 
 > This feature was inspired by the [DRF SearchFilter](https://www.django-rest-framework.org/api-guide/filtering/#searchfilter)
 
@@ -69,7 +69,7 @@ class UserController:
     @route.get('/iexact-email', response=List[UserSchema])
     @searching(search_fields=['=email'])
     def get_users_with_search_iexact_email(self):
-        return user_model.objects.all()
+        return [u for u in user_model.objects.all()]
 
 
 api = NinjaExtraAPI(title='Searching Test')
