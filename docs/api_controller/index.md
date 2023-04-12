@@ -1,11 +1,7 @@
 # **Controller**
-The term 'APIController' is borrowed from the C# ASP.NET environment, which uses the MVC framework. 
-Although Django is not an MVC framework, it is still possible to mimic the concept by using similar patterns and principles.
+Ninja-Extra APIController is responsible for handling incoming requests and returning responses to the client.
 
-Django-Ninja-Extra's APIController is modeled after the C# ASP.NET ApiController, providing an object-oriented approach to creating controller models and implementing modern software design patterns in your Django project. 
-This allows you to use similar concepts and design patterns as in C# ASP.NET environment in your Django project.
-
-In Ninja-Extra, there are major components to creating a controller
+In Ninja-Extra, there are major components to creating a controller model
 
 - ControllerBase
 - APIController Decorator
