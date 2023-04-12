@@ -1,13 +1,14 @@
 # **Controller**
-The term 'APIController' is borrowed from the C# ASP.NET environment, which uses the MVC framework. Although Django is not an MVC framework, it is still possible to mimic the concept by using similar patterns and principles.
-Django-Ninja-Extra's APIController is modeled after the C# ASP.NET ApiController, providing an object-oriented approach to creating controller models and implementing modern software design patterns in your Django project. This allows you to use similar concepts and design patterns as in C# ASP.NET environment in your Django project.
+The term 'APIController' is borrowed from the C# ASP.NET environment, which uses the MVC framework. 
+Although Django is not an MVC framework, it is still possible to mimic the concept by using similar patterns and principles.
 
-### Why APIController in Django.
+Django-Ninja-Extra's APIController is modeled after the C# ASP.NET ApiController, providing an object-oriented approach to creating controller models and implementing modern software design patterns in your Django project. 
+This allows you to use similar concepts and design patterns as in C# ASP.NET environment in your Django project.
 
-Coming from a background of modeling objects using class-based approaches, and having experience working with various API tools such as DRF, FastAPI, and Flask-Restful, you have likely noticed that these libraries primarily use function-based or class-tailored function-based approaches in writing route functions. This approach may not fully utilize the concepts of object-oriented programming when designing RESTful APIs. But despite this, these libraries are still great.
+In Ninja-Extra, there are major components to creating a controller
 
-I have designed the APIController in Django Ninja Extra to bring a more traditional controller-based approach to Django Ninja, providing more flexibility and adaptability to recent software design patterns. 
-If you prefer using class-based controls for building APIs, Django Ninja Extra's APIController is a great option for you.
+- ControllerBase
+- APIController Decorator
 
 ## ControllerBase
 
@@ -31,7 +32,6 @@ from ninja_extra import ControllerBase, api_controller
 class UserControllerBase(ControllerBase):
     ...
 ```
-
 
 ## APIController Decorator
 The `api_controller` decorator is used to define a class-based controller in Django Ninja Extra. 
