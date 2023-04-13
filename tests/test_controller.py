@@ -14,8 +14,13 @@ from ninja_extra import (
     testing,
 )
 from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
-from ninja_extra.controllers.base import APIController, get_route_functions
+from ninja_extra.controllers.base import (
+    APIController,
+    MissingAPIControllerDecoratorException,
+    get_route_functions,
+)
 from ninja_extra.controllers.response import Detail, Id, Ok
+from ninja_extra.helper import get_route_function
 from ninja_extra.permissions.common import AllowAny
 
 from .schemas import UserSchema
@@ -76,9 +81,10 @@ class DisableAutoImportController:
 
 class TestAPIController:
     def test_api_controller_as_decorator(self):
-        api_controller_instance = api_controller(
-            "prefix", tags="new_tag", auth=FakeAuth()
+        controller_type = api_controller("prefix", tags="new_tag", auth=FakeAuth())(
+            type("Any", (), {})
         )
+        api_controller_instance = controller_type.get_api_controller()
 
         assert not api_controller_instance.has_auth_async
         assert not api_controller_instance._prefix_has_route_param
@@ -86,12 +92,20 @@ class TestAPIController:
         assert api_controller_instance.tags == ["new_tag"]
         assert api_controller_instance.permission_classes == [AllowAny]
 
-        api_controller_instance = api_controller()
+        controller_type = api_controller()(controller_type)
+        api_controller_instance = controller_type.get_api_controller()
         assert api_controller_instance.prefix == ""
-        assert api_controller_instance.tags is None
+        assert api_controller_instance.tags == ["any"]
         assert "abc" in SomeController.__module__
         assert "tests.test_controller" in Some2Controller.__module__
         assert Some2Controller.get_api_controller()
+
+    def test_controller_get_api_controller_raise_exception(self):
+        class BController(ControllerBase):
+            pass
+
+        with pytest.raises(MissingAPIControllerDecoratorException):
+            BController.get_api_controller()
 
     def test_api_controller_prefix_with_parameter(self):
         @api_controller("/{int:organisation_id}")
@@ -130,7 +144,9 @@ class TestAPIController:
         _api_controller = SomeControllerWithRoute.get_api_controller()
         assert len(_api_controller._path_operations) == 7
 
-        route_function: RouteFunction = SomeControllerWithRoute.example
+        route_function: RouteFunction = get_route_function(
+            SomeControllerWithRoute().example
+        )
         path_view = _api_controller._path_operations.get(str(route_function))
         assert path_view, "route doesn't exist in controller"
         assert len(path_view.operations) == 1
@@ -144,18 +160,16 @@ class TestAPIController:
             assert isinstance(route_definition, RouteFunction)
 
     def test_compute_api_route_function_works(self):
-        _api_controller = api_controller()
-
+        @api_controller()
         class AnyClassTypeWithRoute:
             @http_get("/example")
             def example(self):
                 pass
 
-        _api_controller(AnyClassTypeWithRoute)
-        assert len(_api_controller.path_operations) == 1
-        path_view = _api_controller.path_operations.get(
-            str(AnyClassTypeWithRoute.example)
-        )
+        api_controller_instance = AnyClassTypeWithRoute.get_api_controller()
+        assert len(api_controller_instance.path_operations) == 1
+        route_function = get_route_function(AnyClassTypeWithRoute().example)
+        path_view = api_controller_instance.path_operations.get(str(route_function))
         assert path_view
 
     @pytest.mark.django_db
@@ -207,14 +221,13 @@ class TestAPIController:
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 def test_async_controller():
-    api_controller_instance = api_controller(
+    api_controller_decorator = api_controller(
         "prefix", tags="any_Tag", auth=AsyncFakeAuth()
     )
-    assert api_controller_instance.has_auth_async
 
     with pytest.raises(Exception) as ex:
 
-        @api_controller_instance
+        @api_controller_decorator
         class NonAsyncRouteInControllerWithAsyncAuth:
             @http_get("/example")
             def example(self):
@@ -222,14 +235,18 @@ def test_async_controller():
 
     assert "NonAsyncRouteInControllerWithAsyncAuth" in str(ex) and "example" in str(ex)
 
-    @api_controller_instance
+    @api_controller_decorator
     class AsyncRouteInControllerWithAsyncAuth:
         @http_get("/example")
         async def example(self):
             pass
 
+    example_route_function = get_route_function(
+        AsyncRouteInControllerWithAsyncAuth().example
+    )
+    assert AsyncRouteInControllerWithAsyncAuth.get_api_controller().has_auth_async
     assert isinstance(
-        AsyncRouteInControllerWithAsyncAuth.example.operation.auth_callbacks[0],
+        example_route_function.operation.auth_callbacks[0],
         AsyncFakeAuth,
     )
 
@@ -291,9 +308,10 @@ class TestAPIControllerResponse:
         )
 
         ok_response = Ok[UserSchema](dict(name="John", age=56))
-        result = SomeControllerWithRoute.example_with_ok_schema_response(
-            request=Mock(), user=UserSchema(name="John", age=56)
+        route_function = get_route_function(
+            SomeControllerWithRoute().example_with_ok_schema_response
         )
+        result = route_function(request=Mock(), user=UserSchema(name="John", age=56))
         assert isinstance(result, tuple)
         assert result[1] == ok_response.convert_to_schema()
         assert result[0] == ok_response.status_code
@@ -307,17 +325,19 @@ class TestAPIControllerResponse:
         assert detail.convert_to_schema().dict() == response.json()
 
         ok_response = Ok("5242")
-        result = SomeControllerWithRoute.example_with_ok_response(
-            request=Mock(), ex_id="5242"
+        route_function = get_route_function(
+            SomeControllerWithRoute().example_with_ok_response
         )
+        result = route_function(request=Mock(), ex_id="5242")
         assert isinstance(result, tuple)
         assert result[1] == ok_response.convert_to_schema()
         assert result[0] == ok_response.status_code
 
         id_response = Id("5242")
-        result = SomeControllerWithRoute.example_with_id_response(
-            request=Mock(), ex_id="5242"
+        route_function = get_route_function(
+            SomeControllerWithRoute().example_with_id_response
         )
+        result = route_function(request=Mock(), ex_id="5242")
         assert isinstance(result, tuple)
         assert result[1] == id_response.convert_to_schema()
         assert result[0] == id_response.status_code

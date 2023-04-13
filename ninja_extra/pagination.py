@@ -207,7 +207,7 @@ class PaginatorOperation:
         self.as_view = wraps(view_func)(paginator_view)
 
     @property
-    def view_func_has_kwargs(self) -> bool:
+    def view_func_has_kwargs(self) -> bool:  # pragma: no cover
         return self.paginator.pass_parameter is not None
 
     def get_view_function(self) -> Callable:
