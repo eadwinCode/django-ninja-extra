@@ -15,7 +15,15 @@ from ninja.constants import NOT_SET
 from ninja.signature import is_async
 from ninja.types import TCallable
 
-from ninja_extra.constants import DELETE, GET, PATCH, POST, PUT, ROUTE_METHODS
+from ninja_extra.constants import (
+    DELETE,
+    GET,
+    PATCH,
+    POST,
+    PUT,
+    ROUTE_FUNCTION,
+    ROUTE_METHODS,
+)
 from ninja_extra.controllers.response import ControllerResponse, ControllerResponseMeta
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
@@ -141,7 +149,7 @@ class Route(object):
             List[Union[Type[BasePermission], BasePermission, Any]]
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> RouteFunction:
+    ) -> TCallable:
         if response is NOT_SET:
             response = get_type_hints(view_func).get("return") or NOT_SET
         route_obj = cls(
@@ -168,7 +176,8 @@ class Route(object):
         if route_obj.is_async:
             route_function_class = AsyncRouteFunction
 
-        return route_function_class(route=route_obj)
+        setattr(view_func, ROUTE_FUNCTION, route_function_class(route=route_obj))
+        return view_func
 
     @classmethod
     def get(
@@ -192,7 +201,7 @@ class Route(object):
             List[Union[Type[BasePermission], BasePermission, Any]]
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], RouteFunction]:
+    ) -> Callable[[TCallable], TCallable]:
         """
         A GET Operation method decorator
          eg.
@@ -220,7 +229,7 @@ class Route(object):
         :return: Route[GET]
         """
 
-        def decorator(view_func: TCallable) -> RouteFunction:
+        def decorator(view_func: TCallable) -> TCallable:
             return cls._create_route_function(
                 view_func,
                 path=path,
@@ -266,7 +275,7 @@ class Route(object):
             List[Union[Type[BasePermission], BasePermission, Any]]
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], RouteFunction]:
+    ) -> Callable[[TCallable], TCallable]:
         """
         A POST Operation method decorator
         eg.
@@ -294,7 +303,7 @@ class Route(object):
         :return: Route[POST]
         """
 
-        def decorator(view_func: TCallable) -> RouteFunction:
+        def decorator(view_func: TCallable) -> TCallable:
             return cls._create_route_function(
                 view_func,
                 path=path,
@@ -340,7 +349,7 @@ class Route(object):
             List[Union[Type[BasePermission], BasePermission, Any]]
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], RouteFunction]:
+    ) -> Callable[[TCallable], TCallable]:
         """
         A DELETE Operation method decorator
         eg.
@@ -368,7 +377,7 @@ class Route(object):
         :return: Route[DELETE]
         """
 
-        def decorator(view_func: TCallable) -> RouteFunction:
+        def decorator(view_func: TCallable) -> TCallable:
             return cls._create_route_function(
                 view_func,
                 path=path,
@@ -414,7 +423,7 @@ class Route(object):
             List[Union[Type[BasePermission], BasePermission, Any]]
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], RouteFunction]:
+    ) -> Callable[[TCallable], TCallable]:
         """
         A PATCH Operation method decorator
         eg.
@@ -443,7 +452,7 @@ class Route(object):
         :return: Route[PATCH]
         """
 
-        def decorator(view_func: TCallable) -> RouteFunction:
+        def decorator(view_func: TCallable) -> TCallable:
             return cls._create_route_function(
                 view_func,
                 path=path,
@@ -489,7 +498,7 @@ class Route(object):
             List[Union[Type[BasePermission], BasePermission, Any]]
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], RouteFunction]:
+    ) -> Callable[[TCallable], TCallable]:
         """
          A PUT Operation method decorator
         eg.
@@ -518,7 +527,7 @@ class Route(object):
          :return: Route[PUT]
         """
 
-        def decorator(view_func: TCallable) -> RouteFunction:
+        def decorator(view_func: TCallable) -> TCallable:
             return cls._create_route_function(
                 view_func,
                 path=path,
@@ -565,7 +574,7 @@ class Route(object):
             List[Union[Type[BasePermission], BasePermission, Any]]
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], RouteFunction]:
+    ) -> Callable[[TCallable], TCallable]:
         """
         A Custom Operation method decorator, for creating route with more than one operation
         eg.
@@ -595,7 +604,7 @@ class Route(object):
         :return: Route[PATCH]
         """
 
-        def decorator(view_func: TCallable) -> RouteFunction:
+        def decorator(view_func: TCallable) -> TCallable:
             return cls._create_route_function(
                 view_func,
                 path=path,
