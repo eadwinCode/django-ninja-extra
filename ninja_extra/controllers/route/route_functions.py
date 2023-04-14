@@ -11,7 +11,7 @@ from ninja_extra.controllers.response import ControllerResponse
 from ...dependency_resolver import get_injector, service_resolver
 from .context import RouteContext, get_route_execution_context
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra.operation import ControllerOperation
 
     from ...controllers.base import APIController, ControllerBase

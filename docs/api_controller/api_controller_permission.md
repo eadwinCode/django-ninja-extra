@@ -71,4 +71,4 @@ class PermissionController:
 ## **Permissions Supported Operands**
 - & (and) eg: `permissions.IsAuthenticated & ReadOnly`
 - | (or) eg: `permissions.IsAuthenticated | ReadOnly`
-- ~ (not) eg: `!(permissions.IsAuthenticated & ReadOnly)`
+- ~ (not) eg: `~(permissions.IsAuthenticated & ReadOnly)`

@@ -21,6 +21,7 @@ from ninja_extra.controllers.route.context import (
     get_route_execution_context,
 )
 from ninja_extra.exceptions import PermissionDenied
+from ninja_extra.helper import get_route_function
 from ninja_extra.permissions import AllowAny
 
 from .schemas import UserSchema
@@ -114,19 +115,19 @@ class TestControllerRoute:
             assert route_func.route.route_params.methods == operations[0].methods
 
     def test_controller_route_should_right_view_func_type(self):
-        assert isinstance(SomeTestController.example, RouteFunction)
-        assert SomeTestController.example.as_view
-        assert hasattr(SomeTestController.example.as_view, "get_route_function")
-        assert (
-            SomeTestController.example.as_view.get_route_function()
-            == SomeTestController.example
-        )
+        controller = SomeTestController()
+        route_function = get_route_function(controller.example)
+        assert isinstance(route_function, RouteFunction)
+        assert route_function.as_view
+        assert hasattr(route_function.as_view, "get_route_function")
+        assert route_function.as_view.get_route_function() == route_function
 
     def test_controller_route_should_use_userschema_as_response(self):
-        route_function: RouteFunction = SomeTestController.example
+        controller = SomeTestController()
+        route_function = get_route_function(controller.example)
         assert route_function.route.route_params.response == NOT_SET
-        route_function: RouteFunction = (
-            SomeTestController.function_return_as_response_schema
+        route_function: RouteFunction = get_route_function(
+            controller.function_return_as_response_schema
         )
         assert route_function.route.route_params.response == UserSchema
 
@@ -172,8 +173,18 @@ class TestControllerRoute:
         def example_non_unique_response(self, ex_id: str):
             pass
 
-        assert len(example_unique_response.route.route_params.response) == 4
-        assert len(example_non_unique_response.route.route_params.response) == 2
+        assert (
+            len(get_route_function(example_unique_response).route.route_params.response)
+            == 4
+        )
+        assert (
+            len(
+                get_route_function(
+                    example_non_unique_response
+                ).route.route_params.response
+            )
+            == 2
+        )
 
     @pytest.mark.parametrize(
         "func, methods, kwargs",
@@ -215,71 +226,93 @@ class TestControllerRoute:
             pass
 
         route_method = getattr(route, func)
-        route_instance: RouteFunction = (
+        (
             route_method("/", methods=methods, **kwargs)
             if func == "generic"
             else route_method("/", **kwargs)
         )(view_func)
-        assert route_instance.route.route_params.methods == methods
+        route_function = get_route_function(view_func)
+        assert route_function.route.route_params.methods == methods
         for k, v in kwargs.items():
-            assert getattr(route_instance.route.route_params, k) == v
+            assert getattr(route_function.route.route_params, k) == v
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
-def test_async_route_function():
+@pytest.mark.asyncio
+async def test_async_route_function():
+    @api_controller()
     class AsyncSomeTestController(SomeTestController):
         @route.get("/example_async")
         async def example_async(self, ex_id: str):
-            pass
+            return {"message": "Okay", "ex_id": ex_id}
 
-    assert isinstance(AsyncSomeTestController.example, RouteFunction)
-    assert isinstance(AsyncSomeTestController.example_async, AsyncRouteFunction)
-    assert AsyncSomeTestController.example_async.as_view
-    assert hasattr(AsyncSomeTestController.example_async.as_view, "get_route_function")
+    controller = AsyncSomeTestController()
+    example_route_function = get_route_function(controller.example)
+    example_async_route_function = get_route_function(controller.example_async)
+
+    assert isinstance(example_route_function, RouteFunction)
+    assert isinstance(example_async_route_function, AsyncRouteFunction)
+
+    assert example_async_route_function.as_view
+    assert hasattr(example_async_route_function.as_view, "get_route_function")
     assert (
-        AsyncSomeTestController.example_async.as_view.get_route_function()
-        == AsyncSomeTestController.example_async
+        example_async_route_function.as_view.get_route_function()
+        == example_async_route_function
     )
+    assert await example_async_route_function(anonymous_request, ex_id="some id") == {
+        "message": "Okay",
+        "ex_id": "some id",
+    }
 
 
 class TestRouteFunction:
+    @staticmethod
     def api_func_with_has_request_param(self, request):
         pass
 
+    @staticmethod
     def api_func(self):
         pass
 
+    @staticmethod
     def api_func_with_param(self, example_id: str):
         pass
 
+    @staticmethod
     async def async_api_func(self):
         pass
 
     def test_get_required_api_func_signature_return_filtered_signature(self):
-        route_function = route.get("")(self.api_func)
+        route.get("")(self.api_func)
+        route_function = get_route_function(self.api_func)
         assert not route_function.has_request_param
         sig_inspect, sig_parameter = route_function._get_required_api_func_signature()
         assert len(sig_parameter) == 0
 
-        route_function = route.get("")(self.api_func_with_has_request_param)
+        route.get("")(self.api_func_with_has_request_param)
+        route_function = get_route_function(self.api_func_with_has_request_param)
         assert route_function.has_request_param
         sig_inspect, sig_parameter = route_function._get_required_api_func_signature()
         assert len(sig_parameter) == 0
 
-        route_function = route.get("")(self.api_func_with_param)
+        route.get("")(self.api_func_with_param)
+        route_function = get_route_function(self.api_func_with_param)
         sig_inspect, sig_parameter = route_function._get_required_api_func_signature()
         assert len(sig_parameter) == 1
         assert str(sig_parameter[0]).replace(" ", "") == "example_id:str"
 
     def test_from_route_returns_route_function_instance(self):
-        route_function = route.get("")(self.api_func)
+        route.get("")(self.api_func)
+        route_function = get_route_function(self.api_func)
         assert isinstance(route_function, RouteFunction)
 
-        route_function = route.get("")(self.async_api_func)
+        route.get("")(self.async_api_func)
+        route_function = get_route_function(self.async_api_func)
         assert isinstance(route_function, AsyncRouteFunction)
 
     def test_get_route_execution_context(self):
-        route_function = route.get("")(self.api_func)
+        route.get("")(self.api_func)
+        route_function = get_route_function(self.api_func)
         with pytest.raises(Exception):
             route_function.get_route_execution_context(
                 anonymous_request, "arg1", "arg2", extra="extra"
@@ -296,14 +329,14 @@ class TestRouteFunction:
             assert getattr(route_context, key)
 
     def test_get_controller_instance_return_controller_instance(self):
-        route_function: RouteFunction = SomeTestController.example
+        route_function: RouteFunction = get_route_function(SomeTestController().example)
         controller_instance = route_function._get_controller_instance()
         assert isinstance(controller_instance, SomeTestController)
         assert isinstance(controller_instance, SomeTestController)
         assert controller_instance.context is None
 
     def test_process_view_function_result_return_tuple_or_input(self):
-        route_function: RouteFunction = SomeTestController.example
+        route_function: RouteFunction = get_route_function(SomeTestController().example)
         mock_result = Detail("Some Message", status_code=302)
         response = route_function._process_view_function_result(mock_result)
         assert isinstance(response, tuple)
@@ -318,6 +351,9 @@ class TestRouteFunction:
 
 @pytest.mark.django_db
 class TestAPIControllerRoutePermission:
+    def setup(self):
+        self.controller = PermissionController()
+
     @classmethod
     def get_real_user_request(cls):
         _request = Mock()
@@ -331,30 +367,39 @@ class TestAPIControllerRoutePermission:
         return _request
 
     def test_permission_controller_example_allow_any_auth_is_none(self):
-        route_params = PermissionController.example_allow_any.route.route_params
+        example_allow_any_route_function = get_route_function(
+            self.controller.example_allow_any
+        )
+        route_params = example_allow_any_route_function.route.route_params
         assert route_params.auth is None
 
-        response = PermissionController.example_allow_any(anonymous_request)
+        response = example_allow_any_route_function(anonymous_request)
         assert response == {"message": "OK"}
+        assert response == self.controller.example_allow_any()
 
     def test_route_is_protected_by_global_controller_permission(self):
+        example_route_function = get_route_function(self.controller.example)
         with pytest.raises(PermissionDenied) as pex:
-            PermissionController.example(anonymous_request)
+            example_route_function(anonymous_request)
         assert "You do not have permission to perform this action." in str(
             pex.value.detail
         )
 
     def test_route_protected_by_global_controller_permission_works(self):
+        example_route_function = get_route_function(self.controller.example)
         request = self.get_real_user_request()
-        response = PermissionController.example(request)
+        response = example_route_function(request)
         assert response == {"message": "OK"}
 
     def test_route_is_protected_by_its_permissions_paramater(self):
-        response = PermissionController.example_allow_any(anonymous_request)
+        example_allow_any_route_function = get_route_function(
+            self.controller.example_allow_any
+        )
+        response = example_allow_any_route_function(anonymous_request)
         assert response == {"message": "OK"}
 
     def test_route_prep_controller_route_execution_context_works(self):
-        route_function: RouteFunction = SomeTestController.example
+        route_function: RouteFunction = get_route_function(SomeTestController().example)
         context = get_route_execution_context(request=anonymous_request)
         with route_function._prep_controller_route_execution(context=context) as ctx:
             assert isinstance(ctx.controller_instance, SomeTestController)
@@ -364,7 +409,7 @@ class TestAPIControllerRoutePermission:
     def test_route_prep_controller_route_execution_context_cleans_controller_after_route_execution(
         self,
     ):
-        route_function: RouteFunction = SomeTestController.example
+        route_function: RouteFunction = get_route_function(SomeTestController().example)
         context = get_route_execution_context(request=anonymous_request)
         with pytest.raises(Exception):
             with route_function._prep_controller_route_execution(

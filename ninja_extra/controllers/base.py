@@ -29,7 +29,7 @@ from ninja.security.base import AuthBase
 from ninja.signature import is_async
 from ninja.utils import normalize_path
 
-from ninja_extra.constants import THROTTLED_FUNCTION
+from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import ControllerPathView, Operation
@@ -59,13 +59,13 @@ class MissingAPIControllerDecoratorException(Exception):
 
 def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
     for method in cls.__dict__.values():
-        if isinstance(method, RouteFunction):
-            yield method
+        if hasattr(method, ROUTE_FUNCTION):
+            yield getattr(method, ROUTE_FUNCTION)
 
 
 def get_all_controller_route_function(
     controller: Union[Type["ControllerBase"], Type]
-) -> List[RouteFunction]:
+) -> List[RouteFunction]:  # pragma: no cover
     route_functions: List[RouteFunction] = []
     for item in dir(controller):
         attr = getattr(controller, item)
@@ -317,7 +317,7 @@ class APIController:
             tag = [value]
         self._tags = tag
 
-    def __call__(self, cls: Type) -> Type["ControllerBase"]:
+    def __call__(self, cls: Type) -> Union[Type, Type["ControllerBase"]]:
         from ninja_extra.throttling import throttle
 
         self.auto_import = getattr(cls, "auto_import", self.auto_import)
@@ -468,7 +468,9 @@ class APIController:
 
 
 @overload
-def api_controller(prefix_or_class: Type) -> Type[ControllerBase]:  # pragma: no cover
+def api_controller(
+    prefix_or_class: Type,
+) -> Union[Type[ControllerBase], Callable[..., Any], Any]:  # pragma: no cover
     ...
 
 
@@ -479,7 +481,7 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> APIController:  # pragma: no cover
+) -> Union[Type[ControllerBase], Callable[..., Any], Any]:  # pragma: no cover
     ...
 
 
@@ -489,21 +491,23 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[Type[ControllerBase], APIController]:
+) -> Union[Type[ControllerBase], Callable[..., Any], Any]:
     if isinstance(prefix_or_class, type):
-        _api_controller = APIController(
+        return APIController(
             prefix="",
             auth=auth,
             tags=tags,
             permissions=permissions,
             auto_import=auto_import,
-        )
-        return _api_controller(prefix_or_class)
+        )(prefix_or_class)
 
-    return APIController(
-        prefix=prefix_or_class,
-        auth=auth,
-        tags=tags,
-        permissions=permissions,
-        auto_import=auto_import,
-    )
+    def _decorator(cls: Type) -> Union[Type[ControllerBase], Any]:
+        return APIController(
+            prefix=str(prefix_or_class),
+            auth=auth,
+            tags=tags,
+            permissions=permissions,
+            auto_import=auto_import,
+        )(cls)
+
+    return _decorator

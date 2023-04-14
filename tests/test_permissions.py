@@ -69,6 +69,10 @@ class TestPermissionsCompositions:
     def test_not_false(self):
         composed_perm = ~permissions.IsAuthenticated
         assert composed_perm().has_permission(anonymous_request, None) is True
+        assert (
+            composed_perm().has_object_permission(anonymous_request, None, None)
+            is False
+        )
 
     @pytest.mark.django_db
     def test_not_true(self):
