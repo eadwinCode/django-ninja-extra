@@ -1,6 +1,6 @@
 # **Ordering**
 
-**Django Ninja Extra** provides an intuitive ordering model using `ordering` decoration from the Django-Ninja-Extra ordering module. It expects a Queryset from as a route function result.
+**Django Ninja Extra** provides an intuitive ordering model using `ordering` decoration from the Django-Ninja-Extra ordering module. It expects a Queryset or a List from as a route function result.
 
 > This feature was inspired by the [DRF OrderingFilter](https://www.django-rest-framework.org/api-guide/filtering/#orderingfilter)
 
@@ -61,7 +61,7 @@ class UserController:
     @route.get('/all-sort', response=List[UserSchema])
     @ordering
     def get_users_with_all_field_ordering(self):
-        return user_model.objects.all()
+        return [u for u in user_model.objects.all()]
 
 
 api = NinjaExtraAPI(title='Ordering Test')

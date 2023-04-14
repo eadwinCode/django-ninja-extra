@@ -7,7 +7,7 @@ def pytest_configure(config):
     from django.conf import settings
 
     os.environ.setdefault("NINJA_SKIP_REGISTRY", "True")
-    os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "True")
+
     settings.configure(
         ALLOWED_HOSTS=["*"],
         DEBUG_PROPAGATE_EXCEPTIONS=True,

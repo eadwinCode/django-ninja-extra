@@ -2,6 +2,7 @@ import inspect
 import logging
 from abc import ABC, abstractmethod
 from functools import wraps
+from operator import attrgetter, itemgetter
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -10,6 +11,7 @@ from typing import (
     Optional,
     Tuple,
     Type,
+    Union,
     cast,
     overload,
 )
@@ -19,6 +21,7 @@ from django.db.models import QuerySet
 from ninja import Field, Query, Schema
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
+from pydantic import BaseModel
 
 from ninja_extra.conf import settings
 from ninja_extra.shortcuts import add_ninja_contribute_args
@@ -47,7 +50,9 @@ class OrderingBase(ABC):
         self.pass_parameter = pass_parameter
 
     @abstractmethod
-    def ordering_queryset(self, queryset: QuerySet, ordering_input: Any) -> QuerySet:
+    def ordering_queryset(
+        self, items: Union[QuerySet, List], ordering_input: Any
+    ) -> Union[QuerySet, List]:
         ...
 
 
@@ -70,20 +75,42 @@ class Ordering(OrderingBase):
 
         return DynamicInput
 
-    def ordering_queryset(self, queryset: QuerySet, ordering_input: Input) -> QuerySet:
-        ordering = self.get_ordering(queryset, ordering_input.ordering)
+    def ordering_queryset(
+        self, items: Union[QuerySet, List], ordering_input: Input
+    ) -> Union[QuerySet, List]:
+        ordering = self.get_ordering(items, ordering_input.ordering)
         if ordering:
-            return queryset.order_by(*ordering)
-        return queryset
+            if isinstance(items, QuerySet):  # type:ignore
+                return items.order_by(*ordering)
+            elif isinstance(items, list) and items:
 
-    def get_ordering(self, queryset: QuerySet, value: Optional[str]) -> List[str]:
+                def multisort(xs: List, specs: List[Tuple[str, bool]]) -> List:
+                    orerator = itemgetter if isinstance(xs[0], dict) else attrgetter
+                    for key, reverse in specs:
+                        xs.sort(key=orerator(key), reverse=reverse)
+                    return xs
+
+                return multisort(
+                    items,
+                    [
+                        (o[int(o.startswith("-")) :], o.startswith("-"))
+                        for o in ordering
+                    ],
+                )
+        return items
+
+    def get_ordering(
+        self, items: Union[QuerySet, List], value: Optional[str]
+    ) -> List[str]:
         if value:
             fields = [param.strip() for param in value.split(",")]
-            return self.remove_invalid_fields(queryset, fields)
+            return self.remove_invalid_fields(items, fields)
         return []
 
-    def remove_invalid_fields(self, queryset: QuerySet, fields: List[str]) -> List[str]:
-        valid_fields = [item for item in self.get_valid_fields(queryset)]
+    def remove_invalid_fields(
+        self, items: Union[QuerySet, List], fields: List[str]
+    ) -> List[str]:
+        valid_fields = [item for item in self.get_valid_fields(items)]
 
         def term_valid(term: str) -> bool:
             if term.startswith("-"):
@@ -92,14 +119,33 @@ class Ordering(OrderingBase):
 
         return [term for term in fields if term_valid(term)]
 
-    def get_valid_fields(self, queryset: QuerySet) -> List[str]:
+    def get_valid_fields(self, items: Union[QuerySet, List]) -> List[str]:
         valid_fields: List[str] = []
         if self.ordering_fields == "__all__":
-            valid_fields = [str(field.name) for field in queryset.model._meta.fields]
-            valid_fields += [str(key) for key in queryset.query.annotations]
+            if isinstance(items, QuerySet):  # type:ignore
+                valid_fields = self.get_all_valid_fields_from_queryset(items)
+            elif isinstance(items, list):
+                valid_fields = self.get_all_valid_fields_from_list(items)
         else:
             valid_fields = [item for item in self.ordering_fields]
         return valid_fields
+
+    def get_all_valid_fields_from_queryset(self, items: QuerySet) -> List[str]:
+        return [str(field.name) for field in items.model._meta.fields] + [
+            str(key) for key in items.query.annotations
+        ]
+
+    def get_all_valid_fields_from_list(self, items: List) -> List[str]:
+        if not items:
+            return []
+        item = items[0]
+        if isinstance(item, BaseModel):
+            return list(item.__fields__.keys())
+        if isinstance(item, dict):
+            return list(item.keys())
+        if hasattr(item, "_meta") and hasattr(item._meta, "fields"):
+            return [str(field.name) for field in item._meta.fields]
+        return []
 
 
 @overload
@@ -114,7 +160,9 @@ def ordering(
     ...
 
 
-def ordering(func_or_ordering_class: Any = NOT_SET, **ordering_params: Any) -> Callable:
+def ordering(
+    func_or_ordering_class: Any = NOT_SET, **ordering_params: Any
+) -> Callable[..., Any]:
     isfunction = inspect.isfunction(func_or_ordering_class)
     isnotset = func_or_ordering_class == NOT_SET
 
