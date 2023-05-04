@@ -8,8 +8,7 @@
 
 # Django Ninja Extra
 
-The **Django Ninja Extra** package offers a convenient, **class-based** approach to quickly building and configuring high-performance APIs. 
-Utilizing the core features of [**Django Ninja**](https://django-ninja.rest-framework.com), it allows for speedy development without sacrificing performance."
+**Django Ninja Extra** package offers a **class-based** approach plus extra functionalities that will speed up your RESTful API development with [**Django Ninja**](https://django-ninja.rest-framework.com)
 
 **Key features:**
 
