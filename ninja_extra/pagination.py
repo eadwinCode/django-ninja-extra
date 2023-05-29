@@ -78,7 +78,7 @@ class PageNumberPaginationExtra(PaginationBase):
 
         return DynamicInput
 
-    def paginate_queryset(  # type: ignore
+    def paginate_queryset(
         self,
         queryset: QuerySet,
         pagination: Input,
