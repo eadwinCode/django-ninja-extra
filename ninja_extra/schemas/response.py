@@ -3,6 +3,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
 from ninja import Schema
 from ninja.constants import NOT_SET
+from pydantic import validator
 from pydantic.generics import GenericModel
 from pydantic.main import BaseModel
 from pydantic.networks import AnyHttpUrl
@@ -85,6 +86,12 @@ if sys.version_info >= (3, 7):  # pragma: no cover
         GenericModel, Generic[T], BaseNinjaResponseSchema
     ):
         items: List[T]
+
+        @validator("items", pre=True)
+        def validate_items(cls, value: Any) -> Any:
+            if value and not isinstance(value, list):
+                return list(value)
+            return value
 
     NinjaPaginationResponseSchema.__generic_model__ = NinjaPaginationResponseSchema
 
