@@ -1,4 +1,7 @@
 import inspect
+import typing
+from abc import abstractmethod
+from typing import Sequence, overload
 
 import django
 import pytest
@@ -14,9 +17,25 @@ from ninja_extra.pagination import (
     PaginatorOperation,
     paginate,
 )
+from ninja_extra.schemas import NinjaPaginationResponseSchema
 from ninja_extra.testing import TestAsyncClient, TestClient
 
 ITEMS = list(range(100))
+
+
+class FakeQuerySet(typing.Sequence):
+    def __init__(self, items=None):
+        self.items = items or ITEMS
+
+    def __getitem__(self, index: int) -> typing.Any:
+        return FakeQuerySet(self.items[index])
+
+    def __len__(self) -> int:
+        return len(self.items)
+
+    def __iter__(self):
+        for item in self.items:
+            yield item
 
 
 class CustomPagination(PaginationBase):
@@ -36,11 +55,11 @@ class SomeAPIController:
     def items_1(self):
         return ITEMS
 
-    @route.get("/items_2")
+    @route.get("/items_2", response=NinjaPaginationResponseSchema[int])
     @paginate()  # with brackets (should use default pagination)
     def items_2(self, someparam: int = 0):
         # also having custom param `someparam` - that should not be lost
-        return ITEMS
+        return FakeQuerySet()
 
     @route.get("/items_3")
     @paginate(CustomPagination, pass_parameter="pass_kwargs")
