@@ -23,7 +23,7 @@ class AuthBearer(HttpBearer):
 class MyController:
     @route.get("/bearer", auth=AuthBearer())
     def bearer(self):
-        return {"token": self.request.auth}
+        return {"token": self.context.request.auth}
 
 ```
 
@@ -73,7 +73,7 @@ class AuthBearer(AsyncHttpBearer):
 class MyController:
     @route.get("/bearer", auth=AuthBearer())
     async def bearer(self):
-        return {"token": self.request.auth}
+        return {"token": self.context.request.auth}
 
 ```
 In example above, we changed `HttpBearer` to `AsyncHttpBearer` and changed bearer to `async` endpoint. 
