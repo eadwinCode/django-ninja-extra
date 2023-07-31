@@ -25,7 +25,7 @@ ITEMS = list(range(100))
 
 class FakeQuerySet(typing.Sequence):
     def __init__(self, items=None):
-        self.items = items or ITEMS
+        self.items = ITEMS if items is None else items
 
     def __getitem__(self, index: int) -> typing.Any:
         return FakeQuerySet(self.items[index])
@@ -75,6 +75,11 @@ class SomeAPIController:
     @paginate(PageNumberPagination, page_size=10)
     def items_5_without_kwargs(self):
         return ITEMS
+
+    @route.get("/items_6", response=NinjaPaginationResponseSchema[int])
+    @paginate()
+    def items_6_empty_query_set(self):
+        return FakeQuerySet([])
 
 
 api = NinjaExtraAPI()
@@ -264,6 +269,11 @@ class TestPagination:
                 "required": False,
             }
         ]
+
+    def test_case6(self):
+        response = client.get("/items_6?page=1").json()
+        assert response.get("items") is not None
+        assert response["items"] == []
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")

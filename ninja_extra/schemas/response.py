@@ -89,7 +89,7 @@ if sys.version_info >= (3, 7):  # pragma: no cover
 
         @validator("items", pre=True)
         def validate_items(cls, value: Any) -> Any:
-            if value and not isinstance(value, list):
+            if value is not None and not isinstance(value, list):
                 return list(value)
             return value
 
