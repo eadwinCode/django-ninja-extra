@@ -29,7 +29,7 @@ class ViewSignature(NinjaViewSignature):
 
                 if hasattr(self.view_func, "get_route_function"):
                     route_function: "RouteFunction" = (
-                        self.view_func.get_route_function()  # type:ignore
+                        self.view_func.get_route_function()
                     )
                     api_controller = route_function.get_api_controller()
 

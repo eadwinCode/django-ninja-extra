@@ -10,6 +10,10 @@ from ninja_extra.testing import TestAsyncClient, TestClient
 from .utils import AsyncFakeAuth, FakeAuth, mock_log_call, mock_signal_call
 
 
+class CustomException(Exception):
+    pass
+
+
 class TestOperation:
     @api_controller
     class SomeTestController:
@@ -19,7 +23,7 @@ class TestOperation:
 
         @route.get("/example_exception")
         def example_exception(self):
-            raise Exception()
+            raise CustomException()
 
     @mock_signal_call("route_context_started")
     @mock_signal_call("route_context_finished")
@@ -34,7 +38,7 @@ class TestOperation:
     @mock_log_call("error")
     def test_route_operation_execution_should_log_execution(self):
         client = TestClient(self.SomeTestController)
-        with pytest.raises(Exception):
+        with pytest.raises(CustomException):
             client.get("/example_exception")
 
 
@@ -92,7 +96,7 @@ class TestAsyncOperations:
 
             @route.get("/example_exception")
             async def example_exception(self):
-                raise Exception()
+                raise CustomException()
 
         @mock_signal_call("route_context_started")
         @mock_signal_call("route_context_finished")
@@ -107,5 +111,5 @@ class TestAsyncOperations:
         @mock_log_call("error")
         async def test_async_route_operation_execution_should_log_execution(self):
             client = TestAsyncClient(self.SomeTestController)
-            with pytest.raises(Exception):
+            with pytest.raises(CustomException):
                 await client.get("/example_exception")

@@ -12,6 +12,6 @@ def test_lazy_str_import_works():
     instance = lazy_import()
     assert isinstance(instance, TestLazyClassImport)
 
-    with pytest.raises(Exception) as exc:
+    with pytest.raises(ImportError):
         lazy_import = LazyStrImport("tests.test_lazy_import.InvalidLazyClassImport")
         lazy_import()

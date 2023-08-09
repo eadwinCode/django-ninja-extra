@@ -96,7 +96,7 @@ class PageNumberPaginationExtra(PaginationBase):
             msg = "Invalid page. {page_number} {message}".format(
                 page_number=current_page_number, message=str(exc)
             )
-            raise NotFound(msg)
+            raise NotFound(msg) from exc
 
     def get_paginated_response(self, *, base_url: str, page: Page) -> DictStrAny:
         return OrderedDict(
@@ -194,7 +194,9 @@ class PaginatorOperation:
         _ninja_contribute_args: List[Tuple] = getattr(
             self.view_func, "_ninja_contribute_args", []
         )
-        setattr(paginator_view, "_ninja_contribute_args", _ninja_contribute_args)
+        paginator_view._ninja_contribute_args = (  # type:ignore[attr-defined]
+            _ninja_contribute_args
+        )
         add_ninja_contribute_args(
             paginator_view,
             (
@@ -203,7 +205,7 @@ class PaginatorOperation:
                 self.paginator.InputSource,
             ),
         )
-        setattr(paginator_view, "paginator_operation", self)
+        paginator_view.paginator_operation = self  # type:ignore[attr-defined]
         self.as_view = wraps(view_func)(paginator_view)
 
     @property

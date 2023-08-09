@@ -25,53 +25,7 @@ class BaseNinjaResponseSchema(Schema):
     items: List[Any]
 
 
-class IdSchema(GenericType, generic_base_name="IdSchema"):
-    def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
-        class _IDSchema(Schema):
-            id: wrap_type  # type: ignore
-
-        return _IDSchema
-
-
-class OkSchema(GenericType, generic_base_name="OkSchema"):
-    def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
-        class _OKSchema(Schema):
-            detail: wrap_type  # type: ignore
-
-        return _OKSchema
-
-
-class DetailSchema(GenericType, generic_base_name="DetailSchema"):
-    def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
-        class _DetailSchema(Schema):
-            detail: wrap_type  # type: ignore
-
-        return _DetailSchema
-
-
-class PaginatedResponseSchema(GenericType, generic_base_name="PaginatedResponseSchema"):
-    def get_generic_type(
-        self, wrap_type: Any
-    ) -> Type[BasePaginatedResponseSchema]:  # pragma: no cover
-        class ListResponseSchema(BasePaginatedResponseSchema):
-            results: List[wrap_type]  # type: ignore
-
-        return ListResponseSchema
-
-
-class NinjaPaginationResponseSchema(
-    GenericType, generic_base_name="NinjaPaginationResponseSchema"
-):
-    def get_generic_type(
-        self, wrap_type: Any
-    ) -> Type[BaseNinjaResponseSchema]:  # pragma: no cover
-        class ListNinjaResponseSchema(BaseNinjaResponseSchema):
-            items: List[wrap_type]  # type: ignore
-
-        return ListNinjaResponseSchema
-
-
-if sys.version_info >= (3, 7):  # pragma: no cover
+if sys.version_info >= (3, 7):
 
     class PaginatedResponseSchema(
         GenericModel, Generic[T], BasePaginatedResponseSchema
@@ -109,6 +63,50 @@ if sys.version_info >= (3, 7):  # pragma: no cover
         detail: T
 
     DetailSchema.__generic_model__ = DetailSchema
+else:  # pragma: no cover
+
+    class IdSchema(GenericType, generic_base_name="IdSchema"):
+        def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
+            class _IDSchema(Schema):
+                id: wrap_type
+
+            return _IDSchema
+
+    class OkSchema(GenericType, generic_base_name="OkSchema"):
+        def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
+            class _OKSchema(Schema):
+                detail: wrap_type
+
+            return _OKSchema
+
+    class DetailSchema(GenericType, generic_base_name="DetailSchema"):
+        def get_generic_type(self, wrap_type: Any) -> Type[Schema]:  # pragma: no cover
+            class _DetailSchema(Schema):
+                detail: wrap_type
+
+            return _DetailSchema
+
+    class PaginatedResponseSchema(
+        GenericType, generic_base_name="PaginatedResponseSchema"
+    ):
+        def get_generic_type(
+            self, wrap_type: Any
+        ) -> Type[BasePaginatedResponseSchema]:  # pragma: no cover
+            class ListResponseSchema(BasePaginatedResponseSchema):
+                results: List[wrap_type]
+
+            return ListResponseSchema
+
+    class NinjaPaginationResponseSchema(
+        GenericType, generic_base_name="NinjaPaginationResponseSchema"
+    ):
+        def get_generic_type(
+            self, wrap_type: Any
+        ) -> Type[BaseNinjaResponseSchema]:  # pragma: no cover
+            class ListNinjaResponseSchema(BaseNinjaResponseSchema):
+                items: List[wrap_type]
+
+            return ListNinjaResponseSchema
 
 
 class RouteParameter(BaseModel):

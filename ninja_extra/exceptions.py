@@ -6,7 +6,8 @@ from typing import Any, Dict, List, Optional, Type, Union, no_type_check
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils.encoding import force_str
-from django.utils.translation import gettext_lazy as _, ngettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from ninja.errors import HttpError
 
 from ninja_extra import status
@@ -245,7 +246,10 @@ class Throttled(APIException):
     default_code = "throttled"
 
     def __init__(
-        self, wait: float = None, detail: Any = None, code: Any = None
+        self,
+        wait: Optional[float] = None,
+        detail: Optional[Any] = None,
+        code: Optional[Any] = None,
     ) -> None:
         if detail is None:
             detail = force_str(self.default_detail)

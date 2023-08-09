@@ -16,7 +16,7 @@ class ThrottlingControllerSample(ControllerBase):
     throttling_classes = [
         DynamicRateThrottle,
     ]
-    throttling_init_kwargs = dict(scope="dynamic_scope")
+    throttling_init_kwargs = {"scope": "dynamic_scope"}
 
     @http_get("/endpoint_1")
     @throttle
@@ -50,8 +50,8 @@ class TestThrottlingControllerSample:
 
     def test_controller_endpoint_throttle_override(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", dict(user="10/sec", anon="2/sec"))
-            for dummy in range(11):
+            m.setattr(settings, "THROTTLE_RATES", {"user": "10/sec", "anon": "2/sec"})
+            for _dummy in range(11):
                 response = client.get("/endpoint_1", user=self.user)
             assert response.status_code == 429
 
@@ -71,7 +71,7 @@ class TestThrottlingControllerSample:
                 "THROTTLE_RATES",
                 {"dynamic_scope": "5/min", "user": "10/sec", "anon": "10/sec"},
             )
-            for dummy in range(time_out + 1):
+            for _dummy in range(time_out + 1):
                 response = client.get(endpoint, user=self.user)
             assert response.status_code == 429
 
@@ -82,6 +82,6 @@ class TestThrottlingControllerSample:
                 "THROTTLE_RATES",
                 {"dynamic_scope": "5/min", "user": "10/sec", "anon": "10/sec"},
             )
-            for dummy in range(time_out + 1):
+            for _dummy in range(time_out + 1):
                 response = client.get(endpoint)
             assert response.status_code == 429

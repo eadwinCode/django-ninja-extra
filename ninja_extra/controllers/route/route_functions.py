@@ -40,7 +40,7 @@ class RouteFunction(object):
     def __call__(
         self,
         request: HttpRequest,
-        temporal_response: HttpResponse = None,
+        temporal_response: Optional[HttpResponse] = None,
         *args: Any,
         **kwargs: Any,
     ) -> Any:
@@ -79,7 +79,7 @@ class RouteFunction(object):
     def get_view_function(self) -> Callable:
         def as_view(
             request: HttpRequest,
-            context: RouteContext = None,
+            context: Optional[RouteContext] = None,
             *args: Any,
             **kwargs: Any,
         ) -> Any:
@@ -124,14 +124,14 @@ class RouteFunction(object):
         )
         _api_controller = self.get_api_controller()
 
-        init_kwargs = dict(
-            permission_classes=self.route.permissions
+        init_kwargs = {
+            "permission_classes": self.route.permissions
             or _api_controller.permission_classes,
-            request=request,
-            kwargs=kwargs,
-            args=args,
-        )
-        context = RouteContext(**init_kwargs)
+            "request": request,
+            "kwargs": kwargs,
+            "args": args,
+        }
+        context = RouteContext(**init_kwargs)  # type:ignore[arg-type]
         return context
 
     @contextmanager
@@ -166,7 +166,7 @@ class AsyncRouteFunction(RouteFunction):
     def get_view_function(self) -> Callable:
         async def as_view(
             request: HttpRequest,
-            context: RouteContext = None,
+            context: Optional[RouteContext] = None,
             *args: Any,
             **kwargs: Any,
         ) -> Any:
@@ -191,7 +191,7 @@ class AsyncRouteFunction(RouteFunction):
     async def __call__(
         self,
         request: HttpRequest,
-        temporal_response: HttpResponse = None,
+        temporal_response: Optional[HttpResponse] = None,
         *args: Any,
         **kwargs: Any,
     ) -> Any:
@@ -199,7 +199,8 @@ class AsyncRouteFunction(RouteFunction):
         context = get_route_execution_context(
             request,
             temporal_response,
-            self.route.permissions or _api_controller.permission_classes,  # type: ignore[arg-type]
+            self.route.permissions
+            or _api_controller.permission_classes,  # type:ignore[arg-type]
             *args,
             **kwargs,
         )

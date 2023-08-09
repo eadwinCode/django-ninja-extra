@@ -51,7 +51,7 @@ class SomeControllerWithRoute:
 
     @http_get("/example/{ex_id}")
     def example2(self, ex_id: str):
-        return self.create_response(dict(detail=ex_id), status_code=302)
+        return self.create_response({"detail": ex_id}, status_code=302)
 
     @http_get("/example/{ex_id}/ok")
     def example_with_ok_response(self, ex_id: str):
@@ -112,7 +112,7 @@ class TestAPIController:
         class UsersController:
             @http_get("")
             def example_with_id_response(self, organisation_id: int):
-                return dict(organisation_id=organisation_id)
+                return {"organisation_id": organisation_id}
 
         _api_controller: APIController = UsersController.get_api_controller()
         assert _api_controller._prefix_has_route_param
@@ -120,7 +120,7 @@ class TestAPIController:
         client = testing.TestClient(UsersController)
         response = client.get("452")
 
-        assert response.json() == dict(organisation_id=452)
+        assert response.json() == {"organisation_id": 452}
         assert [("", _api_controller)] == _api_controller.build_routers()
 
     def test_controller_should_have_preset_properties(self):
@@ -254,9 +254,9 @@ def test_async_controller():
 class TestAPIControllerResponse:
     ok_response = Ok("OK")
     id_response = Id("ID")
-    detail_response = Detail(dict(errors=[dict(test="passed")]), status_code=302)
+    detail_response = Detail({"errors": [{"test": "passed"}]}, status_code=302)
 
-    ok_response_generic = Ok[UserSchema](dict(name="TestName", age=23))
+    ok_response_generic = Ok[UserSchema]({"name": "TestName", "age": 23})
     id_response_generic = Id[UserSchema](UserSchema(name="John", age=56))
     detail_response_generic = Detail[UserSchema](
         UserSchema(name="John", age=56), 400
@@ -267,7 +267,7 @@ class TestAPIControllerResponse:
         assert self.ok_response_generic.get_schema() == Ok[UserSchema].get_schema()
         assert self.ok_response_generic.convert_to_schema() == Ok[
             UserSchema
-        ].get_schema()(detail=dict(name="TestName", age=23))
+        ].get_schema()(detail={"name": "TestName", "age": 23})
         assert self.ok_response.status_code == Ok.status_code
         # ID Response
         assert self.id_response.get_schema() == Id.get_schema()
@@ -276,7 +276,7 @@ class TestAPIControllerResponse:
         # Detail Response
         assert self.detail_response.get_schema() == Detail.get_schema()
         assert self.detail_response.convert_to_schema() == Detail.get_schema()(
-            detail=dict(errors=[dict(test="passed")])
+            detail={"errors": [{"test": "passed"}]}
         )
         assert self.id_response.status_code != Detail.status_code
 
@@ -292,7 +292,7 @@ class TestAPIControllerResponse:
         # Detail Response
         assert self.detail_response.get_schema() == Detail.get_schema()
         assert self.detail_response.convert_to_schema() == Detail.get_schema()(
-            detail=dict(errors=[dict(test="passed")])
+            detail={"errors": [{"test": "passed"}]}
         )
         assert self.id_response.status_code != Detail.status_code
 
@@ -307,7 +307,7 @@ class TestAPIControllerResponse:
             == response.json()["id"]
         )
 
-        ok_response = Ok[UserSchema](dict(name="John", age=56))
+        ok_response = Ok[UserSchema]({"name": "John", "age": 56})
         route_function = get_route_function(
             SomeControllerWithRoute().example_with_ok_schema_response
         )

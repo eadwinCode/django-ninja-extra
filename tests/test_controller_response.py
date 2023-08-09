@@ -31,12 +31,12 @@ def test_ok_normal_response_model():
 
 def test_ok_generic_response_model():
     ok_a_schema = Ok[ASchema]
-    ok_a_schema_instance = ok_a_schema(dict(age=34))
+    ok_a_schema_instance = ok_a_schema({"age": 34})
     assert "ASchema" in ok_a_schema_instance.get_schema().__name__
     assert ok_a_schema_instance.convert_to_schema().dict() == {"detail": {"age": 34}}
     assert ok_a_schema_instance.status_code == 200
     assert ok_a_schema == Ok[ASchema]
-    dsd = type(ok_a_schema)
+    type(ok_a_schema)
     assert type(ok_a_schema) == ControllerResponseMeta
 
 
@@ -69,7 +69,7 @@ def test_details_normal_response_response_model():
 
 def test_details_generic_response_response_model():
     details_a_schema = Detail[ASchema]
-    detail_a_schema_instance = details_a_schema(dict(age=34), 400)
+    detail_a_schema_instance = details_a_schema({"age": 34}, 400)
     assert "ASchema" in detail_a_schema_instance.get_schema().__name__
     assert detail_a_schema_instance.convert_to_schema().dict() == {
         "detail": {"age": 34}
@@ -82,4 +82,4 @@ def test_details_generic_response_response_model():
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="requires python >= 3.7")
 def test_generic_schema_with_k_t_fails():
     with pytest.raises(TypeError, match="Tuple Generic Model not supported"):
-        ds = Detail[ASchema, ASchema]
+        Detail[ASchema, ASchema]

@@ -29,7 +29,7 @@ def global_op(request):
 
 def test_api_instance():
     assert len(api._routers) == 2  # default + extra
-    for path, rtr in api._routers:
+    for _path, rtr in api._routers:
         for path_ops in rtr.path_operations.values():
             for op in path_ops.operations:
                 assert op.api is api
@@ -68,7 +68,7 @@ def test_api_register_controller_works():
     assert AnotherAPIController.get_api_controller().registered
     assert len(ninja_extra_api._routers) == 2
 
-    assert "/another" in {k: v for k, v in ninja_extra_api._routers}
+    assert "/another" in dict(ninja_extra_api._routers)
 
     with pytest.raises(ImproperlyConfigured) as ex:
         ninja_extra_api.register_controllers(InvalidSomeAPIController)

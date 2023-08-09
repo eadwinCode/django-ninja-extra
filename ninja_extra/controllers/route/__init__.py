@@ -67,11 +67,10 @@ class Route(object):
         ] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> None:
-
         if not isinstance(methods, list):
             raise RouteInvalidParameterException("methods must be a list")
 
-        methods = list(map(lambda m: m.upper(), methods))
+        methods = [m.upper() for m in methods]
         not_valid_methods = list(set(methods) - set(ROUTE_METHODS))
         if not_valid_methods:
             raise RouteInvalidParameterException(
@@ -85,7 +84,7 @@ class Route(object):
             response = cast(ControllerResponse, response)
             _response = {response.status_code: response.get_schema()}
         elif isinstance(response, list):
-            _response_computed = dict()
+            _response_computed = {}
             for item in response:
                 if (
                     inspect.isclass(item) and type(item) == ControllerResponseMeta

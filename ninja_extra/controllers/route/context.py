@@ -1,9 +1,10 @@
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 from django.http import HttpResponse
 from django.http.request import HttpRequest
 from ninja.types import DictStrAny
-from pydantic import BaseModel as PydanticModel, Field
+from pydantic import BaseModel as PydanticModel
+from pydantic import Field
 
 from ninja_extra.types import PermissionType
 
@@ -25,17 +26,19 @@ class RouteContext(PydanticModel):
 
 def get_route_execution_context(
     request: HttpRequest,
-    temporal_response: HttpResponse = None,
-    permission_classes: PermissionType = [],
+    temporal_response: Optional[HttpResponse] = None,
+    permission_classes: Optional[PermissionType] = None,
     *args: Any,
     **kwargs: Any,
 ) -> RouteContext:
-    init_kwargs = dict(
-        permission_classes=permission_classes,
-        request=request,
-        kwargs=kwargs,
-        response=temporal_response,
-        args=args,
-    )
-    context = RouteContext(**init_kwargs)
+    init_kwargs = {
+        "permission_classes": permission_classes
+        if permission_classes is not None
+        else [],
+        "request": request,
+        "kwargs": kwargs,
+        "response": temporal_response,
+        "args": args,
+    }
+    context = RouteContext(**init_kwargs)  # type:ignore[arg-type]
     return context

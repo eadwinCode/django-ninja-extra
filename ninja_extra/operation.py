@@ -23,7 +23,11 @@ from django.utils.encoding import force_str
 from ninja.constants import NOT_SET
 from ninja.operation import (
     AsyncOperation as NinjaAsyncOperation,
+)
+from ninja.operation import (
     Operation as NinjaOperation,
+)
+from ninja.operation import (
     PathView as NinjaPathView,
 )
 from ninja.signature import is_async
@@ -51,11 +55,11 @@ class Operation(NinjaOperation):
         methods: List[str],
         view_func: Callable,
         *,
-        url_name: str = None,
+        url_name: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
         self.is_coroutine = is_async(view_func)
-        self.url_name = url_name  # type: ignore
+        self.url_name = url_name  # type: ignore[assignment]
         super().__init__(path, methods, view_func, **kwargs)
         self.signature = ViewSignature(self.path, self.view_func)
 
@@ -70,7 +74,9 @@ class Operation(NinjaOperation):
                 )
 
                 if not getattr(callback, "is_coroutine", None):
-                    setattr(callback, "is_coroutine", is_async(_call_back))
+                    callback.is_coroutine = is_async(  # type:ignore[union-attr]
+                        _call_back
+                    )
 
                 if is_async(_call_back) and not self.is_coroutine:
                     raise Exception(
@@ -94,9 +100,7 @@ class Operation(NinjaOperation):
                 f"{duration if duration else ''}"
             )
             if hasattr(self.view_func, "get_route_function"):
-                route_function: "RouteFunction" = (
-                    self.view_func.get_route_function()  # type:ignore
-                )
+                route_function: "RouteFunction" = self.view_func.get_route_function()
                 api_controller = route_function.get_api_controller()
 
                 msg = (
@@ -112,7 +116,7 @@ class Operation(NinjaOperation):
                 )
 
             logger(msg, **kwargs)
-        except (Exception,) as log_ex:
+        except Exception as log_ex:
             request_logger.debug(log_ex)
 
     def get_execution_context(
@@ -124,9 +128,7 @@ class Operation(NinjaOperation):
     ) -> RouteContext:
         permission_classes: PermissionType = []
         if hasattr(self.view_func, "get_route_function"):
-            route_function: "RouteFunction" = (
-                self.view_func.get_route_function()  # type:ignore
-            )
+            route_function: "RouteFunction" = self.view_func.get_route_function()
 
             _api_controller = route_function.get_api_controller()
             permission_classes = (
@@ -158,7 +160,7 @@ class Operation(NinjaOperation):
                 request_logger.info,
                 request=request,
                 duration=time.time() - start_time,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
         except Exception as e:
@@ -166,7 +168,7 @@ class Operation(NinjaOperation):
                 request_logger.error,
                 request=request,
                 ex=e,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
             raise e
@@ -216,9 +218,7 @@ class ControllerOperation(Operation):  # pragma: no cover
                 f"{duration if duration else ''}"
             )
             if hasattr(self.view_func, "get_route_function"):
-                route_function: "RouteFunction" = (
-                    self.view_func.get_route_function()  # type:ignore
-                )
+                route_function: "RouteFunction" = self.view_func.get_route_function()
                 api_controller = route_function.get_api_controller()
 
                 msg = (
@@ -234,7 +234,7 @@ class ControllerOperation(Operation):  # pragma: no cover
                 )
 
             logger(msg, **kwargs)
-        except (Exception,) as log_ex:
+        except Exception as log_ex:
             request_logger.debug(log_ex)
 
     def get_execution_context(
@@ -252,7 +252,7 @@ class ControllerOperation(Operation):  # pragma: no cover
             raise Exception("Route Function is missing")
 
         return route_function.get_route_execution_context(
-            request, temporal_response=temporal_response, *args, **kwargs
+            request, *args, temporal_response=temporal_response, **kwargs
         )
 
     @contextmanager
@@ -272,7 +272,7 @@ class ControllerOperation(Operation):  # pragma: no cover
                 request_logger.info,
                 request=request,
                 duration=time.time() - start_time,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
         except Exception as e:
@@ -280,7 +280,7 @@ class ControllerOperation(Operation):  # pragma: no cover
                 request_logger.error,
                 request=request,
                 ex=e,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
             raise e
@@ -370,7 +370,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 request_logger.info,
                 request=request,
                 duration=time.time() - start_time,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
         except Exception as e:
@@ -378,7 +378,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 request_logger.error,
                 request=request,
                 ex=e,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
             raise e
@@ -420,7 +420,7 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):  # pragma: 
                 request_logger.info,
                 request=request,
                 duration=time.time() - start_time,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
         except Exception as e:
@@ -428,7 +428,7 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):  # pragma: 
                 request_logger.error,
                 request=request,
                 ex=e,
-                extra=dict(request=request),
+                extra={"request": request},
                 exc_info=None,
             )
             raise e

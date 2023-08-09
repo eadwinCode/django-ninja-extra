@@ -17,7 +17,7 @@ def list_exception(request):
 
 
 @api.get("/list_exception_full_detail")
-def list_exception(request):
+def list_exception_case_2(request):
     exception = exceptions.APIException(
         [
             "some error 1",
@@ -29,18 +29,18 @@ def list_exception(request):
 
 @api.get("/dict_exception")
 def dict_exception(request):
-    raise exceptions.APIException(dict(error="error 1"))
+    raise exceptions.APIException({"error": "error 1"})
 
 
 @api.get("/dict_exception_full_detail")
 def dict_exception_full_detail(request):
-    exception = exceptions.APIException(dict(error="error 1"))
+    exception = exceptions.APIException({"error": "error 1"})
     return exception.get_full_details()
 
 
 @api.get("/dict_exception_code_detail")
 def dict_exception_code_detail(request):
-    exception = exceptions.APIException(dict(error="error 1"))
+    exception = exceptions.APIException({"error": "error 1"})
     return exception.get_codes()
 
 
@@ -150,7 +150,7 @@ def test_exception_with_list_full_details():
 def test_exception_with_dict_details():
     res = client.get("dict_exception")
     assert res.status_code == 500
-    assert res.json() == dict(error="error 1")
+    assert res.json() == {"error": "error 1"}
 
 
 def test_exception_with_full_details():

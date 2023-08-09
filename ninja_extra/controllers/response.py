@@ -20,7 +20,7 @@ T = TypeVar("T")
 SCHEMA_KEY = "_schema"
 
 if sys.version_info < (3, 7):  # pragma: no cover
-    from typing import GenericMeta
+    from typing import GenericMeta  # type: ignore[attr-defined]
 
     class ControllerResponseMeta(GenericMeta):
         @no_type_check
@@ -42,7 +42,6 @@ if sys.version_info < (3, 7):  # pragma: no cover
         def __new__(
             cls: Type["ControllerResponse[T]"], *args: Any, **kwargs: Any
         ) -> "ControllerResponse[T]":
-
             if cls._gorg is Generic or "_schema" not in cls.__dict__:
                 raise TypeError(
                     "Type Generic cannot be instantiated; "
@@ -65,7 +64,6 @@ else:
         def __new__(
             cls: Type["ControllerResponse[T]"], *args: Any, **kwargs: Any
         ) -> "ControllerResponse[T]":
-
             if "_schema" not in cls.__dict__:
                 raise TypeError(
                     "Type Generic cannot be instantiated; "

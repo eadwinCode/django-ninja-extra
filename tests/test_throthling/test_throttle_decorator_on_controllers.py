@@ -39,8 +39,8 @@ class TestThrottledController:
 
     def test_requests_are_throttled_using_default_user_scope(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon="2/sec"))
-            for dummy in range(4):
+            m.setattr(settings, "THROTTLE_RATES", {"user": "3/sec", "anon": "2/sec"})
+            for _dummy in range(4):
                 response = client.get("/throttle_user_default", user=self.user)
             assert response.status_code == 429
 
@@ -49,7 +49,7 @@ class TestThrottledController:
         Ensure request rate is limited
         """
 
-        for dummy in range(4):
+        for _dummy in range(4):
             response = client.get("/throttle_user_3_sec", user=self.user)
         assert response.status_code == 429
 
@@ -57,13 +57,13 @@ class TestThrottledController:
         # for authenticated user
         with monkeypatch.context() as m:
             m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for dummy in range(4):
+            for _dummy in range(4):
                 response = client.get("/dynamic_throttling_scope", user=self.user)
             assert response.status_code == 429
         # for unauthenticated user
         with monkeypatch.context() as m:
             m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for dummy in range(4):
+            for _dummy in range(4):
                 client.get("/dynamic_throttling_scope")
             assert response.status_code == 429
 
@@ -93,12 +93,12 @@ async def test_async_controller_throttling(monkeypatch):
     user = create_user()
 
     with monkeypatch.context() as m:
-        m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon="2/sec"))
-        for dummy in range(4):
+        m.setattr(settings, "THROTTLE_RATES", {"user": "3/sec", "anon": "2/sec"})
+        for _dummy in range(4):
             response = await client_async.get("/throttle_user_default_async", user=user)
         assert response.status_code == 429
 
     user = create_user()
-    for idx, dummy in enumerate(range(4)):
+    for _idx, _dummy in enumerate(range(4)):
         response = await client_async.get("/throttle_user_3_sec_async", user=user)
     assert response.status_code == 429

@@ -59,8 +59,8 @@ class TestThrottling:
 
     def test_requests_are_throttled_using_default_user_scope(self, monkeypatch):
         with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon="2/sec"))
-            for dummy in range(4):
+            m.setattr(settings, "THROTTLE_RATES", {"user": "3/sec", "anon": "2/sec"})
+            for _dummy in range(4):
                 response = client.get("/throttle_user_default", user=self.user)
             assert response.status_code == 429
 
@@ -69,7 +69,7 @@ class TestThrottling:
         Ensure request rate is limited
         """
 
-        for dummy in range(4):
+        for _dummy in range(4):
             response = client.get("/throttle_user_3_sec", user=self.user)
         assert response.status_code == 429
 
@@ -88,7 +88,7 @@ class TestThrottling:
         Ensure request rate is limited for a limited duration only
         """
         with self.set_throttle_timer(monkeypatch, User3SecRateThrottle, value=0):
-            for dummy in range(4):
+            for _dummy in range(4):
                 response = client.get("/throttle_user_3_sec", user=self.user)
             assert response.status_code == 429
 
@@ -98,7 +98,7 @@ class TestThrottling:
             assert response.status_code == 200
 
     def ensure_is_throttled(self, path, expect):
-        for dummy in range(3):
+        for _dummy in range(3):
             client.get(f"/{path}", user=self.user)
 
         user = ThrottlingMockUser("NinjaNew")
@@ -122,7 +122,7 @@ class TestThrottling:
         with self.set_throttle_timer(
             monkeypatch, User3SecRateThrottle, User6MinRateThrottle, value=0
         ):
-            for dummy in range(4):
+            for _dummy in range(4):
                 response = client.get("throttling_multiple_throttle", user=self.user)
             assert response.status_code == 429
             assert int(response["retry-after"]) == 1
@@ -134,7 +134,7 @@ class TestThrottling:
         with self.set_throttle_timer(
             monkeypatch, User3SecRateThrottle, User6MinRateThrottle, value=1
         ):
-            for dummy in range(2):
+            for _dummy in range(2):
                 response = client.get("throttling_multiple_throttle", user=self.user)
                 assert response.status_code == 200
 
@@ -154,7 +154,7 @@ class TestThrottling:
         with self.set_throttle_timer(
             monkeypatch, User3SecRateThrottle, User6MinRateThrottle, value=0
         ):
-            for dummy in range(24):
+            for _dummy in range(24):
                 response = client.get("/throttling_multiple_throttle", user=self.user)
             assert response.status_code == 429
             assert int(response._response["retry-after"]) == 60
@@ -163,7 +163,7 @@ class TestThrottling:
             try:
                 User3SecRateThrottle.rate = "1/sec"
 
-                for dummy in range(24):
+                for _dummy in range(24):
                     response = client.get(
                         "/throttling_multiple_throttle", user=self.user
                     )
@@ -187,7 +187,7 @@ class TestThrottling:
                 if expect is not None:
                     assert response._response["Retry-After"] == expect
                 else:
-                    assert not "Retry-After" in response._response
+                    assert "Retry-After" not in response._response
 
     def test_seconds_fields(self, monkeypatch):
         """
@@ -233,13 +233,13 @@ class TestThrottling:
         # for authenticated user
         with monkeypatch.context() as m:
             m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for dummy in range(4):
+            for _dummy in range(4):
                 response = client.get("/dynamic_throttling_scope", user=self.user)
             assert response.status_code == 429
         # for unauthenticated user
         with monkeypatch.context() as m:
             m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for dummy in range(4):
+            for _dummy in range(4):
                 response = client.get("/dynamic_throttling_scope")
             assert response.status_code == 429
 
@@ -274,17 +274,17 @@ async def test_async_throttling(monkeypatch):
     user = create_user()
 
     with monkeypatch.context() as m:
-        m.setattr(settings, "THROTTLE_RATES", dict(user="3/sec", anon="2/sec"))
-        for dummy in range(4):
+        m.setattr(settings, "THROTTLE_RATES", {"user": "3/sec", "anon": "2/sec"})
+        for _dummy in range(4):
             response = await client_async.get("/throttle_user_default_async", user=user)
         assert response.status_code == 429
 
     user = create_user()
-    for idx, dummy in enumerate(range(4)):
+    for _idx, _dummy in enumerate(range(4)):
         response = await client_async.get("/throttle_user_3_sec_async", user=user)
     assert response.status_code == 429
 
     user = create_user()
-    for idx, dummy in enumerate(range(4)):
+    for _idx, _dummy in enumerate(range(4)):
         response = await client_async.get("/throttle_user_3_min_async", user=user)
     assert response.status_code == 429

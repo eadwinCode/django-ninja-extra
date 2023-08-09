@@ -82,12 +82,11 @@ client = TestClient(SomeAPIController)
 @pytest.mark.django_db
 class TestSearch:
     def test_Search_operation_used(self):
-        some_api_route_functions = {
-            k: v
-            for k, v in inspect.getmembers(
+        some_api_route_functions = dict(
+            inspect.getmembers(
                 SomeAPIController, lambda member: isinstance(member, RouteFunction)
             )
-        }
+        )
         has_kwargs = ("items_3", "items_4")
         for name, route_function in some_api_route_functions.items():
             assert hasattr(route_function.as_view, "searcherator_operation")
@@ -239,13 +238,12 @@ class TestAsyncSearch:
         client = TestAsyncClient(AsyncSomeAPIController)
 
         async def test_Search_operation_used(self):
-            some_api_route_functions = {
-                k: v
-                for k, v in inspect.getmembers(
+            some_api_route_functions = dict(
+                inspect.getmembers(
                     self.AsyncSomeAPIController,
                     lambda member: isinstance(member, RouteFunction),
                 )
-            }
+            )
             has_kwargs = ("items_3", "items_4")
             for name, route_function in some_api_route_functions.items():
                 assert hasattr(route_function.as_view, "searcherator_operation")
