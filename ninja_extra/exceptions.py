@@ -104,7 +104,7 @@ class APIException(HttpError):
         code: Optional[Union[str, int]] = None,
     ) -> None:
         if detail is None:
-            detail = cast(str, self.default_detail)  # type:ignore[redundant-cast]
+            detail = cast(str, self.default_detail)
         if code is None:
             code = self.default_code
 
@@ -149,7 +149,7 @@ class ValidationError(APIException):
         code: Optional[Union[str, int]] = None,
     ):
         if detail is None:
-            detail = cast(str, self.default_detail)  # type:ignore[redundant-cast]
+            detail = cast(str, self.default_detail)
         if code is None:
             code = self.default_code
 
