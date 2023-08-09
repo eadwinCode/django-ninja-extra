@@ -62,10 +62,9 @@ test = [
     "pytest-cov",
     "pytest-django",
     "pytest-asyncio",
-    "mypy ==0.971",
-    "flake8 >=3.8.3,<4.0.0",
-    "black ==22.12.0",
-    "isort >=5.0.6,<6.0.0",
+    "mypy == 1.4.1",
+    "ruff ==0.0.275",
+    "black == 23.7.0",
     "injector >= 0.19.0",
     "django-stubs",
 ]
@@ -81,3 +80,24 @@ doc = [
 dev = [
     "pre-commit"
 ]
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.isort]
+known-third-party = ["django-ninja-extra", "Django", "injector", "pydantic"]

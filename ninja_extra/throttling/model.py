@@ -107,11 +107,13 @@ class SimpleRateThrottle(BaseThrottle):
         _THROTTLE_RATES = self.THROTTLE_RATES or settings.THROTTLE_RATES
         try:
             return _THROTTLE_RATES[self.scope]
-        except KeyError:
+        except KeyError as e:
             msg = "No default throttle rate set for '%s' scope" % self.scope
-            raise ImproperlyConfigured(msg)
+            raise ImproperlyConfigured(msg) from e
 
-    def parse_rate(self, rate: str = None) -> Tuple[Optional[int], Optional[int]]:
+    def parse_rate(
+        self, rate: Optional[str] = None
+    ) -> Tuple[Optional[int], Optional[int]]:
         """
         Given the request rate string, return a two tuple of:
         <allowed number of requests>, <period of time in seconds>
@@ -138,7 +140,7 @@ class SimpleRateThrottle(BaseThrottle):
             return True
 
         self.history = self.cache.get(self.key, [])
-        self.now = self.timer()  # type:ignore
+        self.now = self.timer()
 
         # Drop any requests from the history which have now passed the
         # throttle duration
@@ -228,7 +230,7 @@ class DynamicRateThrottle(SimpleRateThrottle):
     the API. Set Throttle scope dynamically for an api endpoint
     """
 
-    def __init__(self, scope: str = None) -> None:
+    def __init__(self, scope: Optional[str] = None) -> None:
         self.scope = scope
         super().__init__()
 

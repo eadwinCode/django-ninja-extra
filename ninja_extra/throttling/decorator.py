@@ -35,7 +35,7 @@ def throttle(*func_or_throttle_classes: Any, **init_kwargs: Any) -> Callable[...
 def _run_throttles(
     *throttle_classes: Type[BaseThrottle],
     request_or_controller: Union[HttpRequest, ControllerBase],
-    response: HttpResponse = None,
+    response: Optional[HttpResponse] = None,
     **init_kwargs: Any,
 ) -> None:
     """

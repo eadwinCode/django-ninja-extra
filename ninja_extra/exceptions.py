@@ -2,11 +2,12 @@
 DRF Exceptions
 """
 import math
-from typing import Any, Dict, List, Optional, Type, Union, no_type_check
+from typing import Any, Dict, List, Optional, Type, Union, cast, no_type_check
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils.encoding import force_str
-from django.utils.translation import gettext_lazy as _, ngettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from ninja.errors import HttpError
 
 from ninja_extra import status
@@ -103,7 +104,7 @@ class APIException(HttpError):
         code: Optional[Union[str, int]] = None,
     ) -> None:
         if detail is None:
-            detail = self.default_detail
+            detail = cast(str, self.default_detail)
         if code is None:
             code = self.default_code
 
@@ -148,7 +149,7 @@ class ValidationError(APIException):
         code: Optional[Union[str, int]] = None,
     ):
         if detail is None:
-            detail = self.default_detail
+            detail = cast(str, self.default_detail)
         if code is None:
             code = self.default_code
 
@@ -245,7 +246,10 @@ class Throttled(APIException):
     default_code = "throttled"
 
     def __init__(
-        self, wait: float = None, detail: Any = None, code: Any = None
+        self,
+        wait: Optional[float] = None,
+        detail: Optional[Any] = None,
+        code: Optional[Any] = None,
     ) -> None:
         if detail is None:
             detail = force_str(self.default_detail)

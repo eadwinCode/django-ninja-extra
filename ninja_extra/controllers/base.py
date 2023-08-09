@@ -21,7 +21,8 @@ from typing import (
 
 from django.db.models import Model, QuerySet
 from django.http import HttpResponse
-from django.urls import URLPattern, path as django_path
+from django.urls import URLPattern
+from django.urls import path as django_path
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI, Router
 from ninja.constants import NOT_SET
@@ -143,7 +144,7 @@ class ControllerBase(ABC):
     def get_object_or_exception(
         self,
         klass: Union[Type[Model], QuerySet],
-        error_message: str = None,
+        error_message: Optional[str] = None,
         exception: Type[APIException] = NotFound,
         **kwargs: Any,
     ) -> Any:
@@ -267,7 +268,6 @@ class APIController:
         permissions: Optional["PermissionType"] = None,
         auto_import: bool = True,
     ) -> None:
-
         self.prefix = prefix
         # `auth` primarily defines APIController route function global authentication method.
         self.auth: Optional[AuthBase] = auth
@@ -278,8 +278,8 @@ class APIController:
         # `controller_class` target class that the APIController wraps
         self._controller_class: Optional[Type["ControllerBase"]] = None
         # `_path_operations` a converted dict of APIController route function used by Django-Ninja library
-        self._path_operations: Dict[str, ControllerPathView] = dict()
-        self._controller_class_route_functions: Dict[str, RouteFunction] = dict()
+        self._path_operations: Dict[str, ControllerPathView] = {}
+        self._controller_class_route_functions: Dict[str, RouteFunction] = {}
         # `permission_classes` a collection of BasePermission Types
         # a fallback if route functions has no permissions definition
         self.permission_classes: PermissionType = permissions or [AllowAny]

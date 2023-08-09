@@ -68,7 +68,7 @@ class MockUser(str):
     is_authenticated = True
 
 
-BODY_UNAUTHORIZED_DEFAULT = dict(detail="Unauthorized")
+BODY_UNAUTHORIZED_DEFAULT = {"detail": "Unauthorized"}
 
 if not django.VERSION < (3, 1):
 
@@ -160,60 +160,60 @@ if not django.VERSION < (3, 1):
     "path,kwargs,expected_code,expected_body",
     [
         ("/django_auth", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
-        ("/django_auth", dict(user=MockUser("admin")), 200, dict(auth="admin")),
+        ("/django_auth", {"user": MockUser("admin")}, 200, {"auth": "admin"}),
         ("/callable", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
-        ("/callable?auth=demo", {}, 200, dict(auth="demo")),
+        ("/callable?auth=demo", {}, 200, {"auth": "demo"}),
         ("/apikeyquery", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
-        ("/apikeyquery?key=keyquerysecret", {}, 200, dict(auth="keyquerysecret")),
+        ("/apikeyquery?key=keyquerysecret", {}, 200, {"auth": "keyquerysecret"}),
         ("/apikeyheader", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
         (
             "/apikeyheader",
-            dict(headers={"key": "keyheadersecret"}),
+            {"headers": {"key": "keyheadersecret"}},
             200,
-            dict(auth="keyheadersecret"),
+            {"auth": "keyheadersecret"},
         ),
         ("/apikeycookie", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
         (
             "/apikeycookie",
-            dict(COOKIES={"key": "keycookiersecret"}),
+            {"COOKIES": {"key": "keycookiersecret"}},
             200,
-            dict(auth="keycookiersecret"),
+            {"auth": "keycookiersecret"},
         ),
         ("/basic", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
         (
             "/basic",
-            dict(headers={"Authorization": "Basic YWRtaW46c2VjcmV0"}),
+            {"headers": {"Authorization": "Basic YWRtaW46c2VjcmV0"}},
             200,
-            dict(auth="admin"),
+            {"auth": "admin"},
         ),
         (
             "/basic",
-            dict(headers={"Authorization": "YWRtaW46c2VjcmV0"}),
+            {"headers": {"Authorization": "YWRtaW46c2VjcmV0"}},
             200,
-            dict(auth="admin"),
+            {"auth": "admin"},
         ),
         (
             "/basic",
-            dict(headers={"Authorization": "Basic invalid"}),
+            {"headers": {"Authorization": "Basic invalid"}},
             401,
             BODY_UNAUTHORIZED_DEFAULT,
         ),
         (
             "/basic",
-            dict(headers={"Authorization": "some invalid value"}),
+            {"headers": {"Authorization": "some invalid value"}},
             401,
             BODY_UNAUTHORIZED_DEFAULT,
         ),
         ("/bearer", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
         (
             "/bearer",
-            dict(headers={"Authorization": "Bearer bearertoken"}),
+            {"headers": {"Authorization": "Bearer bearertoken"}},
             200,
-            dict(auth="bearertoken"),
+            {"auth": "bearertoken"},
         ),
         (
             "/bearer",
-            dict(headers={"Authorization": "Invalid bearertoken"}),
+            {"headers": {"Authorization": "Invalid bearertoken"}},
             401,
             BODY_UNAUTHORIZED_DEFAULT,
         ),
@@ -230,7 +230,7 @@ async def test_auth(path, kwargs, expected_code, expected_body, settings):
 def test_auth_failure():
     sync_api = NinjaExtraAPI(csrf=True)
     sync_api.get(
-        f"/sync-cookie-auth", auth=SyncKeyCookie(), operation_id="sync-cookie-auth"
+        "/sync-cookie-auth", auth=SyncKeyCookie(), operation_id="sync-cookie-auth"
     )(sync_demo_operation)
 
     sync_client = TestClient(sync_api)

@@ -110,7 +110,7 @@ class Ordering(OrderingBase):
     def remove_invalid_fields(
         self, items: Union[QuerySet, List], fields: List[str]
     ) -> List[str]:
-        valid_fields = [item for item in self.get_valid_fields(items)]
+        valid_fields = list(self.get_valid_fields(items))
 
         def term_valid(term: str) -> bool:
             if term.startswith("-"):
@@ -127,7 +127,7 @@ class Ordering(OrderingBase):
             elif isinstance(items, list):
                 valid_fields = self.get_all_valid_fields_from_list(items)
         else:
-            valid_fields = [item for item in self.ordering_fields]
+            valid_fields = list(self.ordering_fields)
         return valid_fields
 
     def get_all_valid_fields_from_queryset(self, items: QuerySet) -> List[str]:
@@ -213,7 +213,9 @@ class OrderatorOperation:
         _ninja_contribute_args: List[Tuple] = getattr(
             self.view_func, "_ninja_contribute_args", []
         )
-        setattr(orderator_view, "_ninja_contribute_args", _ninja_contribute_args)
+        orderator_view._ninja_contribute_args = (  # type:ignore[attr-defined]
+            _ninja_contribute_args
+        )
         add_ninja_contribute_args(
             orderator_view,
             (
@@ -222,7 +224,7 @@ class OrderatorOperation:
                 self.orderator.InputSource,
             ),
         )
-        setattr(orderator_view, "orderator_operation", self)
+        orderator_view.orderator_operation = self  # type:ignore[attr-defined]
         self.as_view = wraps(view_func)(orderator_view)
 
     @property

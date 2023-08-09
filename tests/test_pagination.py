@@ -1,7 +1,5 @@
 import inspect
 import typing
-from abc import abstractmethod
-from typing import Sequence, overload
 
 import django
 import pytest
@@ -90,12 +88,11 @@ client = TestClient(SomeAPIController)
 
 class TestPagination:
     def test_paginator_operation_used(self):
-        some_api_route_functions = {
-            k: v
-            for k, v in inspect.getmembers(
+        some_api_route_functions = dict(
+            inspect.getmembers(
                 SomeAPIController, lambda member: isinstance(member, RouteFunction)
             )
-        }
+        )
         has_kwargs = ("items_3", "items_4")
         for name, route_function in some_api_route_functions.items():
             assert hasattr(route_function.as_view, "paginator_operation")
@@ -316,13 +313,12 @@ class TestAsyncOperations:
         client = TestAsyncClient(AsyncSomeAPIController)
 
         async def test_paginator_operation_used(self):
-            some_api_route_functions = {
-                k: v
-                for k, v in inspect.getmembers(
+            some_api_route_functions = dict(
+                inspect.getmembers(
                     self.AsyncSomeAPIController,
                     lambda member: isinstance(member, RouteFunction),
                 )
-            }
+            )
             has_kwargs = ("items_3", "items_4")
             for name, route_function in some_api_route_functions.items():
                 assert hasattr(route_function.as_view, "paginator_operation")

@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings as django_settings
-from django.test.signals import setting_changed
+from django.core.signals import setting_changed
 from ninja import Schema
 from pydantic import Field, root_validator, validator
 
@@ -13,17 +13,17 @@ class UserDefinedSettingsMapper:
         self.__dict__ = data
 
 
-NinjaExtra_SETTINGS_DEFAULTS = dict(
-    INJECTOR_MODULES=[],
-    PAGINATION_CLASS="ninja_extra.pagination.LimitOffsetPagination",
-    THROTTLE_CLASSES=[
+NinjaExtra_SETTINGS_DEFAULTS = {
+    "INJECTOR_MODULES": [],
+    "PAGINATION_CLASS": "ninja_extra.pagination.LimitOffsetPagination",
+    "THROTTLE_CLASSES": [
         "ninja_extra.throttling.AnonRateThrottle",
         "ninja_extra.throttling.UserRateThrottle",
     ],
-    THROTTLE_RATES={"user": None, "anon": None},
-    ORDERING_CLASS="ninja_extra.ordering.Ordering",
-    SEARCHING_CLASS="ninja_extra.searching.Searching",
-)
+    "THROTTLE_RATES": {"user": None, "anon": None},
+    "ORDERING_CLASS": "ninja_extra.ordering.Ordering",
+    "SEARCHING_CLASS": "ninja_extra.searching.Searching",
+}
 
 USER_SETTINGS = UserDefinedSettingsMapper(
     getattr(django_settings, "NINJA_EXTRA", NinjaExtra_SETTINGS_DEFAULTS)

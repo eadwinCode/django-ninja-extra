@@ -135,7 +135,7 @@ class TestControllerRoute:
         with pytest.raises(RouteInvalidParameterException) as ex:
 
             @route.generic("/example/list", methods=["SOMETHING", "GET"])
-            def example_list_create(self, ex_id: str):
+            def example_list_create_case_1(self, ex_id: str):
                 pass
 
         assert "SOMETHING" in str(ex)
@@ -143,7 +143,7 @@ class TestControllerRoute:
         with pytest.raises(RouteInvalidParameterException) as ex:
 
             @route.generic("/example/list", methods="SOMETHING")
-            def example_list_create(self, ex_id: str):
+            def example_list_create_case_2(self, ex_id: str):
                 pass
 
         assert "methods must be a list" in str(ex)
@@ -151,7 +151,7 @@ class TestControllerRoute:
     def test_route_response_invalid_parameters(self):
         with pytest.raises(RouteInvalidParameterException) as ex:
 
-            @route.get("/example/list", response=[dict(), ""])
+            @route.get("/example/list", response=[{}, ""])
             def example_list_create(self, ex_id: str):
                 pass
 
@@ -192,32 +192,32 @@ class TestControllerRoute:
             (
                 "get",
                 ["GET"],
-                dict(
-                    auth="Something",
-                    response=dict(),
-                    operation_id="operation_id",
-                ),
+                {
+                    "auth": "Something",
+                    "response": {},
+                    "operation_id": "operation_id",
+                },
             ),
             (
                 "post",
                 ["POST"],
-                dict(summary="summary", description="description", tags=["dsd"]),
+                {"summary": "summary", "description": "description", "tags": ["dsd"]},
             ),
             (
                 "delete",
                 ["DELETE"],
-                dict(by_alias=True, exclude_unset=True, exclude_defaults=True),
+                {"by_alias": True, "exclude_unset": True, "exclude_defaults": True},
             ),
-            ("patch", ["PATCH"], dict(url_name="url_name", include_in_schema=True)),
-            ("put", ["PUT"], dict(deprecated=True, exclude_none=True)),
+            ("patch", ["PATCH"], {"url_name": "url_name", "include_in_schema": True}),
+            ("put", ["PUT"], {"deprecated": True, "exclude_none": True}),
             (
                 "generic",
                 ["PUT", "PATCH"],
-                dict(
-                    auth="Something",
-                    response=dict(),
-                    operation_id="operation_id",
-                ),
+                {
+                    "auth": "Something",
+                    "response": {},
+                    "operation_id": "operation_id",
+                },
             ),
         ],
     )
@@ -313,7 +313,7 @@ class TestRouteFunction:
     def test_get_route_execution_context(self):
         route.get("")(self.api_func)
         route_function = get_route_function(self.api_func)
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError):
             route_function.get_route_execution_context(
                 anonymous_request, "arg1", "arg2", extra="extra"
             )
@@ -343,7 +343,7 @@ class TestRouteFunction:
         assert response[1] == mock_result.convert_to_schema()
         assert response[0] == mock_result.status_code
 
-        mock_result = dict(status=302, message="Some Message")
+        mock_result = {"status": 302, "message": "Some Message"}
         response = route_function._process_view_function_result(mock_result)
         assert not isinstance(response, tuple)
         assert response == mock_result
@@ -411,12 +411,8 @@ class TestAPIControllerRoutePermission:
     ):
         route_function: RouteFunction = get_route_function(SomeTestController().example)
         context = get_route_execution_context(request=anonymous_request)
-        with pytest.raises(Exception):
-            with route_function._prep_controller_route_execution(
-                context=context
-            ) as ctx:
-                assert isinstance(ctx.controller_instance, SomeTestController)
-                assert ctx.controller_instance.context
-                raise Exception("Should raise an exception")
+        with route_function._prep_controller_route_execution(context=context) as ctx:
+            assert isinstance(ctx.controller_instance, SomeTestController)
+            assert ctx.controller_instance.context
 
         assert ctx.controller_instance.context is None

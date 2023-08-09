@@ -34,4 +34,4 @@ def test_reverse():
 def json_payload(data):
     import json
 
-    return dict(data=json.dumps(data), content_type="application/json")
+    return {"data": json.dumps(data), "content_type": "application/json"}

@@ -11,14 +11,14 @@ def add_ninja_contribute_args(func: TCallable, value: Tuple) -> None:
     _ninja_contribute_args: List[Tuple] = getattr(func, "_ninja_contribute_args", [])
     assert isinstance(_ninja_contribute_args, list)
     _ninja_contribute_args.append(value)
-    setattr(func, "_ninja_contribute_args", _ninja_contribute_args)
+    func._ninja_contribute_args = _ninja_contribute_args
 
 
 @no_type_check
 def fail_silently(func: TCallable, *args: Any, **kwargs: Any) -> Optional[Any]:
     try:
         return func(*args, **kwargs)
-    except (Exception,):
+    except Exception:
         pass
     return None
 

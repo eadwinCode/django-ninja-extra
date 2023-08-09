@@ -90,10 +90,10 @@ class Searching(SearchingBase):
 
     def __init__(
         self,
-        search_fields: List[str] = [],
+        search_fields: Optional[List[str]] = None,
         pass_parameter: Optional[str] = None,
     ) -> None:
-        self.search_fields = search_fields
+        self.search_fields = search_fields or []
         self.pass_parameter = pass_parameter
         self.Input = self.create_input()  # type:ignore
 
@@ -106,7 +106,6 @@ class Searching(SearchingBase):
     def searching_queryset(
         self, items: Union[QuerySet, List], searching_input: Input
     ) -> Union[QuerySet, List]:
-
         search_terms = self.get_search_terms(searching_input.search)
 
         if self.search_fields and search_terms:
@@ -179,10 +178,8 @@ class Searching(SearchingBase):
         )
         for field, lookup in conditions.items():
             if not any(
-                [
-                    lookup_func(item_getter(field)(item), lookup_value)
-                    for lookup_func, lookup_value in lookup
-                ]
+                lookup_func(item_getter(field)(item), lookup_value)
+                for lookup_func, lookup_value in lookup
             ):
                 return False
         return True
@@ -255,7 +252,9 @@ class SearcheratorOperation:
         _ninja_contribute_args: List[Tuple] = getattr(
             self.view_func, "_ninja_contribute_args", []
         )
-        setattr(searcherator_view, "_ninja_contribute_args", _ninja_contribute_args)
+        searcherator_view._ninja_contribute_args = (  # type:ignore[attr-defined]
+            _ninja_contribute_args
+        )
         add_ninja_contribute_args(
             searcherator_view,
             (
@@ -264,7 +263,7 @@ class SearcheratorOperation:
                 self.searcherator.InputSource,
             ),
         )
-        setattr(searcherator_view, "searcherator_operation", self)
+        searcherator_view.searcherator_operation = self  # type:ignore[attr-defined]
         self.as_view = wraps(view_func)(searcherator_view)
 
     @property

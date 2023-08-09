@@ -5,9 +5,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 class ControllerBorg:
-    _shared_state_: Dict[str, Dict[str, Type["ControllerBase"]]] = dict(
-        controllers=dict()
-    )
+    _shared_state_: Dict[str, Dict[str, Type["ControllerBase"]]] = {"controllers": {}}
 
     def __init__(self) -> None:
         self.__dict__ = self._shared_state_
@@ -27,11 +25,11 @@ class ControllerBorg:
         return None
 
     def clear_controller(self) -> None:
-        self._shared_state_["controllers"] = dict()
+        self._shared_state_["controllers"] = {}
 
     @classmethod
     def get_controllers(cls) -> Dict[str, Type["ControllerBase"]]:
-        return cls._shared_state_.get("controllers", dict())
+        return cls._shared_state_.get("controllers", {})
 
 
 class ControllerRegistry(ControllerBorg):

@@ -70,7 +70,7 @@ class SomeAPIController:
     @route.get("/items_5", response=List[CategorySchema])
     @ordering(Ordering, ordering_fields=["title"])
     def items_5(self, **kwargs):
-        return [category for category in Category.objects.all()]
+        return list(Category.objects.all())
 
     @route.get("/items_6", response=List[CategorySchema])
     @ordering
@@ -85,12 +85,12 @@ class SomeAPIController:
     @route.get("/items_8", response=List[CategorySchema])
     @ordering
     def items_8(self):
-        return [dict(title=f"title_{i}") for i in range(3)]
+        return [{"title": f"title_{i}"} for i in range(3)]
 
     @route.get("/items_9", response=List[int])
     @ordering
     def items_9(self):
-        return [i for i in range(3)]
+        return list(range(3))
 
 
 api = NinjaExtraAPI()
@@ -102,12 +102,11 @@ client = TestClient(SomeAPIController)
 @pytest.mark.django_db
 class TestOrdering:
     def test_orderator_operation_used(self):
-        some_api_route_functions = {
-            k: v
-            for k, v in inspect.getmembers(
+        some_api_route_functions = dict(
+            inspect.getmembers(
                 SomeAPIController, lambda member: isinstance(member, RouteFunction)
             )
-        }
+        )
         has_kwargs = ("items_3", "items_4")
         for name, route_function in some_api_route_functions.items():
             assert hasattr(route_function.as_view, "orderator_operation")
@@ -264,26 +263,25 @@ class TestAsyncOrdering:
             @ordering
             async def items_8(self):
                 return await sync_to_async(list)(
-                    [dict(title=f"title_{i}") for i in range(3)]
+                    [{"title": f"title_{i}"} for i in range(3)]
                 )
 
             @route.get("/items_9", response=List[int])
             @ordering
             async def items_9(self):
-                return await sync_to_async(list)([i for i in range(3)])
+                return await sync_to_async(list)(list(range(3)))
 
         api_async = NinjaExtraAPI()
         api_async.register_controllers(AsyncSomeAPIController)
         client = TestAsyncClient(AsyncSomeAPIController)
 
         async def test_orderator_operation_used(self):
-            some_api_route_functions = {
-                k: v
-                for k, v in inspect.getmembers(
+            some_api_route_functions = dict(
+                inspect.getmembers(
                     self.AsyncSomeAPIController,
                     lambda member: isinstance(member, RouteFunction),
                 )
-            }
+            )
             has_kwargs = ("items_3", "items_4")
             for name, route_function in some_api_route_functions.items():
                 assert hasattr(route_function.as_view, "orderator_operation")

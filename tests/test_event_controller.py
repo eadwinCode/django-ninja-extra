@@ -11,21 +11,21 @@ from .models import Event
 
 @pytest.mark.django_db
 class TestEventController:
-    dummy_data = dict(
-        title="TestEvent1Title",
-        start_date=str(datetime.now().date()),
-        end_date=str((datetime.now() + timedelta(days=5)).date()),
-    )
+    dummy_data = {
+        "title": "TestEvent1Title",
+        "start_date": str(datetime.now().date()),
+        "end_date": str((datetime.now() + timedelta(days=5)).date()),
+    }
 
     def test_create_event_works(self):
         client = TestClient(EventController)
         response = client.post(
             "",
-            json=dict(
-                title="TestEvent1Title",
-                start_date=str(datetime.now().date()),
-                end_date=str((datetime.now() + timedelta(days=5)).date()),
-            ),
+            json={
+                "title": "TestEvent1Title",
+                "start_date": str(datetime.now().date()),
+                "end_date": str((datetime.now() + timedelta(days=5)).date()),
+            },
         )
         assert response.status_code == 201
         data = response.json()

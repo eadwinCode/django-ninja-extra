@@ -18,12 +18,12 @@ def global_op(request) -> str:
 @api.get("/return_type_response")
 # view->api
 def return_type_response(request) -> UserSchema:
-    return dict(name="Eadwin", age=20)
+    return {"name": "Eadwin", "age": 20}
 
 
 @api.get("/return_type_response-2")
 # view->api
-def return_type_response(request) -> UserSchema:
+def return_type_response_case_2(request) -> UserSchema:
     return UserSchema(name="Eadwin", age=20)
 
 
@@ -37,7 +37,7 @@ def router_op1(request):
 
 
 @first_router.post("/endpoint_1")
-def router_op1(request):
+def router_op1_post(request):
     return "first 1"
 
 

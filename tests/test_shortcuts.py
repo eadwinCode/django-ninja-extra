@@ -64,5 +64,5 @@ class TestModelUtils:
 
         query_set = _get_queryset(Permission)
         assert _validate_queryset(Permission, query_set) is None
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             _validate_queryset(Permission, FakeQuerySet)

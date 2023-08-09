@@ -18,14 +18,14 @@ install: ## Install dependencies
 lint: ## Run code linters
 	make clean
 	black --check ninja_extra tests
-	isort --check ninja_extra tests
-	flake8 ninja_extra tests
+	ruff check ninja_extra tests
 	mypy ninja_extra
 
 fmt format: ## Run code formatters
 	make clean
 	black ninja_extra tests
-	isort ninja_extra tests
+	ruff check --fix ninja_extra tests
+
 
 test: ## Run tests
 	make clean

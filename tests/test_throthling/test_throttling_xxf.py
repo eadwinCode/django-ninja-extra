@@ -31,15 +31,16 @@ client = TestClient(api)
 class XffTestingBase:
     def setup_method(self):
         cache.clear()
-        self.meta = dict(
-            REMOTE_ADDR="3.3.3.3", HTTP_X_FORWARDED_FOR="0.0.0.0, 1.1.1.1, 2.2.2.2"
-        )
+        self.meta = {
+            "REMOTE_ADDR": "3.3.3.3",
+            "HTTP_X_FORWARDED_FOR": "0.0.0.0, 1.1.1.1, 2.2.2.2",
+        }
 
     @contextmanager
     def config_proxy(self, num_proxies):
-        setattr(settings, "NUM_PROXIES", num_proxies)
+        settings.NUM_PROXIES = num_proxies
         yield
-        setattr(settings, "NUM_PROXIES", None)
+        settings.NUM_PROXIES = None
 
 
 class TestIdWithXffBasic(XffTestingBase):
