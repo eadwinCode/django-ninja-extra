@@ -110,9 +110,9 @@ class PageNumberPaginationExtra(PaginationBase):
 
     @classmethod
     def get_response_schema(
-        cls, response_schema: Union[Schema, Type[Schema], Any]
+        cls, response_schema: Union[Type[Schema], Type[Any]]
     ) -> Any:
-        return PaginatedResponseSchema[response_schema]
+        return PaginatedResponseSchema[response_schema]  # type: ignore[valid-type]
 
     def get_next_link(self, url: str, page: Page) -> Optional[str]:
         if not page.has_next():

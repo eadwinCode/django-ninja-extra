@@ -61,7 +61,7 @@ else:
         pass
 
     class GenericControllerResponse(metaclass=ControllerResponseMeta):
-        def __new__(
+        def __new__(  # type:ignore[misc]
             cls: Type["ControllerResponse[T]"], *args: Any, **kwargs: Any
         ) -> "ControllerResponse[T]":
             if "_schema" not in cls.__dict__:
@@ -121,7 +121,7 @@ class Id(ControllerResponse[T]):
                 ==> 201, {id: "883a1a3d-7b10-458d-bccc-f9b7219342c9"}
     """
 
-    _schema = IdSchema[Any]  # type: ignore
+    _schema = IdSchema[Any]
     status_code: int = status.HTTP_201_CREATED
 
     def __init__(self, id: T) -> None:
@@ -154,7 +154,7 @@ class Ok(ControllerResponse[T]):
     """
 
     status_code: int = status.HTTP_200_OK
-    _schema = OkSchema[Any]  # type: ignore
+    _schema = OkSchema[Any]
 
     def __init__(self, message: Optional[Any] = None) -> None:
         super(Ok, self).__init__()
@@ -184,7 +184,7 @@ class Detail(ControllerResponse[T]):
     """
 
     status_code: int = status.HTTP_200_OK
-    _schema = DetailSchema[Any]  # type: ignore
+    _schema = DetailSchema[Any]
 
     def __init__(
         self, message: Optional[Any] = None, status_code: int = status.HTTP_200_OK

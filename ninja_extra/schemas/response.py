@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from ninja import Schema
 from ninja.constants import NOT_SET
@@ -34,7 +34,9 @@ if sys.version_info >= (3, 7):
 
     # Pydantic GenericModels has not way of identifying the _orig
     # __generic_model__ is more like a fix for that
-    PaginatedResponseSchema.__generic_model__ = PaginatedResponseSchema
+    PaginatedResponseSchema.__generic_model__ = (  # type:ignore[attr-defined]
+        PaginatedResponseSchema
+    )
 
     class NinjaPaginationResponseSchema(
         GenericModel, Generic[T], BaseNinjaResponseSchema
@@ -47,22 +49,24 @@ if sys.version_info >= (3, 7):
                 return list(value)
             return value
 
-    NinjaPaginationResponseSchema.__generic_model__ = NinjaPaginationResponseSchema
+    NinjaPaginationResponseSchema.__generic_model__ = (  # type:ignore[attr-defined]
+        NinjaPaginationResponseSchema
+    )
 
     class IdSchema(GenericModel, Generic[T], Schema):
         id: T
 
-    IdSchema.__generic_model__ = IdSchema
+    IdSchema.__generic_model__ = IdSchema  # type:ignore[attr-defined]
 
     class OkSchema(GenericModel, Generic[T], Schema):
-        detail: T = "Action was successful"
+        detail: Union[T, str] = "Action was successful"
 
-    OkSchema.__generic_model__ = OkSchema
+    OkSchema.__generic_model__ = OkSchema  # type:ignore[attr-defined]
 
     class DetailSchema(GenericModel, Generic[T], Schema):
         detail: T
 
-    DetailSchema.__generic_model__ = DetailSchema
+    DetailSchema.__generic_model__ = DetailSchema  # type:ignore[attr-defined]
 else:  # pragma: no cover
 
     class IdSchema(GenericType, generic_base_name="IdSchema"):
