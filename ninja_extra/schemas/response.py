@@ -46,7 +46,7 @@ if sys.version_info >= (3, 7):
         @validator("items", pre=True)
         def validate_items(cls, value: Any) -> Any:
             if value is not None and not isinstance(value, list):
-                return list(value)
+                value = list(value)
             return value
 
     NinjaPaginationResponseSchema.__generic_model__ = (  # type:ignore[attr-defined]
