@@ -16,7 +16,8 @@ def route_context_handler(
     *args: Any, route_context: Optional[RouteContext] = None, **kwargs: Any
 ) -> None:
     app = cast(Any, apps.get_app_config("ninja_extra"))
-    app.ninja_extra_module.set_route_context(route_context)
+    if app.ninja_extra_module.get_route_context() is None:
+        app.ninja_extra_module.set_route_context(route_context)
 
 
 class NinjaExtraModule(Module):
