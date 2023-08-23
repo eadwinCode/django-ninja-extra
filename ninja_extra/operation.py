@@ -35,10 +35,12 @@ from ninja.types import TCallable
 from ninja.utils import check_csrf
 
 from ninja_extra.compatible import asynccontextmanager
+from ninja_extra.constants import ROUTE_CONTEXT_VAR
 from ninja_extra.exceptions import APIException
 from ninja_extra.helper import get_function_name
 from ninja_extra.logger import request_logger
-from ninja_extra.signals import route_context_finished, route_context_started
+
+# from ninja_extra.signals import route_context_finished, route_context_started
 from ninja_extra.types import PermissionType
 
 from .controllers.route.context import RouteContext, get_route_execution_context
@@ -153,7 +155,7 @@ class Operation(NinjaOperation):
                 request, temporal_response=temporal_response, **kw
             )
             # send route_context_started signal
-            route_context_started.send(RouteContext, route_context=context)
+            ROUTE_CONTEXT_VAR.set(context)
 
             yield context
             self._log_action(
@@ -174,7 +176,7 @@ class Operation(NinjaOperation):
             raise e
         finally:
             # send route_context_finished signal
-            route_context_finished.send(RouteContext, route_context=None)
+            ROUTE_CONTEXT_VAR.set(None)
 
     def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:
         error = self._run_checks(request)
@@ -265,7 +267,7 @@ class ControllerOperation(Operation):  # pragma: no cover
                 request, temporal_response=temporal_response, **kw
             )
             # send route_context_started signal
-            route_context_started.send(RouteContext, route_context=context)
+            ROUTE_CONTEXT_VAR.set(context)
 
             yield context
             self._log_action(
@@ -286,7 +288,7 @@ class ControllerOperation(Operation):  # pragma: no cover
             raise e
         finally:
             # send route_context_finished signal
-            route_context_finished.send(RouteContext, route_context=None)
+            ROUTE_CONTEXT_VAR.set(None)
 
     def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:
         error = self._run_checks(request)
@@ -363,7 +365,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             start_time = time.time()
             context = self.get_execution_context(request, **kw)
             # send route_context_started signal
-            route_context_started.send(RouteContext, route_context=context)
+            ROUTE_CONTEXT_VAR.set(context)
 
             yield context
             self._log_action(
@@ -384,7 +386,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             raise e
         finally:
             # send route_context_finished signal
-            route_context_finished.send(RouteContext, route_context=None)
+            ROUTE_CONTEXT_VAR.set(None)
 
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
         error = await self._run_checks(request)
@@ -413,7 +415,7 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):  # pragma: 
             start_time = time.time()
             context = self.get_execution_context(request, **kw)
             # send route_context_started signal
-            route_context_started.send(RouteContext, route_context=context)
+            ROUTE_CONTEXT_VAR.set(context)
 
             yield context
             self._log_action(
@@ -434,7 +436,7 @@ class AsyncControllerOperation(AsyncOperation, ControllerOperation):  # pragma: 
             raise e
         finally:
             # send route_context_finished signal
-            route_context_finished.send(RouteContext, route_context=None)
+            ROUTE_CONTEXT_VAR.set(None)
 
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
         error = await self._run_checks(request)
