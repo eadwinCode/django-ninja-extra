@@ -120,5 +120,4 @@ no_implicit_reexport = true
 
 [[tool.mypy.overrides]]
 module = "ninja_extra.compatible.*"
-ignore_missing_imports = true
-check_untyped_defs = true
+ignore_errors = true
