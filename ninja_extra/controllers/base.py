@@ -166,8 +166,7 @@ class ControllerBase(ABC):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if not self.context:
-            return
+        assert self.context
 
         for permission_class in self.context.permission_classes:
             if isinstance(permission_class, (type, OperationHolderMixin)):
