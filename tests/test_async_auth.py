@@ -1,3 +1,5 @@
+import base64
+
 import django
 import pytest
 from django.conf import settings
@@ -13,6 +15,8 @@ from ninja_extra.security import (
     AsyncHttpBearer,
     async_django_auth,
 )
+
+user_secret = base64.b64encode("admin:secret".encode("utf-8")).decode()
 
 
 async def callable_auth(request):
@@ -182,13 +186,13 @@ if not django.VERSION < (3, 1):
         ("/basic", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
         (
             "/basic",
-            {"headers": {"Authorization": "Basic YWRtaW46c2VjcmV0"}},
+            {"headers": {"Authorization": f"Basic {user_secret}"}},
             200,
             {"auth": "admin"},
         ),
         (
             "/basic",
-            {"headers": {"Authorization": "YWRtaW46c2VjcmV0"}},
+            {"headers": {"Authorization": f"{user_secret}"}},
             200,
             {"auth": "admin"},
         ),

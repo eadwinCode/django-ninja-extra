@@ -22,8 +22,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -62,7 +60,7 @@ test = [
     "pytest-cov",
     "pytest-django",
     "pytest-asyncio",
-    "mypy == 1.4.1",
+    "mypy == 1.5.1",
     "ruff ==0.0.275",
     "black == 23.7.0",
     "injector >= 0.19.0",
@@ -101,3 +99,25 @@ ignore = [
 
 [tool.ruff.isort]
 known-third-party = ["django-ninja-extra", "Django", "injector", "pydantic"]
+
+[tool.mypy]
+show_column_numbers = true
+
+follow_imports = 'normal'
+ignore_missing_imports = true
+
+# be strict
+disallow_untyped_calls = true
+warn_return_any = true
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+disallow_untyped_defs = true
+check_untyped_defs = true
+no_implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = "ninja_extra.compatible.*"
+ignore_errors = true

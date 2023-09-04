@@ -2,7 +2,7 @@
 DRF Exceptions
 """
 import math
-from typing import Any, Dict, List, Optional, Type, Union, cast, no_type_check
+from typing import Any, Dict, List, Optional, Type, Union, no_type_check
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils.encoding import force_str
@@ -104,7 +104,7 @@ class APIException(HttpError):
         code: Optional[Union[str, int]] = None,
     ) -> None:
         if detail is None:
-            detail = cast(str, self.default_detail)
+            detail = force_str(self.default_detail)
         if code is None:
             code = self.default_code
 
@@ -149,7 +149,7 @@ class ValidationError(APIException):
         code: Optional[Union[str, int]] = None,
     ):
         if detail is None:
-            detail = cast(str, self.default_detail)
+            detail = force_str(self.default_detail)
         if code is None:
             code = self.default_code
 

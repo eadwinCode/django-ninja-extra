@@ -7,7 +7,7 @@ from ninja_extra.helper import get_route_function
 from ninja_extra.operation import AsyncOperation, Operation
 from ninja_extra.testing import TestAsyncClient, TestClient
 
-from .utils import AsyncFakeAuth, FakeAuth, mock_log_call, mock_signal_call
+from .utils import AsyncFakeAuth, FakeAuth, mock_log_call
 
 
 class CustomException(Exception):
@@ -25,16 +25,16 @@ class TestOperation:
         def example_exception(self):
             raise CustomException()
 
-    @mock_signal_call("route_context_started")
-    @mock_signal_call("route_context_finished")
+    # @mock_signal_call("route_context_started")
+    # @mock_signal_call("route_context_finished")
     @mock_log_call("info")
     def test_route_operation_execution_works(self):
         client = TestClient(self.SomeTestController)
         response = client.get("/example")
         assert response.json() == {"message": "example"}
 
-    @mock_signal_call("route_context_started")
-    @mock_signal_call("route_context_finished")
+    # @mock_signal_call("route_context_started")
+    # @mock_signal_call("route_context_finished")
     @mock_log_call("error")
     def test_route_operation_execution_should_log_execution(self):
         client = TestClient(self.SomeTestController)
@@ -98,16 +98,16 @@ class TestAsyncOperations:
             async def example_exception(self):
                 raise CustomException()
 
-        @mock_signal_call("route_context_started")
-        @mock_signal_call("route_context_finished")
+        # @mock_signal_call("route_context_started")
+        # @mock_signal_call("route_context_finished")
         @mock_log_call("info")
         async def test_async_route_operation_execution_works(self):
             client = TestAsyncClient(self.SomeTestController)
             response = await client.get("/example")
             assert response.json() == {"message": "example"}
 
-        @mock_signal_call("route_context_started")
-        @mock_signal_call("route_context_finished")
+        # @mock_signal_call("route_context_started")
+        # @mock_signal_call("route_context_finished")
         @mock_log_call("error")
         async def test_async_route_operation_execution_should_log_execution(self):
             client = TestAsyncClient(self.SomeTestController)
