@@ -104,7 +104,7 @@ class APIException(HttpError):
         code: Optional[Union[str, int]] = None,
     ) -> None:
         if detail is None:
-            detail = self.default_detail
+            detail = force_str(self.default_detail)
         if code is None:
             code = self.default_code
 
@@ -149,7 +149,7 @@ class ValidationError(APIException):
         code: Optional[Union[str, int]] = None,
     ):
         if detail is None:
-            detail = self.default_detail
+            detail = force_str(self.default_detail)
         if code is None:
             code = self.default_code
 
