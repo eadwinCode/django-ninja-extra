@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from ninja.testing import TestClient
 
 from ninja_extra import NinjaExtraAPI, api_controller, http_get
 from ninja_extra.controllers.registry import ControllerRegistry
@@ -58,7 +59,7 @@ def test_api_register_controller_works():
     class AnotherAPIController:
         @http_get("/example")
         def example(self):
-            pass
+            return self.create_response("Create Response Works")
 
     ninja_extra_api = NinjaExtraAPI()
     assert len(ninja_extra_api._routers) == 1
@@ -74,3 +75,7 @@ def test_api_register_controller_works():
         ninja_extra_api.register_controllers(InvalidSomeAPIController)
 
     assert "class is not a controller" in str(ex.value)
+    client = TestClient(ninja_extra_api)
+    res = client.get("/another/example")
+    assert res.status_code == 200
+    assert res.content == b'"Create Response Works"'

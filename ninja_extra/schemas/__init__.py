@@ -1,8 +1,7 @@
+import typing as t
+
 from .response import (
-    DetailSchema,
-    IdSchema,
     NinjaPaginationResponseSchema,
-    OkSchema,
     PaginatedResponseSchema,
     RouteParameter,
 )
@@ -11,7 +10,13 @@ __all__ = [
     "PaginatedResponseSchema",
     "RouteParameter",
     "NinjaPaginationResponseSchema",
-    "IdSchema",
-    "OkSchema",
-    "DetailSchema",
 ]
+
+
+def __getattr__(name: str) -> t.Any:  # pragma: no cover
+    if name in [
+        "IdSchema",
+        "OkSchema",
+        "DetailSchema",
+    ]:
+        raise RuntimeError(f"'{name}' is no longer available")

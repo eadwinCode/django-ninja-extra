@@ -24,7 +24,6 @@ from ninja_extra.constants import (
     ROUTE_FUNCTION,
     ROUTE_METHODS,
 )
-from ninja_extra.controllers.response import ControllerResponse, ControllerResponseMeta
 from ninja_extra.permissions import BasePermission
 from ninja_extra.schemas import RouteParameter
 
@@ -78,20 +77,10 @@ class Route(object):
             )
 
         _response = response
-        if (
-            inspect.isclass(response) and type(response) == ControllerResponseMeta
-        ) or isinstance(response, ControllerResponse):
-            response = cast(ControllerResponse, response)
-            _response = {response.status_code: response.get_schema()}
-        elif isinstance(response, list):
+        if isinstance(response, list):
             _response_computed = {}
             for item in response:
-                if (
-                    inspect.isclass(item) and type(item) == ControllerResponseMeta
-                ) or isinstance(item, ControllerResponse):
-                    item = cast(ControllerResponse, item)
-                    _response_computed.update({item.status_code: item.get_schema()})
-                elif isinstance(item, dict):
+                if isinstance(item, dict):
                     _response_computed.update(item)
                 elif isinstance(item, tuple):
                     _response_computed.update({item[0]: item[1]})
