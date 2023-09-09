@@ -116,7 +116,7 @@ class UsersController(ControllerBase):
     @http_post()
     def create_user(self, user: UserSchema):
         # just simulating created user
-        return self.Id(uuid.uuid4())
+        return dict(id=uuid.uuid4())
 
     @http_generic('/{int:user_id}', methods=['put', 'patch'], response=UserSchema)
     def update_user(self, user_id: int):
