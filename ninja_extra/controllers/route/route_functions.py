@@ -6,13 +6,11 @@ from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, cast
 
 from django.http import HttpRequest, HttpResponse
 
-from ninja_extra.controllers.response import ControllerResponse
-
 from ...dependency_resolver import get_injector, service_resolver
 from .context import RouteContext, get_route_execution_context
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ninja_extra.operation import ControllerOperation
+    from ninja_extra.operation import Operation
 
     from ...controllers.base import APIController, ControllerBase
     from ...controllers.route import Route
@@ -31,7 +29,7 @@ class RouteFunction(object):
         self, route: "Route", api_controller: Optional["APIController"] = None
     ):
         self.route = route
-        self.operation: Optional["ControllerOperation"] = None
+        self.operation: Optional["Operation"] = None
         self.has_request_param = False
         self.api_controller = api_controller
         self.as_view = wraps(route.view_func)(self.get_view_function())
@@ -100,8 +98,8 @@ class RouteFunction(object):
         and creates an api response if result is ControllerResponseSchema
         """
 
-        if result and isinstance(result, ControllerResponse):
-            return result.status_code, result.convert_to_schema()
+        # if result and isinstance(result, ControllerResponse):
+        #     return result.status_code, result.convert_to_schema()
         return result
 
     def _get_controller_instance(self) -> "ControllerBase":

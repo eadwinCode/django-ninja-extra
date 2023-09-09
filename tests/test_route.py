@@ -9,9 +9,6 @@ from ninja.constants import NOT_SET
 from ninja_extra import api_controller, permissions, route
 from ninja_extra.controllers import (
     AsyncRouteFunction,
-    Detail,
-    Id,
-    Ok,
     RouteFunction,
     RouteInvalidParameterException,
 )
@@ -158,10 +155,8 @@ class TestControllerRoute:
         assert "Invalid response configuration" in str(ex)
 
     def test_route_response_parameters_computed_correctly(self):
-        unique_response = [Ok, Id, {302: Schema}, (401, Schema)]
+        unique_response = [{302: Schema}, (401, Schema)]
         non_unique_response = [
-            Ok,
-            Id,
             {201: Schema},
         ]  # Id status_code == 201 so it should be replaced by the dict response
 
@@ -175,7 +170,7 @@ class TestControllerRoute:
 
         assert (
             len(get_route_function(example_unique_response).route.route_params.response)
-            == 4
+            == 2
         )
         assert (
             len(
@@ -183,7 +178,7 @@ class TestControllerRoute:
                     example_non_unique_response
                 ).route.route_params.response
             )
-            == 2
+            == 1
         )
 
     @pytest.mark.parametrize(
@@ -337,11 +332,9 @@ class TestRouteFunction:
 
     def test_process_view_function_result_return_tuple_or_input(self):
         route_function: RouteFunction = get_route_function(SomeTestController().example)
-        mock_result = Detail("Some Message", status_code=302)
+        mock_result = {"detail": "Some Message", "status_code": 302}
         response = route_function._process_view_function_result(mock_result)
-        assert isinstance(response, tuple)
-        assert response[1] == mock_result.convert_to_schema()
-        assert response[0] == mock_result.status_code
+        assert response == mock_result
 
         mock_result = {"status": 302, "message": "Some Message"}
         response = route_function._process_view_function_result(mock_result)
