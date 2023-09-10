@@ -239,7 +239,7 @@ There are different ways of registering injector Modules in a Django app.
 We register modules to `INJECTOR_MODULES` key in Ninja Extra settings in django settings.py
 
 ```python
-NinjaExtra = {
+NINJA_EXTRA = {
     'INJECTOR_MODULES': [
         'myproject.app1.modules.SomeModule',
         'myproject.app2.modules.SomeAppModule',
