@@ -2,7 +2,7 @@ import inspect
 import re
 import traceback
 import uuid
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -32,6 +32,7 @@ from ninja.security.base import AuthBase
 from ninja.signature import is_async
 from ninja.utils import normalize_path
 from pydantic import BaseModel as PydanticModel
+from pydantic import Field, validator
 
 from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
@@ -225,31 +226,53 @@ class ControllerBase(ABC):
         )
 
 
-class ModelControllerBase(ControllerBase):
-    model: Model = None
-    allowed_routes: List[
-        "str"
-    ] = None  # default = ['create', 'read', 'update', 'patch', 'delete', 'list']
+class ModelServiceBase(ABC):
+    @abstractmethod
+    def get_one(self, pk: Any) -> Any:
+        pass
 
-    model_schema: Type[PydanticModel] = None
-    create_schema: Type[PydanticModel] = None
-    update_schema: Type[PydanticModel] = None
+    @abstractmethod
+    def get_all(self) -> QuerySet:
+        pass
 
-    pagination_class: Type[PaginationBase] = PageNumberPaginationExtra
-    pagination_response_schema: Type[PydanticModel] = PaginatedResponseSchema
-    paginate_by: int = None
+    @abstractmethod
+    def create(self, schema: PydanticModel, **kwargs: Any) -> Any:
+        pass
 
-    def get_queryset(self) -> QuerySet:
+    @abstractmethod
+    def update(self, instance: Model, schema: PydanticModel, **kwargs: Any) -> Any:
+        pass
+
+    @abstractmethod
+    def patch(self, instance: Model, schema: PydanticModel, **kwargs: Any) -> Any:
+        pass
+
+    @abstractmethod
+    def delete(self, instance: Model) -> Any:
+        pass
+
+
+class ModelService(ModelServiceBase):
+    def __init__(self, model: Type[Model]) -> None:
+        self.model = model
+
+    def get_one(self, pk: Any) -> Any:
+        obj = get_object_or_exception(
+            klass=self.model, error_message=None, exception=NotFound, pk=pk
+        )
+        return obj
+
+    def get_all(self) -> QuerySet:
         return self.model.objects.all()
 
-    def perform_create(self, schema: PydanticModel, **kwargs: Any) -> Any:
+    def create(self, schema: PydanticModel, **kwargs: Any) -> Any:
         data = schema.dict(by_alias=True)
         data.update(kwargs)
 
         try:
             instance = self.model._default_manager.create(**data)
             return instance
-        except TypeError:
+        except TypeError as tex:
             tb = traceback.format_exc()
             msg = (
                 "Got a `TypeError` when calling `%s.%s.create()`. "
@@ -267,11 +290,9 @@ class ModelControllerBase(ControllerBase):
                     tb,
                 )
             )
-            raise TypeError(msg)
+            raise TypeError(msg) from tex
 
-    def perform_update(
-        self, instance: Model, schema: PydanticModel, **kwargs: Any
-    ) -> Any:
+    def update(self, instance: Model, schema: PydanticModel, **kwargs: Any) -> Any:
         data = schema.dict(exclude_none=True)
         data.update(kwargs)
         for attr, value in data.items():
@@ -279,13 +300,81 @@ class ModelControllerBase(ControllerBase):
         instance.save()
         return instance
 
-    def perform_patch(
-        self, instance: Model, schema: PydanticModel, **kwargs: Any
-    ) -> Any:
-        return self.perform_update(instance=instance, schema=schema, **kwargs)
+    def patch(self, instance: Model, schema: PydanticModel, **kwargs: Any) -> Any:
+        return self.update(instance=instance, schema=schema, **kwargs)
 
-    def perform_delete(self, instance: Model) -> Any:
+    def delete(self, instance: Model) -> Any:
         instance.delete()
+
+
+class ModelConfigSchema(Tuple):
+    in_schema: Type[PydanticModel]
+    out_schema: Optional[Type[PydanticModel]]
+
+    def get_out_schema(self) -> Type[PydanticModel]:
+        if not self.out_schema:
+            return self.in_schema
+        return self.out_schema
+
+
+class ModelPagination(PydanticModel):
+    klass: Type[PaginationBase] = PageNumberPaginationExtra
+    paginate_by: Optional[int] = None
+    schema: Type[PydanticModel] = PaginatedResponseSchema
+
+    @validator("klass")
+    def validate_klass(cls, value: Any) -> Any:
+        if not issubclass(PaginationBase, value):
+            raise ValueError(f"{value} is not of type `PaginationBase`")
+        return value
+
+    @validator(
+        "schema",
+    )
+    def validate_schema(cls, value: Any) -> Any:
+        if not issubclass(PydanticModel, value):
+            raise ValueError(
+                f"{value} is not a valid type. Please use a generic pydantic model."
+            )
+        return value
+
+
+class ModelConfig(PydanticModel):
+    allowed_routes: List[str] = Field(
+        [
+            "create",
+            "read",
+            "update",
+            "patch",
+            "delete",
+            "list",
+        ]
+    )
+    create_schema: ModelConfigSchema
+    update_schema: ModelConfigSchema
+    patch_schema: Optional[ModelConfigSchema] = None
+    retrieve_schema: Type[PydanticModel]
+    pagination: ModelPagination = Field(default=ModelPagination())
+    model: Type[Model]
+
+    @validator("allowed_routes")
+    def validate_allow_routes(cls, value: List[Any]) -> Any:
+        defaults = ["create", "read", "update", "patch", "delete", "list"]
+        for item in value:
+            if item not in defaults:
+                raise ValueError(f"{item} action is not recognized in {defaults}")
+        return value
+
+    @validator("model")
+    def validate_model(cls, value: Any) -> Any:
+        if value and hasattr(value, "objects"):
+            return value
+        raise ValueError(f"{value} is not a valid Django model.")
+
+
+class ModelControllerBase(ControllerBase):
+    service: Optional[ModelService] = None
+    model_config: Optional[ModelConfig] = None
 
 
 class APIController:
@@ -407,8 +496,13 @@ class APIController:
         self._controller_class = cls
 
         if issubclass(cls, ModelControllerBase):
-            builder = ModelControllerBuilder(cls, self)
-            builder.register_model_routes()
+            if cls.model_config:
+                # if model_config is not provided, treat controller class as normal
+                builder = ModelControllerBuilder(cls.model_config, self)
+                builder.register_model_routes()
+                # We create a global service for handle CRUD Operations at class level
+                # giving room for it to be changed at instance level through Dependency injection
+                cls.service = ModelService(cls.model_config.model)
 
         bases = inspect.getmro(cls)
         for base_cls in reversed(bases):

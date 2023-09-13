@@ -116,4 +116,3 @@ def __getattr__(name: str) -> Any:  # pragma: no cover
         "DetailSchema",
     ]:
         raise RuntimeError(f"'{name}' is no longer available")
-

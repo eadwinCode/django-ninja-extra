@@ -6,11 +6,7 @@ from .response import (
     RouteParameter,
 )
 
-__all__ = [
-    "PaginatedResponseSchema",
-    "RouteParameter",
-    "NinjaPaginationResponseSchema"
-]
+__all__ = ["PaginatedResponseSchema", "RouteParameter", "NinjaPaginationResponseSchema"]
 
 
 def __getattr__(name: str) -> t.Any:  # pragma: no cover
