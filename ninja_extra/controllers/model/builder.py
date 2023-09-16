@@ -2,9 +2,6 @@ import typing as t
 
 from ninja.orm.fields import TYPES
 from ninja.params import Body, Path
-from ninja_schema.errors import ConfigError
-from ninja_schema.orm.factory import SchemaFactory
-from ninja_schema.orm.model_schema import ModelSchemaConfig, ModelSchemaConfigAdapter
 
 from ninja_extra.constants import ROUTE_FUNCTION
 
@@ -13,6 +10,17 @@ from ...exceptions import NotFound
 from ...pagination import paginate
 from ..route import route
 from .schemas import ModelConfig
+
+try:
+    from ninja_schema.errors import ConfigError
+    from ninja_schema.orm.factory import SchemaFactory
+    from ninja_schema.orm.model_schema import (
+        ModelSchemaConfig,
+        ModelSchemaConfigAdapter,
+    )
+except Exception:  # pragma: no cover
+    ConfigError = ModelSchemaConfig = ModelSchemaConfigAdapter = SchemaFactory = None
+
 
 if t.TYPE_CHECKING:
     from ..base import APIController, ModelControllerBase
@@ -48,6 +56,11 @@ class ModelControllerBuilder:
         self.generate_all_schema()
 
     def generate_all_schema(self) -> None:
+        if not ModelSchemaConfig:  # pragma: no cover
+            raise RuntimeError(
+                "ninja-schema package is required for ModelControllerSchema generation.\n pip install ninja-schema"
+            )
+
         model_config = ModelSchemaConfig(
             "dummy",
             ModelSchemaConfigAdapter(
