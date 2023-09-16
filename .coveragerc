@@ -5,6 +5,7 @@ exclude_lines =
     def __str__
     if self.debug:
     if settings.DEBUG
+    if t.TYPE_CHECKING:
     raise AssertionError
     raise NotImplementedError
     if 0:

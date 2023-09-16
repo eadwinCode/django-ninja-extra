@@ -1,15 +1,4 @@
-import inspect
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Type,
-    Union,
-    cast,
-    get_type_hints,
-)
+import typing as t
 
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
@@ -40,31 +29,31 @@ class Route(object):
     That converts class instance methods to `RouteFunction(s) | AsyncRouteFunction(s)`
     """
 
-    permissions: Optional[Optional[List[Type[BasePermission]]]] = None
+    permissions: t.Optional[t.Optional[t.List[t.Type[BasePermission]]]] = None
 
     def __init__(
         self,
         view_func: TCallable,
         *,
         path: str,
-        methods: List[str],
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        methods: t.List[str],
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
     ) -> None:
         if not isinstance(methods, list):
             raise RouteInvalidParameterException("methods must be a list")
@@ -119,27 +108,29 @@ class Route(object):
         view_func: TCallable,
         *,
         path: str,
-        methods: List[str],
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        methods: t.List[str],
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
     ) -> TCallable:
         if response is NOT_SET:
-            response = get_type_hints(view_func).get("return") or NOT_SET
+            type_hint = t.get_type_hints(view_func).get("return") or NOT_SET
+            if not isinstance(type_hint, t._SpecialForm):
+                response = type_hint
         route_obj = cls(
             view_func,
             path=path,
@@ -172,24 +163,24 @@ class Route(object):
         cls,
         path: str = "",
         *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], TCallable]:
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> t.Callable[[TCallable], TCallable]:
         """
         A GET Operation method decorator
          eg.
@@ -246,24 +237,24 @@ class Route(object):
         cls,
         path: str = "",
         *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], TCallable]:
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> t.Callable[[TCallable], TCallable]:
         """
         A POST Operation method decorator
         eg.
@@ -320,24 +311,24 @@ class Route(object):
         cls,
         path: str = "",
         *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], TCallable]:
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> t.Callable[[TCallable], TCallable]:
         """
         A DELETE Operation method decorator
         eg.
@@ -394,24 +385,24 @@ class Route(object):
         cls,
         path: str = "",
         *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], TCallable]:
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> t.Callable[[TCallable], TCallable]:
         """
         A PATCH Operation method decorator
         eg.
@@ -469,24 +460,24 @@ class Route(object):
         cls,
         path: str = "",
         *,
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], TCallable]:
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> t.Callable[[TCallable], TCallable]:
         """
          A PUT Operation method decorator
         eg.
@@ -544,25 +535,25 @@ class Route(object):
         cls,
         path: str = "",
         *,
-        methods: List[str],
-        auth: Any = NOT_SET,
-        response: Union[Any, List[Any]] = NOT_SET,
-        operation_id: Optional[str] = None,
-        summary: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        deprecated: Optional[bool] = None,
+        methods: t.List[str],
+        auth: t.Any = NOT_SET,
+        response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
+        operation_id: t.Optional[str] = None,
+        summary: t.Optional[str] = None,
+        description: t.Optional[str] = None,
+        tags: t.Optional[t.List[str]] = None,
+        deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-        url_name: Optional[str] = None,
+        url_name: t.Optional[str] = None,
         include_in_schema: bool = True,
-        permissions: Optional[
-            List[Union[Type[BasePermission], BasePermission, Any]]
+        permissions: t.Optional[
+            t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
-    ) -> Callable[[TCallable], TCallable]:
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
+    ) -> t.Callable[[TCallable], TCallable]:
         """
         A Custom Operation method decorator, for creating route with more than one operation
         eg.

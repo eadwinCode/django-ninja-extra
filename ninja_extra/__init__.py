@@ -6,7 +6,13 @@ import django
 
 from ninja_extra.controllers import (
     ControllerBase,
+    ModelConfig,
     ModelControllerBase,
+    ModelControllerBuilder,
+    ModelPagination,
+    ModelSchemeConfig,
+    ModelService,
+    ModelServiceBase,
     api_controller,
     http_delete,
     http_generic,
@@ -27,7 +33,6 @@ if django.VERSION < (3, 2):  # pragma: no cover
 
 
 __all__ = [
-    "ModelControllerBase",
     "ControllerBase",
     "api_controller",
     "NinjaExtraAPI",
@@ -48,4 +53,12 @@ __all__ = [
     "Router",
     "throttle",
     "paginate",
+    "ModelControllerBase",
+    "ModelConfig",
+    "ModelService",
+    "ModelSchemeConfig",
+    "ModelControllerBuilder",
+    "ModelPagination",
+    "ModelServiceBase",
+    "ModelControllerBase",
 ]
