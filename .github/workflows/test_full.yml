@@ -23,7 +23,7 @@ jobs:
       - name: Install core
         run: pip install "Django${{ matrix.django-version }}" pydantic
       - name: Install tests
-        run: pip install pytest pytest-asyncio pytest-django injector>=0.19.0 django-ninja asgiref contextlib2 ninja-schema==0.13.4
+        run: pip install pytest pytest-asyncio pytest-django injector>=0.19.0 django-ninja asgiref contextlib2 ninja-schema>=0.13.4
       - name: Test
         run: pytest
   codestyle:
