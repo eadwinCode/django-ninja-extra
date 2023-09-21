@@ -469,7 +469,7 @@ class APIController:
 @overload
 def api_controller(
     prefix_or_class: Type,
-) -> Union[Type[ControllerBase], Callable[..., Any], Any]:  # pragma: no cover
+) -> Union[Type[ControllerBase]]:  # pragma: no cover
     ...
 
 
@@ -480,7 +480,7 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[Type[ControllerBase], Callable[..., Any], Any]:  # pragma: no cover
+) -> Union[Callable[..., ControllerBase]]:  # pragma: no cover
     ...
 
 
@@ -490,7 +490,7 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[Type[ControllerBase], Callable[..., Any], Any]:
+) -> Union[Type[ControllerBase], Callable[..., ControllerBase]]:
     if isinstance(prefix_or_class, type):
         return APIController(
             prefix="",
