@@ -316,7 +316,7 @@ class APIController:
             tag = [value]
         self._tags = tag
 
-    def __call__(self, cls: Type) -> Union[Type, Type["ControllerBase"]]:
+    def __call__(self, cls: Type) -> Type[ControllerBase]:
         from ninja_extra.throttling import throttle
 
         self.auto_import = getattr(cls, "auto_import", self.auto_import)
@@ -469,7 +469,7 @@ class APIController:
 @overload
 def api_controller(
     prefix_or_class: Type,
-) -> Union[Type[ControllerBase], Callable[..., Any], Any]:  # pragma: no cover
+) -> Type[ControllerBase]:  # pragma: no cover
     ...
 
 
@@ -480,7 +480,7 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[Type[ControllerBase], Callable[..., Any], Any]:  # pragma: no cover
+) -> Callable[[Type], Type[ControllerBase]]:  # pragma: no cover
     ...
 
 
@@ -490,7 +490,7 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[Type[ControllerBase], Callable[..., Any], Any]:
+) -> Union[Type[ControllerBase], Callable[[Type], Type[ControllerBase]]]:
     if isinstance(prefix_or_class, type):
         return APIController(
             prefix="",
@@ -500,7 +500,7 @@ def api_controller(
             auto_import=auto_import,
         )(prefix_or_class)
 
-    def _decorator(cls: Type) -> Union[Type[ControllerBase], Any]:
+    def _decorator(cls: Type) -> Type[ControllerBase]:
         return APIController(
             prefix=str(prefix_or_class),
             auth=auth,
