@@ -1,14 +1,10 @@
 import typing as t
 
 from ninja.orm.fields import TYPES
-from ninja.params import Body, Path
 
 from ninja_extra.constants import ROUTE_FUNCTION
 
-from ... import status
-from ...exceptions import NotFound
-from ...pagination import paginate
-from ..route import route
+from .endpoints import ModelEndpointFactory
 from .schemas import ModelConfig
 
 try:
@@ -155,178 +151,102 @@ class ModelControllerBuilder:
         self._api_controller_instance.add_controller_route_function(route_function)
 
     def _register_create_endpoint(self) -> None:
-        create_schema_in = self._config.create_schema
-        create_schema_out = self._retrieve_schema
-        model_name = self._model_name
-
-        @route.post(
-            "/",
-            response={201: create_schema_out},
+        create_item = ModelEndpointFactory.create(
+            schema_in=self._create_schema,  # type: ignore[arg-type]
+            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
             url_name=f"{self._model_name}-create",
-            description=f"Create {model_name} item",
+            description=f"Create {self._model_name} item",
+            summary="Create an item",
         )
-        def create_item(
-            self: "ModelControllerBase",
-            data: create_schema_in = Body(default=...),  # type:ignore[valid-type]
-        ) -> t.Any:
-            instance = self.service.create(data)
-            assert instance, "`service.create` must return a value"
-            return instance
 
         self._add_to_controller(create_item)
 
     def _register_update_endpoint(self) -> None:
-        update_schema_in = self._update_schema
-        update_schema_out = self._retrieve_schema
-
-        _pk_type = self._pk_type
         _path = "/{%s:%s}" % (
-            _pk_type.__name__,
+            self._pk_type.__name__,
             self._model_pk_name,
         )
-        model_name = self._model_name
-        model_pk_name = self._model_pk_name
 
-        @route.put(
-            _path,
-            response={200: update_schema_out},
-            url_name=f"{model_pk_name}-put",
-            description=f"""Update {model_name} item by {model_pk_name}""",
+        update_item = ModelEndpointFactory.update(
+            path=_path,
+            lookup_field=self._model_pk_name,
+            schema_in=self._update_schema,  # type: ignore[arg-type]
+            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
+            url_name=f"{self._model_pk_name}-put",
+            description=f"""Update {self._model_name} item by {self._model_pk_name}""",
+            summary="Update an item",
         )
-        def update_item(
-            self: "ModelControllerBase",
-            pk: _pk_type = Path(  # type:ignore[valid-type]
-                default=..., alias=model_pk_name
-            ),
-            data: update_schema_in = Body(default=...),  # type:ignore[valid-type]
-        ) -> t.Any:
-            obj = self.service.get_one(pk=pk)
-            if not obj:
-                raise NotFound()
-            self.check_object_permissions(obj)
-            instance = self.service.update(instance=obj, schema=data)
-            assert instance, "`service.update` must return a value"
-            return instance
 
         self._add_to_controller(update_item)
 
     def _register_patch_endpoint(self) -> None:
-        update_schema_in = self._patch_schema
-        update_schema_out = self._retrieve_schema
-
         _pk_type = self._pk_type
         _path = "/{%s:%s}" % (
             _pk_type.__name__,
             self._model_pk_name,
         )
-        model_name = self._model_name
-        model_pk_name = self._model_pk_name
 
-        @route.patch(
-            _path,
-            response={200: update_schema_out},
+        patch_item = ModelEndpointFactory.patch(
+            path=_path,
+            lookup_field=self._model_pk_name,
+            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
+            schema_in=self._patch_schema,  # type: ignore[arg-type]
             url_name=f"{self._model_pk_name}-patch",
-            description=f"""Patch {model_name} item by {model_pk_name}""",
+            description=f"""Patch {self._model_name} item by {self._model_pk_name}""",
+            summary="Patch an item",
         )
-        def patch_item(
-            self: "ModelControllerBase",
-            pk: _pk_type = Path(  # type:ignore[valid-type]
-                default=..., alias=self._model_pk_name
-            ),
-            data: update_schema_in = Body(default=...),  # type:ignore[valid-type]
-        ) -> t.Any:
-            obj = self.service.get_one(pk=pk)
-            if not obj:
-                raise NotFound()
-            self.check_object_permissions(obj)
-            instance = self.service.patch(instance=obj, schema=data)
-            assert instance, "`perform_patch()` must return a value"
-            return instance
 
         self._add_to_controller(patch_item)
 
     def _register_find_one_endpoint(self) -> None:
-        retrieve_schema = self._config.retrieve_schema
-        _pk_type = self._pk_type
         _path = "/{%s:%s}" % (
-            _pk_type.__name__,
+            self._pk_type.__name__,
             self._model_pk_name,
         )
-        model_name = self._model_name
-        model_pk_name = self._model_pk_name
 
-        @route.get(
-            _path,
-            response={200: retrieve_schema},
+        get_item = ModelEndpointFactory.retrieve(
+            path=_path,
+            lookup_field=self._model_pk_name,
+            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
             url_name=f"{self._model_pk_name}-get-item",
-            description=f"""Get {model_name} item by {model_pk_name}""",
+            description=f"""Get {self._model_name} item by {self._model_pk_name}""",
+            summary="Get a specific item",
         )
-        def get_item(
-            self: "ModelControllerBase",
-            pk: _pk_type = Path(  # type:ignore[valid-type]
-                default=..., alias=self._model_pk_name
-            ),
-        ) -> t.Any:
-            obj = self.service.get_one(pk=pk)
-            if not obj:
-                raise NotFound()
-            self.check_object_permissions(obj)
-            return obj
 
         self._add_to_controller(get_item)
 
     def _register_list_endpoint(self) -> None:
         paginate_kwargs: t.Dict[str, t.Any] = {}
-        pagination_response_schema = self._config.pagination.pagination_schema
-        pagination_class = self._config.pagination.klass
-        retrieve_schema = self._retrieve_schema
-        model_name = self._model_name
 
         if self._config.pagination.paginate_by:
             paginate_kwargs.update(page_size=self._config.pagination.paginate_by)
 
-        @route.get(
-            "/",
-            response={
-                200: pagination_response_schema[retrieve_schema]  # type:ignore[index]
-            },
+        list_items = ModelEndpointFactory.list(
+            path="/",
+            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
+            pagination_class=self._config.pagination.klass,
+            pagination_response_schema=self._config.pagination.pagination_schema,
+            description=f"List {self._model_name} model items",
             url_name=f"{self._model_pk_name}-list",
-            description=f"List {model_name} model items",
+            summary="List Items",
+            **paginate_kwargs,
         )
-        @paginate(pagination_class, **paginate_kwargs)
-        def list_items(self: "ModelControllerBase") -> t.Any:
-            return self.service.get_all()
 
         self._add_to_controller(list_items)
 
     def _register_delete_endpoint(self) -> None:
-        _pk_type = self._pk_type
         _path = "/{%s:%s}" % (
-            _pk_type.__name__,
+            self._pk_type.__name__,
             self._model_pk_name,
         )
-        model_name = self._model_name
 
-        @route.delete(
-            _path,
+        delete_item = ModelEndpointFactory.delete(
+            path=_path,
+            lookup_field=self._model_pk_name,
             url_name=f"{self._model_pk_name}-delete",
-            response={204: str},
-            description=f"""Delete {model_name} item""",
+            description=f"""Delete {self._model_name} item""",
+            summary="Delete an item",
         )
-        def delete_item(
-            self: "ModelControllerBase",
-            pk: _pk_type = Path(  # type:ignore[valid-type]
-                default=..., alias=self._model_pk_name
-            ),
-        ) -> t.Any:
-            obj = self.service.get_one(pk=pk)
-            if not obj:
-                raise NotFound()
-            self.check_object_permissions(obj)
-            self.service.delete(instance=obj)
-            return self.create_response(
-                message="", status_code=status.HTTP_204_NO_CONTENT
-            )
 
         self._add_to_controller(delete_item)
 

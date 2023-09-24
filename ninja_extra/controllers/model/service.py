@@ -14,13 +14,13 @@ class ModelService(ModelServiceBase):
     def __init__(self, model: t.Type[Model]) -> None:
         self.model = model
 
-    def get_one(self, pk: t.Any) -> t.Any:
+    def get_one(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
         obj = get_object_or_exception(
             klass=self.model, error_message=None, exception=NotFound, pk=pk
         )
         return obj
 
-    def get_all(self) -> t.Union[QuerySet, t.List[t.Any]]:
+    def get_all(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
         return self.model.objects.all()
 
     def create(self, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
@@ -61,5 +61,5 @@ class ModelService(ModelServiceBase):
     def patch(self, instance: Model, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
         return self.update(instance=instance, schema=schema, **kwargs)
 
-    def delete(self, instance: Model) -> t.Any:
+    def delete(self, instance: Model, **kwargs: t.Any) -> t.Any:
         instance.delete()

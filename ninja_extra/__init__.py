@@ -9,6 +9,7 @@ from ninja_extra.controllers import (
     ModelConfig,
     ModelControllerBase,
     ModelControllerBuilder,
+    ModelEndpointFactory,
     ModelPagination,
     ModelSchemeConfig,
     ModelService,
@@ -61,4 +62,5 @@ __all__ = [
     "ModelPagination",
     "ModelServiceBase",
     "ModelControllerBase",
+    "ModelEndpointFactory",
 ]

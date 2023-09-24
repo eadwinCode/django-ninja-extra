@@ -7,11 +7,11 @@ from pydantic import BaseModel as PydanticModel
 
 class ModelServiceBase(ABC):
     @abstractmethod
-    def get_one(self, pk: t.Any) -> t.Any:
+    def get_one(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
         pass
 
     @abstractmethod
-    def get_all(self) -> t.Union[QuerySet, t.List[t.Any]]:
+    def get_all(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
         pass
 
     @abstractmethod
@@ -27,5 +27,5 @@ class ModelServiceBase(ABC):
         pass
 
     @abstractmethod
-    def delete(self, instance: Model) -> t.Any:
+    def delete(self, instance: Model, **kwargs: t.Any) -> t.Any:
         pass

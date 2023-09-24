@@ -389,7 +389,7 @@ class APIController:
 
     def add_controller_route_function(self, route_function: RouteFunction) -> None:
         self._controller_class_route_functions[
-            get_function_name(route_function.route.view_func)
+            f"{get_function_name(route_function.route.view_func)}_{route_function.route.route_params.path}"
         ] = route_function
 
     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:

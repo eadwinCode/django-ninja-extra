@@ -2,6 +2,7 @@ from .base import ControllerBase, ModelControllerBase, api_controller
 from .model import (
     ModelConfig,
     ModelControllerBuilder,
+    ModelEndpointFactory,
     ModelPagination,
     ModelSchemeConfig,
     ModelService,
@@ -47,4 +48,5 @@ __all__ = [
     "ModelControllerBuilder",
     "ModelPagination",
     "ModelServiceBase",
+    "ModelEndpointFactory",
 ]
