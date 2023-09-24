@@ -4,7 +4,7 @@ from .model import (
     ModelControllerBuilder,
     ModelEndpointFactory,
     ModelPagination,
-    ModelSchemeConfig,
+    ModelSchemaConfig,
     ModelService,
     ModelServiceBase,
 )
@@ -44,7 +44,7 @@ __all__ = [
     "ModelControllerBase",
     "ModelConfig",
     "ModelService",
-    "ModelSchemeConfig",
+    "ModelSchemaConfig",
     "ModelControllerBuilder",
     "ModelPagination",
     "ModelServiceBase",

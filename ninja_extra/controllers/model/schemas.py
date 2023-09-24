@@ -28,7 +28,7 @@ class ModelPagination(PydanticModel):
         return value
 
 
-class ModelSchemeConfig(PydanticModel):
+class ModelSchemaConfig(PydanticModel):
     include: Union[str, List[str]] = Field(default="__all__")
     exclude: Set[str] = Field(set())
     optional: Union[str, Set[str]] = Field(default=None)
@@ -58,7 +58,7 @@ class ModelConfig(PydanticModel):
     pagination: ModelPagination = Field(default=ModelPagination())
     model: Type[Model]
 
-    schema_config: ModelSchemeConfig = Field(default=ModelSchemeConfig(exclude=set()))
+    schema_config: ModelSchemaConfig = Field(default=ModelSchemaConfig(exclude=set()))
 
     @validator("allowed_routes", allow_reuse=True)
     def validate_allow_routes(cls, value: List[Any]) -> Any:
