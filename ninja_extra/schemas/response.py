@@ -66,49 +66,6 @@ class RouteParameter(Schema):
     openapi_extra: Optional[Dict[str, Any]]
 
 
-# class ModelControllerSchema:
-#     dict: Callable
-#     config: BaseModel.Config
-#
-#     def perform_create(self, **kwargs: Any) -> Any:
-#         data = self.dict(by_alias=True)
-#         data.update(kwargs)
-#         model = cast(Model, self.config.model)
-#         try:
-#             instance = model._default_manager.create(**data)
-#             return instance
-#         except TypeError:
-#             tb = traceback.format_exc()
-#             msg = (
-#                 "Got a `TypeError` when calling `%s.%s.perform_create()`. "
-#                 "This may be because you have a writable field on the "
-#                 "serializer class that is not a valid argument to "
-#                 "`%s.%s.create()`. You may need to make the field "
-#                 "read-only, or override the %s.perform_create() method to handle "
-#                 "this correctly.\nOriginal exception was:\n %s"
-#                 % (
-#                     model.__name__,
-#                     model._default_manager.name,
-#                     model.__name__,
-#                     model._default_manager.name,
-#                     self.__class__.__name__,
-#                     tb,
-#                 )
-#             )
-#             raise TypeError(msg)
-#
-#     def perform_update(self, instance: Model, **kwargs: Any) -> Any:
-#         data = self.dict(exclude_none=True)
-#         data.update(kwargs)
-#         for attr, value in data.items():
-#             setattr(instance, attr, value)
-#         instance.save()
-#         return instance
-#
-#     def perform_patch(self, instance: Model, **kwargs: Any) -> Any:
-#         return self.perform_update(instance=instance, **kwargs)
-
-
 def __getattr__(name: str) -> Any:  # pragma: no cover
     if name in [
         "IdSchema",

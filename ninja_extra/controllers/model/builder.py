@@ -105,7 +105,7 @@ class ModelControllerBuilder:
                 self._config.model,
                 name=f"{self._model_name}PatchSchema",
                 fields=list(create_schema_fields),
-                optional_fields="__all__",
+                optional_fields=list(create_schema_fields),
                 skip_registry=True,
                 depth=self._config.schema_config.depth,
             )
@@ -169,7 +169,7 @@ class ModelControllerBuilder:
 
         update_item = ModelEndpointFactory.update(
             path=_path,
-            lookup_field=self._model_pk_name,
+            lookup_param=self._model_pk_name,
             schema_in=self._update_schema,  # type: ignore[arg-type]
             schema_out=self._retrieve_schema,  # type: ignore[arg-type]
             url_name=f"{self._model_pk_name}-put",
@@ -188,7 +188,7 @@ class ModelControllerBuilder:
 
         patch_item = ModelEndpointFactory.patch(
             path=_path,
-            lookup_field=self._model_pk_name,
+            lookup_param=self._model_pk_name,
             schema_out=self._retrieve_schema,  # type: ignore[arg-type]
             schema_in=self._patch_schema,  # type: ignore[arg-type]
             url_name=f"{self._model_pk_name}-patch",
@@ -206,7 +206,7 @@ class ModelControllerBuilder:
 
         get_item = ModelEndpointFactory.retrieve(
             path=_path,
-            lookup_field=self._model_pk_name,
+            lookup_param=self._model_pk_name,
             schema_out=self._retrieve_schema,  # type: ignore[arg-type]
             url_name=f"{self._model_pk_name}-get-item",
             description=f"""Get {self._model_name} item by {self._model_pk_name}""",
@@ -216,16 +216,21 @@ class ModelControllerBuilder:
         self._add_to_controller(get_item)
 
     def _register_list_endpoint(self) -> None:
-        paginate_kwargs: t.Dict[str, t.Any] = {}
-
-        if self._config.pagination.paginate_by:
-            paginate_kwargs.update(page_size=self._config.pagination.paginate_by)
+        paginate_kwargs: t.Dict[str, t.Any] = {
+            "pagination_class": None,
+            "pagination_response_schema": None,
+        }
+        if self._config.pagination:
+            paginate_kwargs.update(
+                pagination_class=self._config.pagination.klass,
+                pagination_response_schema=self._config.pagination.pagination_schema,
+            )
+            if self._config.pagination.paginator_kwargs:
+                paginate_kwargs.update(self._config.pagination.paginator_kwargs)
 
         list_items = ModelEndpointFactory.list(
             path="/",
             schema_out=self._retrieve_schema,  # type: ignore[arg-type]
-            pagination_class=self._config.pagination.klass,
-            pagination_response_schema=self._config.pagination.pagination_schema,
             description=f"List {self._model_name} model items",
             url_name=f"{self._model_pk_name}-list",
             summary="List Items",
@@ -242,7 +247,7 @@ class ModelControllerBuilder:
 
         delete_item = ModelEndpointFactory.delete(
             path=_path,
-            lookup_field=self._model_pk_name,
+            lookup_param=self._model_pk_name,
             url_name=f"{self._model_pk_name}-delete",
             description=f"""Delete {self._model_name} item""",
             summary="Delete an item",
@@ -254,7 +259,7 @@ class ModelControllerBuilder:
         for action in self._config.allowed_routes:
             action_registration = getattr(self, f"_register_{action}_endpoint", None)
 
-            if not action_registration:
+            if not action_registration:  # pragma: no cover
                 raise Exception(
                     f"Route `{action}` action in `class[{self._base_cls.__name__}]` "
                     f"is not recognized as ModelController action"

@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Set, Type, Union
+from typing import Any, Generic, List, Optional, Set, Type, Union
 
 from django.db.models import Model
 from ninja.pagination import PaginationBase
@@ -10,22 +10,26 @@ from ...pagination import PageNumberPaginationExtra, PaginatedResponseSchema
 
 class ModelPagination(PydanticModel):
     klass: Type[PaginationBase] = PageNumberPaginationExtra
-    paginate_by: Optional[int] = None
+    paginator_kwargs: Optional[dict] = None
     pagination_schema: Type[PydanticModel] = PaginatedResponseSchema
 
     @validator("klass", allow_reuse=True)
     def validate_klass(cls, value: Any) -> Any:
-        if not issubclass(PaginationBase, value):
-            raise ValueError(f"{value} is not of type `PaginationBase`")
-        return value
+        if isinstance(value, type) and issubclass(value, PaginationBase):
+            return value
+        raise ValueError(f"{value} is not of type `PaginationBase`")
 
     @validator("pagination_schema", allow_reuse=True)
     def validate_schema(cls, value: Any) -> Any:
-        if not issubclass(PydanticModel, value):
-            raise ValueError(
-                f"{value} is not a valid type. Please use a generic pydantic model."
-            )
-        return value
+        if (
+            isinstance(value, type)
+            and issubclass(value, PydanticModel)
+            and issubclass(value, Generic)  # type:ignore[arg-type]
+        ):
+            return value
+        raise ValueError(
+            f"{value} is not a valid type. Please use a generic pydantic model."
+        )
 
 
 class ModelSchemaConfig(PydanticModel):
@@ -55,7 +59,7 @@ class ModelConfig(PydanticModel):
     update_schema: Optional[Type[PydanticModel]] = None
     patch_schema: Optional[Type[PydanticModel]] = None
 
-    pagination: ModelPagination = Field(default=ModelPagination())
+    pagination: Optional[ModelPagination] = Field(default=ModelPagination())
     model: Type[Model]
 
     schema_config: ModelSchemaConfig = Field(default=ModelSchemaConfig(exclude=set()))
@@ -82,7 +86,6 @@ class ModelConfig(PydanticModel):
         allow_reuse=True,
     )
     def validate_schemas(cls, value: Any) -> Any:
-        if value:
-            if not issubclass(value, PydanticModel):
-                raise ValueError(f"{value} is not a valid pydantic type.")
+        if value and not issubclass(value, PydanticModel):
+            raise ValueError(f"{value} is not a valid pydantic type.")
         return value

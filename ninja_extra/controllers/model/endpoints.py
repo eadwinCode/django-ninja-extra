@@ -207,7 +207,7 @@ class ModelEndpointFactory:
             **kwargs: t.Any,
         ) -> t.Any:
             instance = (
-                custom_handler(self, **kwargs)
+                custom_handler(self, data, **kwargs)
                 if custom_handler
                 else self.service.create(data, **kwargs)
             )
@@ -220,7 +220,7 @@ class ModelEndpointFactory:
     def update(
         cls,
         path: str,
-        lookup_field: str,
+        lookup_param: str,
         schema_in: t.Type[PydanticModel],
         schema_out: t.Type[PydanticModel],
         status_code: int = status.HTTP_200_OK,
@@ -270,7 +270,7 @@ class ModelEndpointFactory:
             data: schema_in = Body(default=...),  # type:ignore[valid-type]
             **kwargs: t.Any,
         ) -> t.Any:
-            pk = kwargs.pop(lookup_field)
+            pk = kwargs.pop(lookup_param)
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
@@ -295,7 +295,7 @@ class ModelEndpointFactory:
     def patch(
         cls,
         path: str,
-        lookup_field: str,
+        lookup_param: str,
         schema_in: t.Type[PydanticModel],
         schema_out: t.Type[PydanticModel],
         status_code: int = status.HTTP_200_OK,
@@ -324,7 +324,7 @@ class ModelEndpointFactory:
 
         @route.patch(
             working_path,
-            response={status_code: schema_in},
+            response={status_code: schema_out},
             url_name=url_name,
             description=description,
             operation_id=operation_id,
@@ -342,10 +342,10 @@ class ModelEndpointFactory:
         @cls._path_resolver(path)
         def patch_item(
             self: "ModelControllerBase",
-            data: schema_out = Body(default=...),  # type:ignore[valid-type]
+            data: schema_in = Body(default=...),  # type:ignore[valid-type]
             **kwargs: t.Any,
         ) -> t.Any:
-            pk = kwargs.pop(lookup_field)
+            pk = kwargs.pop(lookup_param)
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
@@ -368,7 +368,7 @@ class ModelEndpointFactory:
     def retrieve(
         cls,
         path: str,
-        lookup_field: str,
+        lookup_param: str,
         schema_out: t.Type[PydanticModel],
         status_code: int = status.HTTP_200_OK,
         url_name: t.Optional[str] = None,
@@ -412,7 +412,7 @@ class ModelEndpointFactory:
         )
         @cls._path_resolver(path)
         def get_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
-            pk = kwargs.pop(lookup_field)
+            pk = kwargs.pop(lookup_param)
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
@@ -515,7 +515,7 @@ class ModelEndpointFactory:
     def delete(
         cls,
         path: str,
-        lookup_field: str,
+        lookup_param: str,
         status_code: int = status.HTTP_204_NO_CONTENT,
         url_name: t.Optional[str] = None,
         description: t.Optional[str] = None,
@@ -559,7 +559,7 @@ class ModelEndpointFactory:
         )
         @cls._path_resolver(path)
         def delete_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
-            pk = kwargs.pop(lookup_field)
+            pk = kwargs.pop(lookup_param)
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
