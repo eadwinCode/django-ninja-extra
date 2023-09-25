@@ -169,8 +169,8 @@ def test_event_model_controller_with_schema():
     res = client.get("/")
     assert res.status_code == 200
     data = res.json()
-    assert data["count"]
-    assert data["results"]
+    assert len(data) == 1
+
     # PUT
     test_item.update(title="test updated")
     res = client.put(f"/{working_id}", json=test_item)
