@@ -15,10 +15,10 @@ def test_default_model_config():
     model_config = ModelConfig(model=Event)
     assert model_config.dict() == {
         "allowed_routes": ["create", "find_one", "update", "patch", "delete", "list"],
-        "create_schema": None,
-        "retrieve_schema": None,
-        "update_schema": None,
-        "patch_schema": None,
+        "create_schema": model_config.create_schema,
+        "retrieve_schema": model_config.retrieve_schema,
+        "update_schema": model_config.update_schema,
+        "patch_schema": model_config.patch_schema,
         "pagination": {
             "klass": PageNumberPaginationExtra,
             "paginator_kwargs": None,
@@ -33,6 +33,12 @@ def test_default_model_config():
             "read_only_fields": None,
             "write_only_fields": None,
         },
+        "create_route_info": {},
+        "find_one_route_info": {},
+        "update_route_info": {},
+        "patch_route_info": {},
+        "list_route_info": {},
+        "delete_route_info": {},
     }
 
 

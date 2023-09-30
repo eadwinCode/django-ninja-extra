@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 from django.db.models import Model as DjangoModel
 from django.db.models import QuerySet
-from ninja import Query
+from ninja import Query, Schema
 from ninja.pagination import PaginationBase
 from ninja.params import Body, Path
 from pydantic import UUID4, create_model
@@ -122,14 +122,18 @@ class ModelEndpointFactory:
             query_fields = dict(get_query_fields())
 
             if path_fields:
-                dynamic_path_model = create_model(path_construct_name, **path_fields)
+                dynamic_path_model = create_model(
+                    path_construct_name, __base__=Schema, **path_fields
+                )
                 add_ninja_contribute_args(
                     func,
                     (path_construct_name, dynamic_path_model, Path(...)),
                 )
 
             if query_fields:
-                dynamic_query_model = create_model(query_construct_name, **query_fields)
+                dynamic_query_model = create_model(
+                    query_construct_name, __base__=Schema, **query_fields
+                )
 
                 add_ninja_contribute_args(
                     func,
@@ -365,7 +369,7 @@ class ModelEndpointFactory:
         return patch_item  # type:ignore[no-any-return]
 
     @classmethod
-    def retrieve(
+    def find_one(
         cls,
         path: str,
         lookup_param: str,

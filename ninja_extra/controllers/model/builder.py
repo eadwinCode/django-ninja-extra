@@ -7,22 +7,15 @@ from ninja_extra.constants import ROUTE_FUNCTION
 from .endpoints import ModelEndpointFactory
 from .schemas import ModelConfig
 
-try:
-    from ninja_schema.errors import ConfigError
-    from ninja_schema.orm.factory import SchemaFactory
-    from ninja_schema.orm.model_schema import (
-        ModelSchemaConfig,
-        ModelSchemaConfigAdapter,
-    )
-except Exception:  # pragma: no cover
-    ConfigError = ModelSchemaConfig = ModelSchemaConfigAdapter = SchemaFactory = None
-
-
 if t.TYPE_CHECKING:
     from ..base import APIController, ModelControllerBase
 
 
 class ModelControllerBuilder:
+    """
+    Model Controller Builder that controls model controller setup.
+    """
+
     def __init__(
         self,
         base_cls: t.Type["ModelControllerBase"],
@@ -49,114 +42,22 @@ class ModelControllerBuilder:
         self._update_schema = self._config.update_schema
         self._patch_schema = self._config.patch_schema
 
-        self.generate_all_schema()
-
-    def generate_all_schema(self) -> None:
-        if not ModelSchemaConfig:  # pragma: no cover
-            raise RuntimeError(
-                "ninja-schema package is required for ModelControllerSchema generation.\n pip install ninja-schema"
-            )
-
-        model_config = ModelSchemaConfig(
-            "dummy",
-            ModelSchemaConfigAdapter(
-                {"model": self._config.model, "ninja_schema_abstract": True}
-            ),
-        )
-        all_fields = {f.name: f for f in model_config.model_fields()}.keys()
-        working_fields = set(all_fields)
-
-        if self._config.schema_config.include == "__all__":
-            working_fields = set(all_fields)
-
-        elif (
-            self._config.schema_config.include
-            and self._config.schema_config.include != "__all__"
-        ):
-            include_fields = set(self._config.schema_config.include)
-            working_fields = include_fields
-
-        elif self._config.schema_config.exclude:
-            exclude_fields = set(self._config.schema_config.exclude)
-            working_fields = working_fields - exclude_fields
-
-        if not self._create_schema and "create" in self._config.allowed_routes:
-            create_schema_fields = self._get_create_schema_fields(working_fields)
-            self._create_schema = SchemaFactory.create_schema(
-                self._config.model,
-                name=f"{self._model_name}CreateSchema",
-                fields=list(create_schema_fields),
-                skip_registry=True,
-                depth=self._config.schema_config.depth,
-            )
-
-        if not self._update_schema and "update" in self._config.allowed_routes:
-            if self._create_schema:
-                self._update_schema = self._create_schema
-            else:
-                create_schema_fields = self._get_create_schema_fields(working_fields)
-                self._update_schema = SchemaFactory.create_schema(
-                    self._config.model, fields=list(create_schema_fields)
-                )
-
-        if not self._patch_schema and "patch" in self._config.allowed_routes:
-            create_schema_fields = self._get_create_schema_fields(working_fields)
-            self._patch_schema = SchemaFactory.create_schema(
-                self._config.model,
-                name=f"{self._model_name}PatchSchema",
-                fields=list(create_schema_fields),
-                optional_fields=list(create_schema_fields),
-                skip_registry=True,
-                depth=self._config.schema_config.depth,
-            )
-
-        if not self._retrieve_schema:
-            retrieve_schema_fields = self._get_retrieve_schema_fields(working_fields)
-            self._retrieve_schema = SchemaFactory.create_schema(
-                self._config.model,
-                name=f"{self._model_name}Schema",
-                fields=list(retrieve_schema_fields),
-                skip_registry=True,
-                depth=self._config.schema_config.depth,
-            )
-
-    def _get_create_schema_fields(self, working_fields: set) -> set:
-        create_schema_fields = set(working_fields) - set(
-            self._config.schema_config.read_only_fields or []
-        )
-        if self._config.schema_config.write_only_fields:
-            invalid_key = (
-                set(self._config.schema_config.write_only_fields) - create_schema_fields
-            )
-            if invalid_key:
-                raise ConfigError(f"Field(s) {invalid_key} included to working fields.")
-        return create_schema_fields - {self._model_pk_name}
-
-    def _get_retrieve_schema_fields(self, working_fields: set) -> set:
-        retrieve_schema_fields = set(working_fields) - set(
-            self._config.schema_config.write_only_fields or []
-        )
-        if self._config.schema_config.read_only_fields:
-            invalid_key = (
-                set(self._config.schema_config.read_only_fields)
-                - retrieve_schema_fields
-            )
-            if invalid_key:
-                raise ConfigError(f"Field(s) {invalid_key} included to working fields.")
-        return set(list(retrieve_schema_fields) + [self._model_pk_name])
-
     def _add_to_controller(self, func: t.Callable) -> None:
         route_function = getattr(func, ROUTE_FUNCTION)
         route_function.api_controller = self._api_controller_instance
         self._api_controller_instance.add_controller_route_function(route_function)
 
     def _register_create_endpoint(self) -> None:
+        kw = {
+            "url_name": f"{self._model_name}-create",
+            "description": f"Create {self._model_name} item",
+            "summary": "Create an item",
+        }
+        kw.update(self._config.create_route_info)
         create_item = ModelEndpointFactory.create(
-            schema_in=self._create_schema,  # type: ignore[arg-type]
-            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
-            url_name=f"{self._model_name}-create",
-            description=f"Create {self._model_name} item",
-            summary="Create an item",
+            schema_in=self._create_schema,  # type:ignore[arg-type]
+            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            **kw,  # type:ignore[arg-type]
         )
 
         self._add_to_controller(create_item)
@@ -166,15 +67,19 @@ class ModelControllerBuilder:
             self._pk_type.__name__,
             self._model_pk_name,
         )
+        kw = {
+            "url_name": f"{self._model_pk_name}-put",
+            "description": f"""Update {self._model_name} item by {self._model_pk_name}""",
+            "summary": "Update an item",
+        }
+        kw.update(self._config.update_route_info)
 
         update_item = ModelEndpointFactory.update(
             path=_path,
             lookup_param=self._model_pk_name,
-            schema_in=self._update_schema,  # type: ignore[arg-type]
-            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
-            url_name=f"{self._model_pk_name}-put",
-            description=f"""Update {self._model_name} item by {self._model_pk_name}""",
-            summary="Update an item",
+            schema_in=self._update_schema,  # type:ignore[arg-type]
+            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            **kw,  # type:ignore[arg-type]
         )
 
         self._add_to_controller(update_item)
@@ -186,14 +91,19 @@ class ModelControllerBuilder:
             self._model_pk_name,
         )
 
+        kw = {
+            "url_name": f"{self._model_pk_name}-patch",
+            "description": f"""Patch {self._model_name} item by {self._model_pk_name}""",
+            "summary": "Patch an item",
+        }
+        kw.update(self._config.patch_route_info)
+
         patch_item = ModelEndpointFactory.patch(
             path=_path,
             lookup_param=self._model_pk_name,
-            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
-            schema_in=self._patch_schema,  # type: ignore[arg-type]
-            url_name=f"{self._model_pk_name}-patch",
-            description=f"""Patch {self._model_name} item by {self._model_pk_name}""",
-            summary="Patch an item",
+            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            schema_in=self._patch_schema,  # type:ignore[arg-type]
+            **kw,  # type:ignore[arg-type]
         )
 
         self._add_to_controller(patch_item)
@@ -203,19 +113,29 @@ class ModelControllerBuilder:
             self._pk_type.__name__,
             self._model_pk_name,
         )
+        kw = {
+            "url_name": f"{self._model_pk_name}-get-item",
+            "description": f"""Get {self._model_name} item by {self._model_pk_name}""",
+            "summary": "Get a specific item",
+        }
+        kw.update(self._config.find_one_route_info)
 
-        get_item = ModelEndpointFactory.retrieve(
+        get_item = ModelEndpointFactory.find_one(
             path=_path,
             lookup_param=self._model_pk_name,
-            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
-            url_name=f"{self._model_pk_name}-get-item",
-            description=f"""Get {self._model_name} item by {self._model_pk_name}""",
-            summary="Get a specific item",
+            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            **kw,  # type:ignore[arg-type]
         )
 
         self._add_to_controller(get_item)
 
     def _register_list_endpoint(self) -> None:
+        kw = {
+            "description": f"List {self._model_name} model items",
+            "url_name": f"{self._model_pk_name}-list",
+            "summary": "List Items",
+        }
+        kw.update(self._config.list_route_info)
         paginate_kwargs: t.Dict[str, t.Any] = {
             "pagination_class": None,
             "pagination_response_schema": None,
@@ -230,10 +150,8 @@ class ModelControllerBuilder:
 
         list_items = ModelEndpointFactory.list(
             path="/",
-            schema_out=self._retrieve_schema,  # type: ignore[arg-type]
-            description=f"List {self._model_name} model items",
-            url_name=f"{self._model_pk_name}-list",
-            summary="List Items",
+            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            **kw,  # type:ignore[arg-type]
             **paginate_kwargs,
         )
 
@@ -244,13 +162,17 @@ class ModelControllerBuilder:
             self._pk_type.__name__,
             self._model_pk_name,
         )
+        kw = {
+            "url_name": f"{self._model_pk_name}-delete",
+            "description": f"""Delete {self._model_name} item""",
+            "summary": "Delete an item",
+        }
+        kw.update(self._config.delete_route_info)
 
         delete_item = ModelEndpointFactory.delete(
             path=_path,
             lookup_param=self._model_pk_name,
-            url_name=f"{self._model_pk_name}-delete",
-            description=f"""Delete {self._model_name} item""",
-            summary="Delete an item",
+            **kw,  # type:ignore[arg-type]
         )
 
         self._add_to_controller(delete_item)

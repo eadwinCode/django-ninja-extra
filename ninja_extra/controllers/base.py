@@ -222,6 +222,22 @@ class ControllerBase(ABC):
 
 
 class ModelControllerBase(ControllerBase):
+    """
+    An abstract base class for all Model Controllers
+
+    Example:
+    ---------
+    ```python
+    from ninja_extra import api_controller, ModelControllerBase, ModelConfig
+    from .model import Post
+
+    @api_controller
+    class SomeController(ControllerBase):
+        model_config = ModelConfig(model=Post)
+
+    ```
+    """
+
     service: ModelService
     model_config: Optional[ModelConfig] = None
 
@@ -351,7 +367,8 @@ class APIController:
                 builder.register_model_routes()
                 # We create a global service for handle CRUD Operations at class level
                 # giving room for it to be changed at instance level through Dependency injection
-                cls.service = ModelService(cls.model_config.model)
+                if not hasattr(cls, "service"):
+                    cls.service = ModelService(cls.model_config.model)
 
         bases = inspect.getmro(cls)
         for base_cls in reversed(bases):

@@ -102,7 +102,7 @@ class EventController(ModelService):
         custom_handler=lambda self, **kw: self.patch(**kw),
     )
 
-    retrieve_event = ModelEndpointFactory.retrieve(
+    retrieve_event = ModelEndpointFactory.find_one(
         path="/{int:event_id}",
         lookup_param="event_id",
         schema_out=EventSchema,

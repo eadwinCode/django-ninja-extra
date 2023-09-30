@@ -11,6 +11,12 @@ from .interfaces import ModelServiceBase
 
 
 class ModelService(ModelServiceBase):
+    """
+    Model Service for Model Controller model CRUD operations with a simple logic for simple models.
+
+    Its advised you override this class if you have a complex model.
+    """
+
     def __init__(self, model: t.Type[Model]) -> None:
         self.model = model
 
@@ -30,7 +36,7 @@ class ModelService(ModelServiceBase):
         try:
             instance = self.model._default_manager.create(**data)
             return instance
-        except TypeError as tex:
+        except TypeError as tex:  # pragma: no cover
             tb = traceback.format_exc()
             msg = (
                 "Got a `TypeError` when calling `%s.%s.create()`. "
