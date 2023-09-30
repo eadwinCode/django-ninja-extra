@@ -11,9 +11,11 @@ from ninja_extra import ControllerBase, NinjaExtraAPI
 
 
 class NinjaExtraClientBase(NinjaClientBase):
-    def __init__(self, router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]]):
+    def __init__(
+        self, router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]], **kw: Any
+    ) -> None:
         if hasattr(router_or_app, "get_api_controller"):
-            api = NinjaExtraAPI()
+            api = NinjaExtraAPI(**kw)
             controller_ninja_api_controller = router_or_app.get_api_controller()
             assert controller_ninja_api_controller
             controller_ninja_api_controller.set_api_instance(api)
