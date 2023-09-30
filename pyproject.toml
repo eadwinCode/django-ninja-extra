@@ -48,7 +48,7 @@ requires = [
     "contextlib2"
 ]
 description-file = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 
 
 [tool.flit.metadata.urls]
@@ -64,6 +64,7 @@ test = [
     "ruff ==0.0.275",
     "black == 23.7.0",
     "injector >= 0.19.0",
+    "ninja-schema>=0.13.4",
     "django-stubs",
 ]
 doc = [

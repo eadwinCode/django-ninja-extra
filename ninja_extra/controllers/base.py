@@ -43,6 +43,7 @@ from ninja_extra.shortcuts import (
 )
 from ninja_extra.types import PermissionType
 
+from .model import ModelConfig, ModelControllerBuilder, ModelService
 from .registry import ControllerRegistry
 from .response import Detail, Id, Ok
 from .route.route_functions import AsyncRouteFunction, RouteFunction
@@ -220,6 +221,27 @@ class ControllerBase(ABC):
         )
 
 
+class ModelControllerBase(ControllerBase):
+    """
+    An abstract base class for all Model Controllers
+
+    Example:
+    ---------
+    ```python
+    from ninja_extra import api_controller, ModelControllerBase, ModelConfig
+    from .model import Post
+
+    @api_controller
+    class SomeController(ControllerBase):
+        model_config = ModelConfig(model=Post)
+
+    ```
+    """
+
+    service: ModelService
+    model_config: Optional[ModelConfig] = None
+
+
 class APIController:
     _PATH_PARAMETER_COMPONENT_RE = r"{(?:(?P<converter>[^>:]+):)?(?P<parameter>[^>]+)}"
 
@@ -337,6 +359,17 @@ class APIController:
             self.tags = [tag]
 
         self._controller_class = cls
+
+        if issubclass(cls, ModelControllerBase):
+            if cls.model_config:
+                # if model_config is not provided, treat controller class as normal
+                builder = ModelControllerBuilder(cls, self)
+                builder.register_model_routes()
+                # We create a global service for handle CRUD Operations at class level
+                # giving room for it to be changed at instance level through Dependency injection
+                if not hasattr(cls, "service"):
+                    cls.service = ModelService(cls.model_config.model)
+
         bases = inspect.getmro(cls)
         for base_cls in reversed(bases):
             if base_cls not in [ControllerBase, ABC, object]:
@@ -373,7 +406,7 @@ class APIController:
 
     def add_controller_route_function(self, route_function: RouteFunction) -> None:
         self._controller_class_route_functions[
-            get_function_name(route_function.route.view_func)
+            f"{get_function_name(route_function.route.view_func)}_{route_function.route.route_params.path}"
         ] = route_function
 
     def urls_paths(self, prefix: str) -> Iterator[URLPattern]:

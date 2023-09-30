@@ -6,6 +6,14 @@ import django
 
 from ninja_extra.controllers import (
     ControllerBase,
+    ModelConfig,
+    ModelControllerBase,
+    ModelControllerBuilder,
+    ModelEndpointFactory,
+    ModelPagination,
+    ModelSchemaConfig,
+    ModelService,
+    ModelServiceBase,
     api_controller,
     http_delete,
     http_generic,
@@ -46,4 +54,13 @@ __all__ = [
     "Router",
     "throttle",
     "paginate",
+    "ModelControllerBase",
+    "ModelConfig",
+    "ModelService",
+    "ModelSchemaConfig",
+    "ModelControllerBuilder",
+    "ModelPagination",
+    "ModelServiceBase",
+    "ModelControllerBase",
+    "ModelEndpointFactory",
 ]

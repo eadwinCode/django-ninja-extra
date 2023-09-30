@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
         django-version: ['<3.0', '<3.1', '<3.2', '<3.3', '<4.1', '<4.2']
 
     steps:
@@ -23,7 +23,7 @@ jobs:
       - name: Install core
         run: pip install "Django${{ matrix.django-version }}" pydantic
       - name: Install tests
-        run: pip install pytest pytest-asyncio pytest-django injector>=0.19.0 django-ninja asgiref contextlib2
+        run: pip install pytest pytest-asyncio pytest-django injector>=0.19.0 django-ninja asgiref contextlib2 ninja-schema>=0.13.4
       - name: Test
         run: pytest
   codestyle:
