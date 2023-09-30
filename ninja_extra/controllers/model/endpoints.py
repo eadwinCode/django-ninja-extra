@@ -86,6 +86,11 @@ class ModelEndpointFactory:
         return working_path[0]
 
     @classmethod
+    def _change_name(cls, name_prefix: str) -> str:
+        unique = str(uuid.uuid4())[:6]
+        return f"{name_prefix}_{unique}"
+
+    @classmethod
     def _path_resolver(cls, path: str) -> t.Callable:
         """
         Create a decorator to parse `path` parameters and resolve them during endpoint.
@@ -169,7 +174,7 @@ class ModelEndpointFactory:
         custom_handler: t.Optional[t.Callable[..., t.Any]] = None,
         description: t.Optional[str] = None,
         operation_id: t.Optional[str] = None,
-        summary: t.Optional[str] = None,
+        summary: t.Optional[str] = "Create new item",
         tags: t.Optional[t.List[str]] = None,
         deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
@@ -218,6 +223,7 @@ class ModelEndpointFactory:
             assert instance, "`service.create` or  `custom_handler` must return a value"
             return instance
 
+        create_item.__name__ = cls._change_name("create_item")
         return create_item  # type:ignore[no-any-return]
 
     @classmethod
@@ -233,7 +239,7 @@ class ModelEndpointFactory:
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
         custom_handler: t.Optional[t.Callable[..., t.Any]] = None,
         operation_id: t.Optional[str] = None,
-        summary: t.Optional[str] = None,
+        summary: t.Optional[str] = "Update an item",
         tags: t.Optional[t.List[str]] = None,
         deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
@@ -293,6 +299,7 @@ class ModelEndpointFactory:
             assert instance, "`service.update` or `custom_handler` must return a value"
             return instance
 
+        update_item.__name__ = cls._change_name("update_item")
         return update_item  # type:ignore[no-any-return]
 
     @classmethod
@@ -308,7 +315,7 @@ class ModelEndpointFactory:
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
         custom_handler: t.Optional[t.Callable[..., t.Any]] = None,
         operation_id: t.Optional[str] = None,
-        summary: t.Optional[str] = None,
+        summary: t.Optional[str] = "Patch Item Update",
         tags: t.Optional[t.List[str]] = None,
         deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
@@ -366,6 +373,7 @@ class ModelEndpointFactory:
             assert instance, "`service.patch()` or `custom_handler` must return a value"
             return instance
 
+        patch_item.__name__ = cls._change_name("patch_item")
         return patch_item  # type:ignore[no-any-return]
 
     @classmethod
@@ -379,7 +387,7 @@ class ModelEndpointFactory:
         description: t.Optional[str] = None,
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
         operation_id: t.Optional[str] = None,
-        summary: t.Optional[str] = None,
+        summary: t.Optional[str] = "Find a specific item",
         tags: t.Optional[t.List[str]] = None,
         deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
@@ -427,6 +435,7 @@ class ModelEndpointFactory:
             self.check_object_permissions(obj)
             return obj
 
+        get_item.__name__ = cls._change_name("get_item")
         return get_item  # type:ignore[no-any-return]
 
     @classmethod
@@ -438,7 +447,7 @@ class ModelEndpointFactory:
         url_name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         operation_id: t.Optional[str] = None,
-        summary: t.Optional[str] = None,
+        summary: t.Optional[str] = "List of Items",
         tags: t.Optional[t.List[str]] = None,
         deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
@@ -513,6 +522,7 @@ class ModelEndpointFactory:
                 openapi_extra=openapi_extra,
             )(list_items)
 
+        list_items.__name__ = cls._change_name("list_items")
         return list_items  # type:ignore[no-any-return]
 
     @classmethod
@@ -550,7 +560,7 @@ class ModelEndpointFactory:
             response={status_code: str},
             description=description,
             operation_id=operation_id,
-            summary=summary,
+            summary="Delete An Item",
             tags=tags,
             deprecated=deprecated,
             by_alias=by_alias,
@@ -577,4 +587,5 @@ class ModelEndpointFactory:
             ) if custom_handler else self.service.delete(instance=obj, **kwargs)
             return self.create_response(message="", status_code=status_code)
 
+        delete_item.__name__ = cls._change_name("delete_item")
         return delete_item  # type:ignore[no-any-return]
