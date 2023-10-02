@@ -32,12 +32,6 @@ class ModelPagination(PydanticModel):
     paginator_kwargs: Optional[dict] = None
     pagination_schema: Type[PydanticModel] = PaginatedResponseSchema
 
-    @validator("klass", allow_reuse=True)
-    def validate_klass(cls, value: Any) -> Any:
-        if isinstance(value, type) and issubclass(value, PaginationBase):
-            return value
-        raise ValueError(f"{value} is not of type `PaginationBase`")
-
     @validator("pagination_schema", allow_reuse=True)
     def validate_schema(cls, value: Any) -> Any:
         if (
@@ -106,24 +100,6 @@ class ModelConfig(PydanticModel):
                 raise ValueError(f"'{item}' action is not recognized in [{defaults}]")
         return value
 
-    @validator("model", allow_reuse=True)
-    def validate_model(cls, value: Any) -> Any:
-        if value and hasattr(value, "objects"):
-            return value
-        raise ValueError(f"{value} is not a valid Django model.")
-
-    @validator(
-        "create_schema",
-        "retrieve_schema",
-        "update_schema",
-        "patch_schema",
-        allow_reuse=True,
-    )
-    def validate_schemas(cls, value: Any) -> Any:
-        if value and not issubclass(value, PydanticModel):
-            raise ValueError(f"{value} is not a valid pydantic type.")
-        return value
-
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.generate_all_schema()
@@ -162,7 +138,7 @@ class ModelConfig(PydanticModel):
         if self.schema_config.include == "__all__":
             working_fields = set(all_fields)
 
-        elif self.schema_config.include and self.schema_config.include != "__all__":
+        if self.schema_config.include and self.schema_config.include != "__all__":
             include_fields = set(self.schema_config.include)
             working_fields = include_fields
 
