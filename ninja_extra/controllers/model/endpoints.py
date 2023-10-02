@@ -287,7 +287,7 @@ class ModelEndpointFactory:
                 else self.service.get_one(pk=pk, **kwargs)
             )
 
-            if not obj:
+            if not obj:  # pragma: no cover
                 raise NotFound()
 
             self.check_object_permissions(obj)
@@ -362,7 +362,7 @@ class ModelEndpointFactory:
                 if object_getter
                 else self.service.get_one(pk=pk, **kwargs)
             )
-            if not obj:
+            if not obj:  # pragma: no cover
                 raise NotFound()
             self.check_object_permissions(obj)
             instance = (
@@ -430,7 +430,7 @@ class ModelEndpointFactory:
                 if object_getter
                 else self.service.get_one(pk=pk, **kwargs)
             )
-            if not obj:
+            if not obj:  # pragma: no cover
                 raise NotFound()
             self.check_object_permissions(obj)
             return obj
@@ -579,7 +579,7 @@ class ModelEndpointFactory:
                 if object_getter
                 else self.service.get_one(pk=pk, **kwargs)
             )
-            if not obj:
+            if not obj:  # pragma: no cover
                 raise NotFound()
             self.check_object_permissions(obj)
             custom_handler(

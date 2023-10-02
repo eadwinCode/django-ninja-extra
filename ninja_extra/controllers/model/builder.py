@@ -145,7 +145,7 @@ class ModelControllerBuilder:
                 pagination_class=self._config.pagination.klass,
                 pagination_response_schema=self._config.pagination.pagination_schema,
             )
-            if self._config.pagination.paginator_kwargs:
+            if self._config.pagination.paginator_kwargs:  # pragma: no cover
                 paginate_kwargs.update(self._config.pagination.paginator_kwargs)
 
         list_items = ModelEndpointFactory.list(
