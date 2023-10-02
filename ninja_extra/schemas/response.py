@@ -1,9 +1,7 @@
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from ninja import Schema
-from ninja.constants import NOT_SET
-from pydantic import validator
-from pydantic.generics import GenericModel
+from pydantic import field_validator
 from pydantic.networks import AnyHttpUrl
 
 T = TypeVar("T")
@@ -21,37 +19,37 @@ class BaseNinjaResponseSchema(Schema):
     items: List[Any]
 
 
-class PaginatedResponseSchema(GenericModel, Generic[T], BasePaginatedResponseSchema):
+class PaginatedResponseSchema(Generic[T], BasePaginatedResponseSchema):
     results: List[T]
 
 
 # Pydantic GenericModels has not way of identifying the _orig
 # __generic_model__ is more like a fix for that
-PaginatedResponseSchema.__generic_model__ = (  # type:ignore[attr-defined]
-    PaginatedResponseSchema
-)
+# PaginatedResponseSchema.__generic_model__ = (  # type:ignore[attr-defined]
+#     PaginatedResponseSchema
+# )
 
 
-class NinjaPaginationResponseSchema(GenericModel, Generic[T], BaseNinjaResponseSchema):
+class NinjaPaginationResponseSchema(Generic[T], BaseNinjaResponseSchema):
     items: List[T]
 
-    @validator("items", pre=True)
+    @field_validator("items", mode="before")
     def validate_items(cls, value: Any) -> Any:
         if value is not None and not isinstance(value, list):
             value = list(value)
         return value
 
 
-NinjaPaginationResponseSchema.__generic_model__ = (  # type:ignore[attr-defined]
-    NinjaPaginationResponseSchema
-)
+# NinjaPaginationResponseSchema.__generic_model__ = (  # type:ignore[attr-defined]
+#     NinjaPaginationResponseSchema
+# )
 
 
 class RouteParameter(Schema):
     path: str
     methods: List[str]
-    auth: Any = NOT_SET
-    response: Any = NOT_SET
+    auth: Optional[Any] = None
+    response: Optional[Any] = None
     operation_id: Optional[str] = None
     summary: Optional[str] = None
     description: Optional[str] = None
