@@ -7,11 +7,6 @@ These variables guide the route generation, schema generation, and model operati
 
 For instance, let's create a ModelController for an Event model defined as follows:
 
-Model Controllers inherits from `ControllerBase` class and provides and provides two important variables `model_config` and `model_service`, 
-which guides its route generation, schema generation or model operations.
-
-For example, Let's create `ModelController` for an `Event` model defined below,
-
 ```python
 from django.db import models
 
@@ -316,6 +311,8 @@ class EventModelController(ModelControllerBase):
 ```
 In the above example, we created a `get_event_category` endpoint using `ModelEndpointFactory.find_one` and 
 provided an `object_getter` as a callback for fetching the model based on the `event_id`.
+And the `lookup_param` indicates the key in `kwargs` that defines the pk value used to get object model incase 
+there is no `object_getter` handler implemented.
 
 On the other hand, you can have a case where you need to list events by `category_id`:
 ```python
