@@ -1,4 +1,5 @@
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+import dataclasses
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from ninja import Schema
 from pydantic import field_validator
@@ -19,7 +20,7 @@ class BaseNinjaResponseSchema(Schema):
     items: List[Any]
 
 
-class PaginatedResponseSchema(Generic[T], BasePaginatedResponseSchema):
+class PaginatedResponseSchema(BasePaginatedResponseSchema, Generic[T]):
     results: List[T]
 
 
@@ -30,7 +31,7 @@ class PaginatedResponseSchema(Generic[T], BasePaginatedResponseSchema):
 # )
 
 
-class NinjaPaginationResponseSchema(Generic[T], BaseNinjaResponseSchema):
+class NinjaPaginationResponseSchema(BaseNinjaResponseSchema, Generic[T]):
     items: List[T]
 
     @field_validator("items", mode="before")
@@ -45,11 +46,13 @@ class NinjaPaginationResponseSchema(Generic[T], BaseNinjaResponseSchema):
 # )
 
 
-class RouteParameter(Schema):
+@dataclasses.dataclass
+class RouteParameter:
     path: str
     methods: List[str]
-    auth: Optional[Any] = None
-    response: Optional[Any] = None
+    openapi_extra: Optional[Dict[str, Any]]
+    auth: Optional[Union[Type, Any]] = None
+    response: Optional[Union[Type, Any]] = None
     operation_id: Optional[str] = None
     summary: Optional[str] = None
     description: Optional[str] = None
@@ -61,7 +64,9 @@ class RouteParameter(Schema):
     exclude_none: bool = False
     url_name: Optional[str] = None
     include_in_schema: bool = True
-    openapi_extra: Optional[Dict[str, Any]]
+
+    def dict(self) -> dict:
+        return dataclasses.asdict(self)
 
 
 def __getattr__(name: str) -> Any:  # pragma: no cover
