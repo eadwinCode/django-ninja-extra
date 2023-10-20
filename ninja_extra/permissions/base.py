@@ -47,7 +47,7 @@ class OperationHolderMixin:
         return SingleOperandHolder(NOT, self)
 
 
-class BasePermissionMetaclass(OperationHolderMixin, ABCMeta):  # type: ignore[misc]
+class BasePermissionMetaclass(OperationHolderMixin, ABCMeta):
     pass
 
 
