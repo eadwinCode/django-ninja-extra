@@ -17,28 +17,34 @@ T = TypeVar("T")
 
 
 class OperationHolderMixin:
-    def __and__(
-        self, other: Union[Type["BasePermission"], "BasePermission"]
+    def __and__(  # type:ignore[misc]
+        self: Union[Type["BasePermission"], "BasePermission"],
+        other: Union[Type["BasePermission"], "BasePermission"],
     ) -> "OperandHolder[AND]":
-        return OperandHolder(AND, self, other)  # type: ignore
+        return OperandHolder(AND, self, other)
 
-    def __or__(
-        self, other: Union[Type["BasePermission"], "BasePermission"]
+    def __or__(  # type:ignore[misc]
+        self: Union[Type["BasePermission"], "BasePermission"],
+        other: Union[Type["BasePermission"], "BasePermission"],
     ) -> "OperandHolder[OR]":
-        return OperandHolder(OR, self, other)  # type: ignore
+        return OperandHolder(OR, self, other)
 
-    def __rand__(
-        self, other: Union[Type["BasePermission"], "BasePermission"]
+    def __rand__(  # type:ignore[misc]
+        self: Union[Type["BasePermission"], "BasePermission"],
+        other: Union[Type["BasePermission"], "BasePermission"],
     ) -> "OperandHolder[AND]":  # pragma: no cover
-        return OperandHolder(AND, other, self)  # type: ignore
+        return OperandHolder(AND, other, self)
 
-    def __ror__(
-        self, other: Union[Type["BasePermission"], "BasePermission"]
+    def __ror__(  # type:ignore[misc]
+        self: Union[Type["BasePermission"], "BasePermission"],
+        other: Union[Type["BasePermission"], "BasePermission"],
     ) -> "OperandHolder[OR]":  # pragma: no cover
-        return OperandHolder(OR, other, self)  # type: ignore
+        return OperandHolder(OR, other, self)
 
-    def __invert__(self) -> "SingleOperandHolder[NOT]":
-        return SingleOperandHolder(NOT, self)  # type: ignore
+    def __invert__(  # type:ignore[misc]
+        self: Union[Type["BasePermission"], "BasePermission"]
+    ) -> "SingleOperandHolder[NOT]":
+        return SingleOperandHolder(NOT, self)
 
 
 class BasePermissionMetaclass(OperationHolderMixin, ABCMeta):

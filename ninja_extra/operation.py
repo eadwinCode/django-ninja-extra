@@ -178,14 +178,15 @@ class Operation(NinjaOperation):
             ROUTE_CONTEXT_VAR.set(None)
 
     def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:
-        error = self._run_checks(request)
-        if error:
-            return error
         try:
             temporal_response = self.api.create_temporal_response(request)
             with self._prep_run(
                 request, temporal_response=temporal_response, **kw
             ) as ctx:
+                error = self._run_checks(request)
+                if error:
+                    return error
+
                 values = self._get_values(request, kw, temporal_response)
                 ctx.kwargs.update(values)
                 result = self.view_func(request, **values)
@@ -278,14 +279,15 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             ROUTE_CONTEXT_VAR.set(None)
 
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
-        error = await self._run_checks(request)
-        if error:
-            return error
         try:
             temporal_response = self.api.create_temporal_response(request)
             async with self._prep_run(
                 request, temporal_response=temporal_response, **kw
             ) as ctx:
+                error = await self._run_checks(request)
+                if error:
+                    return error
+
                 values = await self._get_values(request, kw, temporal_response)  # type: ignore
                 ctx.kwargs.update(values)
                 result = await self.view_func(request, **values)
