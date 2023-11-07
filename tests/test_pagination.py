@@ -195,10 +195,10 @@ class TestPagination:
         assert response == {
             "detail": [
                 {
+                    "ctx": {"gt": 0},
                     "loc": ["query", "page"],
-                    "msg": "ensure this value is greater than 0",
-                    "type": "value_error.number.not_gt",
-                    "ctx": {"limit_value": 0},
+                    "msg": "Input should be greater than 0",
+                    "type": "greater_than",
                 }
             ]
         }

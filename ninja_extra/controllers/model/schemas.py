@@ -52,7 +52,7 @@ class ModelSchemaConfig(PydanticModel):
 
     include: Union[str, List[str]] = Field(default="__all__")
     exclude: Set[str] = Field(set())
-    optional: Union[str, Set[str]] = Field(default=None)
+    optional: Optional[Union[str, Set[str]]] = Field(default=None)
     depth: int = 0
     #
     read_only_fields: Optional[List[str]] = Field(default=None)

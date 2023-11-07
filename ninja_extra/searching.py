@@ -95,13 +95,6 @@ class Searching(SearchingBase):
     ) -> None:
         self.search_fields = search_fields or []
         self.pass_parameter = pass_parameter
-        self.Input = self.create_input()  # type:ignore
-
-    def create_input(self) -> Type[Input]:
-        class DynamicInput(Searching.Input):
-            search: Optional[str] = Field(None)
-
-        return DynamicInput
 
     def searching_queryset(
         self, items: Union[QuerySet, List], searching_input: Input

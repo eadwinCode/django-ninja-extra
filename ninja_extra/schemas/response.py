@@ -2,16 +2,21 @@ import dataclasses
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from ninja import Schema
-from pydantic import field_validator
-from pydantic.networks import AnyHttpUrl
+from pydantic import BeforeValidator, TypeAdapter, field_validator
+from pydantic.networks import HttpUrl
+from typing_extensions import Annotated
 
 T = TypeVar("T")
+
+Url = Annotated[
+    str, BeforeValidator(lambda value: str(TypeAdapter(HttpUrl).validate_python(value)))
+]
 
 
 class BasePaginatedResponseSchema(Schema):
     count: int
-    next: Optional[AnyHttpUrl]
-    previous: Optional[AnyHttpUrl]
+    next: Optional[Url]
+    previous: Optional[Url]
     results: List[Any]
 
 
