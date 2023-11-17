@@ -67,13 +67,6 @@ class Ordering(OrderingBase):
     ) -> None:
         super().__init__(pass_parameter=pass_parameter)
         self.ordering_fields = ordering_fields or "__all__"
-        self.Input = self.create_input()  # type:ignore
-
-    def create_input(self) -> Type[Input]:
-        class DynamicInput(Ordering.Input):
-            ordering: Optional[str] = Field(None)
-
-        return DynamicInput
 
     def ordering_queryset(
         self, items: Union[QuerySet, List], ordering_input: Input
@@ -140,7 +133,7 @@ class Ordering(OrderingBase):
             return []
         item = items[0]
         if isinstance(item, BaseModel):
-            return list(item.__fields__.keys())
+            return list(item.model_fields.keys())
         if isinstance(item, dict):
             return list(item.keys())
         if hasattr(item, "_meta") and hasattr(item._meta, "fields"):

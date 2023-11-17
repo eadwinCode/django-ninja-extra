@@ -2,8 +2,7 @@ from typing import Any, Dict, List, Optional
 
 from django.conf import settings as django_settings
 from django.core.signals import setting_changed
-from ninja import Schema
-from pydantic import Field, root_validator, validator
+from pydantic.v1 import BaseModel, Field, root_validator, validator
 
 from ninja_extra.lazy import LazyStrImport
 
@@ -13,7 +12,7 @@ class UserDefinedSettingsMapper:
         self.__dict__ = data
 
 
-NinjaExtra_SETTINGS_DEFAULTS = {
+NinjaEXTRA_SETTINGS_DEFAULTS = {
     "INJECTOR_MODULES": [],
     "PAGINATION_CLASS": "ninja_extra.pagination.LimitOffsetPagination",
     "THROTTLE_CLASSES": [
@@ -26,11 +25,11 @@ NinjaExtra_SETTINGS_DEFAULTS = {
 }
 
 USER_SETTINGS = UserDefinedSettingsMapper(
-    getattr(django_settings, "NINJA_EXTRA", NinjaExtra_SETTINGS_DEFAULTS)
+    getattr(django_settings, "NINJA_EXTRA", NinjaEXTRA_SETTINGS_DEFAULTS)
 )
 
 
-class NinjaExtraSettings(Schema):
+class NinjaExtraSettings(BaseModel):
     class Config:
         orm_mode = True
         validate_assignment = True
@@ -84,7 +83,7 @@ class NinjaExtraSettings(Schema):
 
     @root_validator
     def validate_ninja_extra_settings(cls, values: Any) -> Any:
-        for item in NinjaExtra_SETTINGS_DEFAULTS.keys():
+        for item in NinjaEXTRA_SETTINGS_DEFAULTS.keys():
             if (
                 isinstance(values[item], (tuple, list))
                 and values[item]

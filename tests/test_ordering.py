@@ -7,9 +7,8 @@ import pytest
 from ninja import Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
-from ninja_extra.controllers import RouteFunction
+from ninja_extra.constants import ROUTE_FUNCTION
 from ninja_extra.ordering import (
-    AsyncOrderatorOperation,
     OrderatorOperation,
     Ordering,
     OrderingBase,
@@ -104,16 +103,19 @@ class TestOrdering:
     def test_orderator_operation_used(self):
         some_api_route_functions = dict(
             inspect.getmembers(
-                SomeAPIController, lambda member: isinstance(member, RouteFunction)
+                SomeAPIController, lambda member: hasattr(member, ROUTE_FUNCTION)
             )
         )
         has_kwargs = ("items_3", "items_4")
+        found_route_functions = False
         for name, route_function in some_api_route_functions.items():
-            assert hasattr(route_function.as_view, "orderator_operation")
-            orderator_operation = route_function.as_view.orderator_operation
+            assert hasattr(route_function, "orderator_operation")
+            orderator_operation = route_function.orderator_operation
             assert isinstance(orderator_operation, OrderatorOperation)
             if name in has_kwargs:
                 assert orderator_operation.view_func_has_kwargs
+            found_route_functions = True
+        assert found_route_functions, "No Route Function found"
 
     def test_case1(self):
         for i in range(3):
@@ -127,8 +129,11 @@ class TestOrdering:
             {
                 "in": "query",
                 "name": "ordering",
-                "schema": {"title": "Ordering", "type": "string"},
                 "required": False,
+                "schema": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Ordering",
+                },
             }
         ]
         response = client.get("/items_1?ordering=").json()
@@ -146,13 +151,16 @@ class TestOrdering:
             {
                 "in": "query",
                 "name": "someparam",
-                "schema": {"title": "Someparam", "default": 0, "type": "integer"},
+                "schema": {"default": 0, "title": "Someparam", "type": "integer"},
                 "required": False,
             },
             {
                 "in": "query",
                 "name": "ordering",
-                "schema": {"title": "Ordering", "type": "string"},
+                "schema": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Ordering",
+                },
                 "required": False,
             },
         ]
@@ -169,8 +177,8 @@ class TestOrdering:
             {
                 "in": "query",
                 "name": "order_by",
-                "schema": {"title": "Order By", "type": "string"},
                 "required": True,
+                "schema": {"title": "Order By", "type": "string"},
             }
         ]
 
@@ -186,8 +194,11 @@ class TestOrdering:
             {
                 "in": "query",
                 "name": "ordering",
-                "schema": {"title": "Ordering", "type": "string"},
                 "required": False,
+                "schema": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Ordering",
+                },
             }
         ]
 
@@ -279,16 +290,19 @@ class TestAsyncOrdering:
             some_api_route_functions = dict(
                 inspect.getmembers(
                     self.AsyncSomeAPIController,
-                    lambda member: isinstance(member, RouteFunction),
+                    lambda member: hasattr(member, ROUTE_FUNCTION),
                 )
             )
             has_kwargs = ("items_3", "items_4")
+            found_route_functions = False
             for name, route_function in some_api_route_functions.items():
-                assert hasattr(route_function.as_view, "orderator_operation")
-                orderator_operation = route_function.as_view.orderator_operation
-                assert isinstance(orderator_operation, AsyncOrderatorOperation)
+                assert hasattr(route_function, "orderator_operation")
+                orderator_operation = route_function.orderator_operation
+                assert isinstance(orderator_operation, OrderatorOperation)
                 if name in has_kwargs:
                     assert orderator_operation.view_func_has_kwargs
+                found_route_functions = True
+            assert found_route_functions, "No Route Function found"
 
         async def test_case1(self):
             for i in range(3):
@@ -302,8 +316,11 @@ class TestAsyncOrdering:
                 {
                     "in": "query",
                     "name": "ordering",
-                    "schema": {"title": "Ordering", "type": "string"},
                     "required": False,
+                    "schema": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "title": "Ordering",
+                    },
                 }
             ]
             response = await self.client.get("/items_1?ordering=")
@@ -322,13 +339,16 @@ class TestAsyncOrdering:
                 {
                     "in": "query",
                     "name": "someparam",
-                    "schema": {"title": "Someparam", "default": 0, "type": "integer"},
+                    "schema": {"default": 0, "title": "Someparam", "type": "integer"},
                     "required": False,
                 },
                 {
                     "in": "query",
                     "name": "ordering",
-                    "schema": {"title": "Ordering", "type": "string"},
+                    "schema": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "title": "Ordering",
+                    },
                     "required": False,
                 },
             ]
@@ -362,8 +382,11 @@ class TestAsyncOrdering:
                 {
                     "in": "query",
                     "name": "ordering",
-                    "schema": {"title": "Ordering", "type": "string"},
                     "required": False,
+                    "schema": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "title": "Ordering",
+                    },
                 }
             ]
 

@@ -7,7 +7,7 @@ import pytest
 from ninja import Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
-from ninja_extra.controllers import RouteFunction
+from ninja_extra.constants import ROUTE_FUNCTION
 from ninja_extra.searching import (
     AsyncSearcheratorOperation,
     SearcheratorOperation,
@@ -84,16 +84,20 @@ class TestSearch:
     def test_Search_operation_used(self):
         some_api_route_functions = dict(
             inspect.getmembers(
-                SomeAPIController, lambda member: isinstance(member, RouteFunction)
+                SomeAPIController, lambda member: hasattr(member, ROUTE_FUNCTION)
             )
         )
         has_kwargs = ("items_3", "items_4")
+        found_route_functions = False
+
         for name, route_function in some_api_route_functions.items():
-            assert hasattr(route_function.as_view, "searcherator_operation")
-            searcherator_operation = route_function.as_view.searcherator_operation
+            assert hasattr(route_function, "searcherator_operation")
+            searcherator_operation = route_function.searcherator_operation
             assert isinstance(searcherator_operation, SearcheratorOperation)
             if name in has_kwargs:
                 assert searcherator_operation.view_func_has_kwargs
+            found_route_functions = True
+        assert found_route_functions, "No Route Function found"
 
     def test_case1(self):
         for i in range(3):
@@ -107,8 +111,11 @@ class TestSearch:
             {
                 "in": "query",
                 "name": "search",
-                "schema": {"title": "Search", "type": "string"},
                 "required": False,
+                "schema": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Search",
+                },
             }
         ]
         response = client.get("/items_1?search=").json()
@@ -126,13 +133,16 @@ class TestSearch:
             {
                 "in": "query",
                 "name": "someparam",
-                "schema": {"title": "Someparam", "default": 0, "type": "integer"},
+                "schema": {"default": 0, "title": "Someparam", "type": "integer"},
                 "required": False,
             },
             {
                 "in": "query",
                 "name": "search",
-                "schema": {"title": "Search", "type": "string"},
+                "schema": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Search",
+                },
                 "required": False,
             },
         ]
@@ -166,8 +176,11 @@ class TestSearch:
             {
                 "in": "query",
                 "name": "search",
-                "schema": {"title": "Search", "type": "string"},
                 "required": False,
+                "schema": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Search",
+                },
             }
         ]
 
@@ -183,8 +196,11 @@ class TestSearch:
             {
                 "in": "query",
                 "name": "search",
-                "schema": {"title": "Search", "type": "string"},
                 "required": False,
+                "schema": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "Search",
+                },
             }
         ]
 
@@ -241,16 +257,20 @@ class TestAsyncSearch:
             some_api_route_functions = dict(
                 inspect.getmembers(
                     self.AsyncSomeAPIController,
-                    lambda member: isinstance(member, RouteFunction),
+                    lambda member: hasattr(member, ROUTE_FUNCTION),
                 )
             )
             has_kwargs = ("items_3", "items_4")
+            found_route_functions = False
+
             for name, route_function in some_api_route_functions.items():
-                assert hasattr(route_function.as_view, "searcherator_operation")
-                searcherator_operation = route_function.as_view.searcherator_operation
+                assert hasattr(route_function, "searcherator_operation")
+                searcherator_operation = route_function.searcherator_operation
                 assert isinstance(searcherator_operation, AsyncSearcheratorOperation)
                 if name in has_kwargs:
                     assert searcherator_operation.view_func_has_kwargs
+                found_route_functions = True
+            assert found_route_functions, "No Route Function found"
 
         async def test_case1(self):
             for i in range(3):
@@ -264,8 +284,11 @@ class TestAsyncSearch:
                 {
                     "in": "query",
                     "name": "search",
-                    "schema": {"title": "Search", "type": "string"},
                     "required": False,
+                    "schema": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "title": "Search",
+                    },
                 }
             ]
             response = await self.client.get("/items_1?search=")
@@ -284,13 +307,16 @@ class TestAsyncSearch:
                 {
                     "in": "query",
                     "name": "someparam",
-                    "schema": {"title": "Someparam", "default": 0, "type": "integer"},
+                    "schema": {"default": 0, "title": "Someparam", "type": "integer"},
                     "required": False,
                 },
                 {
                     "in": "query",
                     "name": "search",
-                    "schema": {"title": "Search", "type": "string"},
+                    "schema": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "title": "Search",
+                    },
                     "required": False,
                 },
             ]
@@ -307,8 +333,8 @@ class TestAsyncSearch:
                 {
                     "in": "query",
                     "name": "srch",
-                    "schema": {"title": "Srch", "type": "string"},
                     "required": True,
+                    "schema": {"title": "Srch", "type": "string"},
                 }
             ]
 
@@ -323,8 +349,11 @@ class TestAsyncSearch:
                 {
                     "in": "query",
                     "name": "search",
-                    "schema": {"title": "Search", "type": "string"},
                     "required": False,
+                    "schema": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "title": "Search",
+                    },
                 }
             ]
 
@@ -340,8 +369,11 @@ class TestAsyncSearch:
                 {
                     "in": "query",
                     "name": "search",
-                    "schema": {"title": "Search", "type": "string"},
                     "required": False,
+                    "schema": {
+                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "title": "Search",
+                    },
                 }
             ]
 

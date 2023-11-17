@@ -14,33 +14,41 @@ class InvalidTypeORSchema:
 
 def test_default_model_config():
     model_config = ModelConfig(model=Event)
-    assert model_config.dict() == {
-        "allowed_routes": ["create", "find_one", "update", "patch", "delete", "list"],
-        "create_schema": model_config.create_schema,
-        "retrieve_schema": model_config.retrieve_schema,
-        "update_schema": model_config.update_schema,
-        "patch_schema": model_config.patch_schema,
-        "pagination": {
-            "klass": PageNumberPaginationExtra,
-            "paginator_kwargs": None,
-            "pagination_schema": PaginatedResponseSchema,
-        },
-        "model": Event,
-        "schema_config": {
-            "include": "__all__",
-            "exclude": set(),
-            "optional": None,
-            "depth": 0,
-            "read_only_fields": None,
-            "write_only_fields": None,
-        },
-        "create_route_info": {},
-        "find_one_route_info": {},
-        "update_route_info": {},
-        "patch_route_info": {},
-        "list_route_info": {},
-        "delete_route_info": {},
+    assert model_config.allowed_routes == [
+        "create",
+        "find_one",
+        "update",
+        "patch",
+        "delete",
+        "list",
+    ]
+    assert model_config.retrieve_schema
+    assert model_config.update_schema
+    assert model_config.patch_schema
+    pagination = {
+        "klass": model_config.pagination.klass,
+        "paginator_kwargs": model_config.pagination.paginator_kwargs,
+        "pagination_schema": model_config.pagination.pagination_schema,
     }
+    assert pagination == {
+        "klass": PageNumberPaginationExtra,
+        "paginator_kwargs": None,
+        "pagination_schema": PaginatedResponseSchema,
+    }
+    assert model_config.schema_config.dict() == {
+        "include": "__all__",
+        "exclude": set(),
+        "optional": None,
+        "depth": 0,
+        "read_only_fields": None,
+        "write_only_fields": None,
+    }
+    assert model_config.create_route_info == {}
+    assert model_config.find_one_route_info == {}
+    assert model_config.update_route_info == {}
+    assert model_config.patch_route_info == {}
+    assert model_config.list_route_info == {}
+    assert model_config.delete_route_info == {}
 
 
 def test_include_gen_schema():
@@ -52,17 +60,31 @@ def test_include_gen_schema():
     assert model_config.create_schema is None
     assert model_config.patch_schema is None
     assert model_config.update_schema is None
-
     assert model_config.retrieve_schema.schema() == {
-        "title": "EventSchema",
-        "type": "object",
         "properties": {
-            "id": {"title": "Id", "type": "integer"},
-            "title": {"title": "Title", "maxLength": 100, "type": "string"},
-            "start_date": {"title": "Start Date", "type": "string", "format": "date"},
-            "end_date": {"title": "End Date", "type": "string", "format": "date"},
+            "id": {"description": "", "title": "Id", "type": "integer"},
+            "title": {
+                "description": "",
+                "maxLength": 100,
+                "title": "Title",
+                "type": "string",
+            },
+            "start_date": {
+                "description": "",
+                "format": "date",
+                "title": "Start Date",
+                "type": "string",
+            },
+            "end_date": {
+                "description": "",
+                "format": "date",
+                "title": "End Date",
+                "type": "string",
+            },
         },
         "required": ["id", "title", "start_date", "end_date"],
+        "title": "EventSchema",
+        "type": "object",
     }
 
 
@@ -75,12 +97,21 @@ def test_exclude_gen_schema():
     assert model_config.create_schema is None
     assert model_config.patch_schema is None
     assert model_config.update_schema is None
-
     assert model_config.retrieve_schema.schema() == {
         "properties": {
-            "category_id": {"title": "Category", "type": "integer"},
-            "id": {"title": "Id", "type": "integer"},
-            "title": {"maxLength": 100, "title": "Title", "type": "string"},
+            "id": {"description": "", "title": "Id", "type": "integer"},
+            "title": {
+                "description": "",
+                "maxLength": 100,
+                "title": "Title",
+                "type": "string",
+            },
+            "category_id": {
+                "anyOf": [{"type": "integer"}, {"type": "null"}],
+                "default": None,
+                "description": "",
+                "title": "Category",
+            },
         },
         "required": ["id", "title"],
         "title": "EventSchema",

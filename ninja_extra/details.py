@@ -13,13 +13,13 @@ class ViewSignature(NinjaViewSignature):
         """verify all path params are present in the path model fields"""
         if self.path_params_names:
             path_model = next(
-                (m for m in self.models if m._param_source == "path"), None
+                (m for m in self.models if m.__ninja_param_source__ == "path"), None
             )
             missing = tuple(
                 sorted(
                     name
                     for name in self.path_params_names
-                    if not (path_model and name in path_model._flatten_map)
+                    if not (path_model and name in path_model.__ninja_flatten_map__)
                 )
             )
             if missing:  # pragma: no cover

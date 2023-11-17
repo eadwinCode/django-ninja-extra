@@ -3,7 +3,7 @@ from typing import Any, Dict, Generic, List, Optional, Set, Type, Union
 from django.db.models import Model
 from ninja.pagination import PaginationBase
 from pydantic import BaseModel as PydanticModel
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 
 try:
     from ninja_schema.errors import ConfigError
@@ -32,7 +32,7 @@ class ModelPagination(PydanticModel):
     paginator_kwargs: Optional[dict] = None
     pagination_schema: Type[PydanticModel] = PaginatedResponseSchema
 
-    @validator("pagination_schema", allow_reuse=True)
+    @field_validator("pagination_schema", mode="before")
     def validate_schema(cls, value: Any) -> Any:
         if (
             isinstance(value, type)
@@ -52,7 +52,7 @@ class ModelSchemaConfig(PydanticModel):
 
     include: Union[str, List[str]] = Field(default="__all__")
     exclude: Set[str] = Field(set())
-    optional: Union[str, Set[str]] = Field(default=None)
+    optional: Optional[Union[str, Set[str]]] = Field(default=None)
     depth: int = 0
     #
     read_only_fields: Optional[List[str]] = Field(default=None)
@@ -92,7 +92,7 @@ class ModelConfig(PydanticModel):
     list_route_info: Dict = {}  # extra @get('/') information
     delete_route_info: Dict = {}  # extra @delete() information
 
-    @validator("allowed_routes", allow_reuse=True)
+    @field_validator("allowed_routes")
     def validate_allow_routes(cls, value: List[Any]) -> Any:
         defaults = ["create", "find_one", "update", "patch", "delete", "list"]
         for item in value:
