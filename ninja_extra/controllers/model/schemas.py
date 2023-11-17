@@ -32,7 +32,7 @@ class ModelPagination(PydanticModel):
     paginator_kwargs: Optional[dict] = None
     pagination_schema: Type[PydanticModel] = PaginatedResponseSchema
 
-    @field_validator("pagination_schema")
+    @field_validator("pagination_schema", mode="before")
     def validate_schema(cls, value: Any) -> Any:
         if (
             isinstance(value, type)
