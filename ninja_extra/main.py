@@ -7,8 +7,10 @@ from django.urls import URLPattern, URLResolver
 from django.utils.module_loading import module_has_submodule
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
+from ninja.openapi.docs import DocsBase, Swagger
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
+from ninja.types import DictStrAny, TCallable
 
 from ninja_extra import exceptions, router
 from ninja_extra.compatible import NOT_SET_TYPE
@@ -28,12 +30,16 @@ class NinjaExtraAPI(NinjaAPI):
         version: str = "1.0.0",
         description: str = "",
         openapi_url: Optional[str] = "/openapi.json",
+        docs: DocsBase = Swagger(),
         docs_url: Optional[str] = "/docs",
+        docs_decorator: Optional[Callable[[TCallable], TCallable]] = None,
+        servers: Optional[List[DictStrAny]] = None,
         urls_namespace: Optional[str] = None,
         csrf: bool = False,
-        auth: Union[Sequence[Callable], Callable, NOT_SET_TYPE] = NOT_SET,
+        auth: Optional[Union[Sequence[Callable], Callable, NOT_SET_TYPE]] = NOT_SET,
         renderer: Optional[BaseRenderer] = None,
         parser: Optional[Parser] = None,
+        openapi_extra: Optional[Dict[str, Any]] = None,
         app_name: str = "ninja",
         **kwargs: Any,
     ) -> None:
@@ -48,6 +54,10 @@ class NinjaExtraAPI(NinjaAPI):
             auth=auth,
             renderer=renderer,
             parser=parser,
+            openapi_extra=openapi_extra,
+            servers=servers,
+            docs=docs,
+            docs_decorator=docs_decorator,
             **kwargs,
         )
         self.app_name = app_name
