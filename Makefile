@@ -34,3 +34,6 @@ test-cov:clean ## Run tests with coverage
 
 doc-deploy:clean ## Run Deploy Documentation
 	mkdocs gh-deploy --force
+
+doc-serve: ## Launch doc local server
+	mkdocs serve
