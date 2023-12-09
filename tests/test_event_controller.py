@@ -65,5 +65,5 @@ class TestEventController:
         response = client.get(path.format(event_id=event.id))
         assert response.status_code == 200
         data = response.json()
-        event_schema = json.loads(EventSchema.from_orm(event).json())
+        event_schema = json.loads(EventSchema.from_orm(event).model_dump_json())
         assert event_schema == data

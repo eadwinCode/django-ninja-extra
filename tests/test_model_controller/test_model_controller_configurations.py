@@ -35,7 +35,7 @@ def test_default_model_config():
         "paginator_kwargs": None,
         "pagination_schema": PaginatedResponseSchema,
     }
-    assert model_config.schema_config.dict() == {
+    assert model_config.schema_config.model_dump() == {
         "include": "__all__",
         "exclude": set(),
         "optional": None,
@@ -60,7 +60,7 @@ def test_include_gen_schema():
     assert model_config.create_schema is None
     assert model_config.patch_schema is None
     assert model_config.update_schema is None
-    assert model_config.retrieve_schema.schema() == {
+    assert model_config.retrieve_schema.model_json_schema() == {
         "properties": {
             "id": {"description": "", "title": "Id", "type": "integer"},
             "title": {
@@ -97,7 +97,7 @@ def test_exclude_gen_schema():
     assert model_config.create_schema is None
     assert model_config.patch_schema is None
     assert model_config.update_schema is None
-    assert model_config.retrieve_schema.schema() == {
+    assert model_config.retrieve_schema.model_json_schema() == {
         "properties": {
             "id": {"description": "", "title": "Id", "type": "integer"},
             "title": {
