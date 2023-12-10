@@ -23,7 +23,7 @@ jobs:
       - name: Install core
         run: pip install "Django${{ matrix.django-version }}"
       - name: Install tests
-        run: pip install pytest 'pytest-asyncio==0.20.3' pytest-django 'injector>=0.19.0' django-ninja asgiref contextlib2 'ninja-schema>=0.13.4'
+        run: pip install pytest 'pytest-asyncio==0.20.3' pytest-django 'injector>=0.19.0' 'django-ninja==1.0.1' asgiref contextlib2 'ninja-schema>=0.13.4'
       - name: Test
         run: pytest
   codestyle:
