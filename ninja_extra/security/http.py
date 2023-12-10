@@ -1,17 +1,19 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 from django.conf import settings
 from django.http import HttpRequest
-from ninja.compatibility import get_headers
-from ninja.security.http import DecodeError, HttpBasicAuth, HttpBearer, logger
+from ninja.security.http import DecodeError, HttpBasicAuth, HttpBearer
+
+logger = logging.getLogger("django")
 
 __all__ = ["AsyncHttpBearer", "AsyncHttpBasicAuth"]
 
 
 class AsyncHttpBearer(HttpBearer, ABC):
     async def __call__(self, request: HttpRequest) -> Optional[Any]:
-        headers = get_headers(request)
+        headers = request.headers
         auth_value = headers.get(self.header)
         if not auth_value:
             return None
@@ -31,7 +33,7 @@ class AsyncHttpBearer(HttpBearer, ABC):
 
 class AsyncHttpBasicAuth(HttpBasicAuth, ABC):
     async def __call__(self, request: HttpRequest) -> Optional[Any]:
-        headers = get_headers(request)
+        headers = request.headers
         auth_value = headers.get(self.header)
         if not auth_value:
             return None
