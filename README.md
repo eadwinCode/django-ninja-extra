@@ -53,7 +53,7 @@ INSTALLED_APPS = [
 
 ## Usage
 
-In your django project next to urls.py create new `api.py` file:
+In your django project next to urls.py create new `api.py` file: 
 
 ```Python
 from ninja_extra import NinjaExtraAPI, api_controller, http_get
@@ -100,6 +100,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", api.urls),  # <---------- !
 ]
+
 ```
 
 ### Interactive API docs
