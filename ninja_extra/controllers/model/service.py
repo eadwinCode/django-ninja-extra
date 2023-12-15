@@ -34,7 +34,7 @@ class ModelService(ModelServiceBase):
         data.update(kwargs)
 
         try:
-            instance = self.model._default_manager.create(**data)  # type: ignore[var-annotated]
+            instance = self.model._default_manager.create(**data)
             return instance
         except TypeError as tex:  # pragma: no cover
             tb = traceback.format_exc()
