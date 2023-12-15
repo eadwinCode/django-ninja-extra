@@ -42,7 +42,7 @@ class OperationHolderMixin:
         return OperandHolder(OR, other, self)
 
     def __invert__(  # type:ignore[misc]
-        self: Union[Type["BasePermission"], "BasePermission"]
+        self: Union[Type["BasePermission"], "BasePermission"],
     ) -> "SingleOperandHolder[NOT]":
         return SingleOperandHolder(NOT, self)
 

@@ -9,19 +9,18 @@ clean: ## Removing cached python compiled files
 	find . -name \*pyo | xargs  rm -fv
 	find . -name \*~  | xargs  rm -fv
 	find . -name __pycache__  | xargs  rm -rfv
+	find . -name .ruff_cache  | xargs  rm -rfv
 
 install:clean ## Install dependencies
 	flit install --deps develop --symlink
 	pre-commit install -f
 
 lint:fmt ## Run code linters
-	make clean
-	black --check ninja_extra tests
 	ruff check ninja_extra tests
 	mypy ninja_extra
 
 fmt format:clean ## Run code formatters
-	black ninja_extra tests
+	ruff format ninja_extra tests
 	ruff check --fix ninja_extra tests
 
 
@@ -29,7 +28,6 @@ test:clean ## Run tests
 	pytest .
 
 test-cov:clean ## Run tests with coverage
-	make clean
 	pytest --cov=ninja_extra --cov-report term-missing tests
 
 doc-deploy:clean ## Run Deploy Documentation

@@ -291,14 +291,18 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 values = await self._get_values(request, kw, temporal_response)  # type: ignore
                 ctx.kwargs.update(values)
                 result = await self.view_func(request, **values)
-                _processed_results = await self._result_to_response(request, result, temporal_response)  # type: ignore
+                _processed_results = await self._result_to_response(
+                    request, result, temporal_response
+                )  # type: ignore
                 return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
 
 
 class PathView(NinjaPathView):
-    async def _async_view(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:  # type: ignore
+    async def _async_view(  # type: ignore
+        self, request: HttpRequest, *args, **kwargs
+    ) -> HttpResponseBase:
         return await super(PathView, self)._async_view(request, *args, **kwargs)
 
     def _sync_view(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:  # type: ignore

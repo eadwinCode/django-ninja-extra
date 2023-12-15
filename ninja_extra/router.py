@@ -34,7 +34,7 @@ class Router(NinjaRouter):
         exclude_none: bool = False,
         url_name: Optional[str] = None,
         include_in_schema: bool = True,
-        openapi_extra: Optional[Dict[str, Any]] = None
+        openapi_extra: Optional[Dict[str, Any]] = None,
     ) -> None:
         if path not in self.path_operations:
             path_view = PathView()

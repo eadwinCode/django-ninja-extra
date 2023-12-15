@@ -485,9 +485,7 @@ class ModelEndpointFactory:
             list_items = route.get(
                 working_path,
                 response={
-                    status_code: pagination_response_schema[
-                        schema_out
-                    ]  # type:ignore[index]
+                    status_code: pagination_response_schema[schema_out]  # type:ignore[index]
                 },
                 url_name=url_name,
                 description=description,

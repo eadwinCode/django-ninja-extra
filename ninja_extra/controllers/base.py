@@ -66,7 +66,7 @@ def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
 
 
 def get_all_controller_route_function(
-    controller: Union[Type["ControllerBase"], Type]
+    controller: Union[Type["ControllerBase"], Type],
 ) -> List[RouteFunction]:  # pragma: no cover
     route_functions: List[RouteFunction] = []
     for item in dir(controller):

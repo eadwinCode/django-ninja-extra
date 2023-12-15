@@ -197,8 +197,7 @@ class AsyncRouteFunction(RouteFunction):
         context = get_route_execution_context(
             request,
             temporal_response,
-            self.route.permissions
-            or _api_controller.permission_classes,  # type:ignore[arg-type]
+            self.route.permissions or _api_controller.permission_classes,  # type:ignore[arg-type]
             *args,
             **kwargs,
         )
