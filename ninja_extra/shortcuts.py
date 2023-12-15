@@ -36,7 +36,7 @@ def get_object_or_exception(
     klass: Union[Type[Model], QuerySet],
     error_message: str = None,
     exception: Type[APIException] = NotFound,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Any:
     queryset = _get_queryset(klass)
     _validate_queryset(klass, queryset)
