@@ -1,82 +1,38 @@
-import datetime
-import functools
-import re
 import typing as t
 import uuid
-from urllib.parse import parse_qs, urlparse
 
 from django.db.models import Model as DjangoModel
 from django.db.models import QuerySet
-from ninja import Query, Schema
 from ninja.pagination import PaginationBase
-from ninja.params import Body, Path
-from pydantic import UUID4, create_model
+from ninja.params import Body
+from ninja.signature import is_async
 from pydantic import BaseModel as PydanticModel
 
 from ninja_extra.permissions import BasePermission
-from ninja_extra.shortcuts import add_ninja_contribute_args
 
 from ... import status
 from ...exceptions import NotFound
 from ...pagination import PageNumberPaginationExtra, PaginatedResponseSchema, paginate
 from ..route import route
+from .path_resolver import AsyncPathResolverOperation, PathResolverOperation
 
 if t.TYPE_CHECKING:
     from ..base import ModelControllerBase
 
 
-# Match parameters in URL paths, eg. '{param}', and '{int:param}'
-PARAM_REGEX = re.compile("{([a-zA-Z_][a-zA-Z0-9_]*:)?([a-zA-Z_][a-zA-Z0-9_]*)}")
+async def check_if_coroutine(func_result: t.Union[t.Any, t.Coroutine]) -> t.Any:
+    if isinstance(func_result, t.Coroutine):
+        return await func_result
+    return func_result
 
 
-class PathCompiledResult(t.NamedTuple):
-    param_convertors: t.Dict[str, t.Any]
-    query_parameters: t.Dict[str, t.Any]
+def path_resolver(path: str, func: t.Callable) -> t.Callable:
+    resolver_class = PathResolverOperation
+    if is_async(func):
+        resolver_class = AsyncPathResolverOperation
 
-    def has_any_parameter(self) -> bool:
-        return len(self.param_convertors) > 0 or len(self.query_parameters) > 0
-
-
-STRING_TYPES: t.Dict[str, t.Type] = {
-    "int": int,
-    "path": str,
-    "slug": str,
-    "str": str,
-    "uuid": UUID4,
-    "datetime": datetime.datetime,
-    "date": datetime.date,
-}
-
-
-def compile_path(path: str) -> PathCompiledResult:
-    """
-    Given a path string, like: "/{str:username}"
-
-    regex:      "/(?P<username>[^/]+)"
-    format:     "/{username}"
-    convertors: {str:"username"}
-    """
-    duplicated_params = set()
-    param_convertors = {}
-
-    parsed_url = urlparse(path)
-    query_parameters = parse_qs(parsed_url.query)
-
-    for match in PARAM_REGEX.finditer(path):
-        convertor_type, param_name = match.groups("str")
-        convertor = convertor_type.rstrip(":")
-
-        if param_name in param_convertors:
-            duplicated_params.add(param_name)
-
-        param_convertors[param_name] = STRING_TYPES[convertor]
-
-    if duplicated_params:
-        names = ", ".join(sorted(duplicated_params))
-        ending = "s" if len(duplicated_params) > 1 else ""
-        raise ValueError(f"Duplicated param name{ending} {names} at path {path}")
-
-    return PathCompiledResult(param_convertors, query_parameters)
+    instance = resolver_class(path, func)
+    return instance.as_view
 
 
 class ModelEndpointFactory:
@@ -89,79 +45,6 @@ class ModelEndpointFactory:
     def _change_name(cls, name_prefix: str) -> str:
         unique = str(uuid.uuid4())[:6]
         return f"{name_prefix}_{unique}"
-
-    @classmethod
-    def _path_resolver(cls, path: str) -> t.Callable:
-        """
-        Create a decorator to parse `path` parameters and resolve them during endpoint.
-        For example:
-        path=/{int:id}/tags/{post_id}?query=int&query1=int
-        this will create two path parameters `id` and `post_id` and two query parameters `query` and `query1`
-        for the decorated endpoint
-        """
-        compiled_path = compile_path(path)
-
-        def get_path_fields() -> t.Generator:
-            for path_name, path_type in compiled_path.param_convertors.items():
-                yield path_name, (path_type, ...)
-
-        def get_query_fields() -> t.Generator:
-            for path_name, path_type in compiled_path.query_parameters.items():
-                path_type.append("str")
-                yield path_name, (STRING_TYPES[path_type[0]], ...)
-
-        def decorator(func: t.Callable) -> t.Callable:
-            if not compiled_path.has_any_parameter():
-                return func
-
-            _ninja_contribute_args: t.List[t.Tuple] = getattr(
-                func, "_ninja_contribute_args", []
-            )
-
-            unique_key = str(uuid.uuid4().hex)[:5]
-
-            path_construct_name = f"PathModel{unique_key}"
-            query_construct_name = f"QueryModel{unique_key}"
-
-            path_fields = dict(get_path_fields())
-            query_fields = dict(get_query_fields())
-
-            if path_fields:
-                dynamic_path_model = create_model(
-                    path_construct_name, __base__=Schema, **path_fields
-                )
-                add_ninja_contribute_args(
-                    func,
-                    (path_construct_name, dynamic_path_model, Path(...)),
-                )
-
-            if query_fields:
-                dynamic_query_model = create_model(
-                    query_construct_name, __base__=Schema, **query_fields
-                )
-
-                add_ninja_contribute_args(
-                    func,
-                    (query_construct_name, dynamic_query_model, Query(...)),
-                )
-
-            @functools.wraps(func)
-            def path_parameter_resolver(*args: t.Any, **kwargs: t.Any) -> t.Any:
-                func_kwargs = dict(kwargs)
-
-                if path_construct_name in func_kwargs:
-                    dynamic_model_path_instance = func_kwargs.pop(path_construct_name)
-                    func_kwargs.update(dynamic_model_path_instance.dict())
-
-                if query_construct_name in func_kwargs:
-                    dynamic_model_query_instance = func_kwargs.pop(query_construct_name)
-                    func_kwargs.update(dynamic_model_query_instance.dict())
-
-                return func(*args, **func_kwargs)
-
-            return path_parameter_resolver
-
-        return decorator
 
     @classmethod
     def create(
@@ -192,7 +75,11 @@ class ModelEndpointFactory:
         """
         working_path = cls._clean_path(path)
 
-        @route.post(
+        create_item = path_resolver(
+            path,
+            cls._create_handler(schema_in=schema_in, custom_handler=custom_handler),
+        )
+        return route.post(
             working_path,
             response={status_code: schema_out},
             url_name=url_name,
@@ -208,23 +95,7 @@ class ModelEndpointFactory:
             include_in_schema=include_in_schema,
             permissions=permissions,
             openapi_extra=openapi_extra,
-        )
-        @cls._path_resolver(path)
-        def create_item(
-            self: "ModelControllerBase",
-            data: schema_in = Body(default=...),  # type:ignore[valid-type]
-            **kwargs: t.Any,
-        ) -> t.Any:
-            instance = (
-                custom_handler(self, data, **kwargs)
-                if custom_handler
-                else self.service.create(data, **kwargs)
-            )
-            assert instance, "`service.create` or  `custom_handler` must return a value"
-            return instance
-
-        create_item.__name__ = cls._change_name("create_item")
-        return create_item  # type:ignore[no-any-return]
+        )(create_item)
 
     @classmethod
     def update(
@@ -256,8 +127,16 @@ class ModelEndpointFactory:
         Creates a PUT Action
         """
         working_path = cls._clean_path(path)
-
-        @route.put(
+        update_item = path_resolver(
+            path,
+            cls._update_handler(
+                schema_in=schema_in,
+                object_getter=object_getter,
+                lookup_param=lookup_param,
+                custom_handler=custom_handler,
+            ),
+        )
+        return route.put(
             working_path,
             response={status_code: schema_out},
             url_name=url_name,
@@ -273,34 +152,7 @@ class ModelEndpointFactory:
             include_in_schema=include_in_schema,
             permissions=permissions,
             openapi_extra=openapi_extra,
-        )
-        @cls._path_resolver(path)
-        def update_item(
-            self: "ModelControllerBase",
-            data: schema_in = Body(default=...),  # type:ignore[valid-type]
-            **kwargs: t.Any,
-        ) -> t.Any:
-            pk = kwargs.pop(lookup_param)
-            obj = (
-                object_getter(self, pk=pk, **kwargs)
-                if object_getter
-                else self.service.get_one(pk=pk, **kwargs)
-            )
-
-            if not obj:  # pragma: no cover
-                raise NotFound()
-
-            self.check_object_permissions(obj)
-            instance = (
-                custom_handler(self, instance=obj, schema=data, **kwargs)
-                if custom_handler
-                else self.service.update(instance=obj, schema=data, **kwargs)
-            )
-            assert instance, "`service.update` or `custom_handler` must return a value"
-            return instance
-
-        update_item.__name__ = cls._change_name("update_item")
-        return update_item  # type:ignore[no-any-return]
+        )(update_item)
 
     @classmethod
     def patch(
@@ -332,8 +184,16 @@ class ModelEndpointFactory:
         Creates a PATCH Action
         """
         working_path = cls._clean_path(path)
-
-        @route.patch(
+        patch_item = path_resolver(
+            path,
+            cls._patch_handler(
+                object_getter=object_getter,
+                custom_handler=custom_handler,
+                lookup_param=lookup_param,
+                schema_in=schema_in,
+            ),
+        )
+        return route.patch(
             working_path,
             response={status_code: schema_out},
             url_name=url_name,
@@ -349,32 +209,7 @@ class ModelEndpointFactory:
             include_in_schema=include_in_schema,
             permissions=permissions,
             openapi_extra=openapi_extra,
-        )
-        @cls._path_resolver(path)
-        def patch_item(
-            self: "ModelControllerBase",
-            data: schema_in = Body(default=...),  # type:ignore[valid-type]
-            **kwargs: t.Any,
-        ) -> t.Any:
-            pk = kwargs.pop(lookup_param)
-            obj = (
-                object_getter(self, pk=pk, **kwargs)
-                if object_getter
-                else self.service.get_one(pk=pk, **kwargs)
-            )
-            if not obj:  # pragma: no cover
-                raise NotFound()
-            self.check_object_permissions(obj)
-            instance = (
-                custom_handler(self, instance=obj, schema=data, **kwargs)
-                if custom_handler
-                else self.service.patch(instance=obj, schema=data, **kwargs)
-            )
-            assert instance, "`service.patch()` or `custom_handler` must return a value"
-            return instance
-
-        patch_item.__name__ = cls._change_name("patch_item")
-        return patch_item  # type:ignore[no-any-return]
+        )(patch_item)
 
     @classmethod
     def find_one(
@@ -404,8 +239,13 @@ class ModelEndpointFactory:
         Creates a GET Action
         """
         working_path = cls._clean_path(path)
-
-        @route.get(
+        get_item = path_resolver(
+            path,
+            cls._find_one_handler(
+                object_getter=object_getter, lookup_param=lookup_param
+            ),
+        )
+        return route.get(
             working_path,
             response={status_code: schema_out},
             url_name=url_name,
@@ -421,22 +261,7 @@ class ModelEndpointFactory:
             include_in_schema=include_in_schema,
             permissions=permissions,
             openapi_extra=openapi_extra,
-        )
-        @cls._path_resolver(path)
-        def get_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
-            pk = kwargs.pop(lookup_param)
-            obj = (
-                object_getter(self, pk=pk, **kwargs)
-                if object_getter
-                else self.service.get_one(pk=pk, **kwargs)
-            )
-            if not obj:  # pragma: no cover
-                raise NotFound()
-            self.check_object_permissions(obj)
-            return obj
-
-        get_item.__name__ = cls._change_name("get_item")
-        return get_item  # type:ignore[no-any-return]
+        )(get_item)
 
     @classmethod
     def list(
@@ -472,17 +297,13 @@ class ModelEndpointFactory:
         Creates a GET Action to list Items
         """
         working_path = cls._clean_path(path)
-
-        @cls._path_resolver(path)
-        def list_items(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
-            """List Items of testing"""
-            if queryset_getter:
-                return queryset_getter(self, **kwargs)
-            return self.service.get_all(**kwargs)
+        list_items = path_resolver(
+            path, cls._list_handler(queryset_getter=queryset_getter)
+        )
 
         if pagination_response_schema and pagination_class:
             list_items = paginate(pagination_class, **paginate_kwargs)(list_items)
-            list_items = route.get(
+            return route.get(
                 working_path,
                 response={
                     status_code: pagination_response_schema[schema_out]  # type:ignore[index]
@@ -501,27 +322,24 @@ class ModelEndpointFactory:
                 permissions=permissions,
                 openapi_extra=openapi_extra,
             )(list_items)
-        else:
-            list_items = route.get(
-                working_path,
-                response={status_code: t.List[schema_out]},  # type:ignore[valid-type]
-                url_name=url_name,
-                description=description,
-                operation_id=operation_id,
-                summary=summary,
-                tags=tags,
-                deprecated=deprecated,
-                by_alias=by_alias,
-                exclude_unset=exclude_unset,
-                exclude_defaults=exclude_defaults,
-                exclude_none=exclude_none,
-                include_in_schema=include_in_schema,
-                permissions=permissions,
-                openapi_extra=openapi_extra,
-            )(list_items)
 
-        list_items.__name__ = cls._change_name("list_items")
-        return list_items  # type:ignore[no-any-return]
+        return route.get(
+            working_path,
+            response={status_code: t.List[schema_out]},  # type:ignore[valid-type]
+            url_name=url_name,
+            description=description,
+            operation_id=operation_id,
+            summary=summary,
+            tags=tags,
+            deprecated=deprecated,
+            by_alias=by_alias,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            include_in_schema=include_in_schema,
+            permissions=permissions,
+            openapi_extra=openapi_extra,
+        )(list_items)
 
     @classmethod
     def delete(
@@ -534,7 +352,7 @@ class ModelEndpointFactory:
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
         custom_handler: t.Optional[t.Callable[..., t.Any]] = None,
         operation_id: t.Optional[str] = None,
-        summary: t.Optional[str] = None,
+        summary: t.Optional[str] = "Delete An Item",
         tags: t.Optional[t.List[str]] = None,
         deprecated: t.Optional[bool] = None,
         by_alias: bool = False,
@@ -551,14 +369,22 @@ class ModelEndpointFactory:
         Creates a DELETE Action to list Items
         """
         working_path = cls._clean_path(path)
-
-        @route.delete(
+        delete_item = path_resolver(
+            path,
+            cls._delete_handler(
+                object_getter=object_getter,
+                lookup_param=lookup_param,
+                custom_handler=custom_handler,
+                status_code=status_code,
+            ),
+        )
+        return route.delete(
             working_path,
             url_name=url_name,
             response={status_code: str},
             description=description,
             operation_id=operation_id,
-            summary="Delete An Item",
+            summary=summary,
             tags=tags,
             deprecated=deprecated,
             by_alias=by_alias,
@@ -568,8 +394,30 @@ class ModelEndpointFactory:
             include_in_schema=include_in_schema,
             permissions=permissions,
             openapi_extra=openapi_extra,
-        )
-        @cls._path_resolver(path)
+        )(delete_item)
+
+    @classmethod
+    def _list_handler(
+        cls, *, queryset_getter: t.Optional[t.Callable[..., QuerySet]]
+    ) -> t.Callable:
+        def list_items(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
+            """List Items of testing"""
+            if queryset_getter:
+                return queryset_getter(self, **kwargs)
+            return self.service.get_all(**kwargs)
+
+        list_items.__name__ = cls._change_name("list_items")
+        return list_items
+
+    @classmethod
+    def _delete_handler(
+        cls,
+        *,
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+        status_code: int,
+    ) -> t.Callable:
         def delete_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
             pk = kwargs.pop(lookup_param)
             obj = (
@@ -586,4 +434,308 @@ class ModelEndpointFactory:
             return self.create_response(message="", status_code=status_code)
 
         delete_item.__name__ = cls._change_name("delete_item")
-        return delete_item  # type:ignore[no-any-return]
+        return delete_item
+
+    @classmethod
+    def _find_one_handler(
+        cls,
+        *,
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+    ) -> t.Callable:
+        def get_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
+            pk = kwargs.pop(lookup_param)
+            obj = (
+                object_getter(self, pk=pk, **kwargs)
+                if object_getter
+                else self.service.get_one(pk=pk, **kwargs)
+            )
+            if not obj:  # pragma: no cover
+                raise NotFound()
+            self.check_object_permissions(obj)
+            return obj
+
+        get_item.__name__ = cls._change_name("get_item")
+        return get_item
+
+    @classmethod
+    def _patch_handler(
+        cls,
+        *,
+        schema_in: t.Type[PydanticModel],
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+    ) -> t.Callable:
+        def patch_item(
+            self: "ModelControllerBase",
+            data: schema_in = Body(default=...),  # type:ignore[valid-type]
+            **kwargs: t.Any,
+        ) -> t.Any:
+            pk = kwargs.pop(lookup_param)
+            obj = (
+                object_getter(self, pk=pk, **kwargs)
+                if object_getter
+                else self.service.get_one(pk=pk, **kwargs)
+            )
+            if not obj:  # pragma: no cover
+                raise NotFound()
+            self.check_object_permissions(obj)
+            instance = (
+                custom_handler(self, instance=obj, schema=data, **kwargs)
+                if custom_handler
+                else self.service.patch(instance=obj, schema=data, **kwargs)
+            )
+            assert instance, "`service.patch()` or `custom_handler` must return a value"
+            return instance
+
+        patch_item.__name__ = cls._change_name("patch_item")
+        return patch_item
+
+    @classmethod
+    def _update_handler(
+        cls,
+        *,
+        schema_in: t.Type[PydanticModel],
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+    ) -> t.Callable:
+        def update_item(
+            self: "ModelControllerBase",
+            data: schema_in = Body(default=...),  # type:ignore[valid-type]
+            **kwargs: t.Any,
+        ) -> t.Any:
+            pk = kwargs.pop(lookup_param)
+            obj = (
+                object_getter(self, pk=pk, **kwargs)
+                if object_getter
+                else self.service.get_one(pk=pk, **kwargs)
+            )
+
+            if not obj:  # pragma: no cover
+                raise NotFound()
+
+            self.check_object_permissions(obj)
+            instance = (
+                custom_handler(self, instance=obj, schema=data, **kwargs)
+                if custom_handler
+                else self.service.update(instance=obj, schema=data, **kwargs)
+            )
+            assert instance, "`service.update` or `custom_handler` must return a value"
+            return instance
+
+        update_item.__name__ = cls._change_name("update_item")
+        return update_item
+
+    @classmethod
+    def _create_handler(
+        cls,
+        *,
+        schema_in: t.Type[PydanticModel],
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+    ) -> t.Callable:
+        def create_item(
+            self: "ModelControllerBase",
+            data: schema_in = Body(default=...),  # type:ignore[valid-type]
+            **kwargs: t.Any,
+        ) -> t.Any:
+            instance = (
+                custom_handler(self, data, **kwargs)
+                if custom_handler
+                else self.service.create(data, **kwargs)
+            )
+            assert instance, "`service.create` or  `custom_handler` must return a value"
+            return instance
+
+        create_item.__name__ = cls._change_name("create_item")
+        return create_item
+
+
+class ModelAsyncEndpointFactory(ModelEndpointFactory):
+    """
+    For create Async Route Functions
+    """
+
+    @classmethod
+    def _list_handler(
+        cls, *, queryset_getter: t.Optional[t.Callable[..., QuerySet]]
+    ) -> t.Callable:
+        async def list_items(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
+            """List Items of testing"""
+            if queryset_getter:
+                res = queryset_getter(self, **kwargs)
+            else:
+                res = self.service.get_all_async(**kwargs)  # type:ignore[assignment]
+
+            return await check_if_coroutine(res)
+
+        list_items.__name__ = cls._change_name("list_items")
+        return list_items
+
+    @classmethod
+    def _delete_handler(
+        cls,
+        *,
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+        status_code: int,
+    ) -> t.Callable:
+        async def delete_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
+            pk = kwargs.pop(lookup_param)
+            obj = (
+                object_getter(self, pk=pk, **kwargs)
+                if object_getter
+                else self.service.get_one_async(pk=pk, **kwargs)
+            )
+            obj = await check_if_coroutine(obj)
+            if not obj:  # pragma: no cover
+                raise NotFound()
+            self.check_object_permissions(obj)
+
+            res = (
+                custom_handler(self, instance=obj, **kwargs)
+                if custom_handler
+                else self.service.delete_async(instance=obj, **kwargs)  # type:ignore[arg-type]
+            )
+
+            await check_if_coroutine(res)
+            return self.create_response(message="", status_code=status_code)
+
+        delete_item.__name__ = cls._change_name("delete_item")
+        return delete_item
+
+    @classmethod
+    def _find_one_handler(
+        cls,
+        *,
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+    ) -> t.Callable:
+        async def get_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
+            pk = kwargs.pop(lookup_param)
+            obj = (
+                object_getter(self, pk=pk, **kwargs)
+                if object_getter
+                else self.service.get_one_async(pk=pk, **kwargs)
+            )
+            obj = await check_if_coroutine(obj)
+
+            if not obj:  # pragma: no cover
+                raise NotFound()
+
+            self.check_object_permissions(obj)
+            return obj
+
+        get_item.__name__ = cls._change_name("get_item")
+        return get_item
+
+    @classmethod
+    def _patch_handler(
+        cls,
+        *,
+        schema_in: t.Type[PydanticModel],
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+    ) -> t.Callable:
+        async def patch_item(
+            self: "ModelControllerBase",
+            data: schema_in = Body(default=...),  # type:ignore[valid-type]
+            **kwargs: t.Any,
+        ) -> t.Any:
+            pk = kwargs.pop(lookup_param)
+            obj = (
+                object_getter(self, pk=pk, **kwargs)
+                if object_getter
+                else self.service.get_one_async(pk=pk, **kwargs)
+            )
+            obj = await check_if_coroutine(obj)
+
+            if not obj:  # pragma: no cover
+                raise NotFound()
+            self.check_object_permissions(obj)
+
+            instance = (
+                custom_handler(self, instance=obj, schema=data, **kwargs)
+                if custom_handler
+                else self.service.patch_async(instance=obj, schema=data, **kwargs)  # type:ignore[arg-type]
+            )
+            instance = await check_if_coroutine(instance)
+
+            assert (
+                instance
+            ), "`service.patch_async()` or `custom_handler` must return a value"
+            return instance
+
+        patch_item.__name__ = cls._change_name("patch_item")
+        return patch_item
+
+    @classmethod
+    def _update_handler(
+        cls,
+        *,
+        schema_in: t.Type[PydanticModel],
+        object_getter: t.Optional[t.Callable[..., DjangoModel]],
+        lookup_param: str,
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+    ) -> t.Callable:
+        async def update_item(
+            self: "ModelControllerBase",
+            data: schema_in = Body(default=...),  # type:ignore[valid-type]
+            **kwargs: t.Any,
+        ) -> t.Any:
+            pk = kwargs.pop(lookup_param)
+            obj = (
+                object_getter(self, pk=pk, **kwargs)
+                if object_getter
+                else self.service.get_one_async(pk=pk, **kwargs)
+            )
+            obj = await check_if_coroutine(obj)
+
+            if not obj:  # pragma: no cover
+                raise NotFound()
+
+            self.check_object_permissions(obj)
+            instance = (
+                custom_handler(self, instance=obj, schema=data, **kwargs)
+                if custom_handler
+                else self.service.update_async(instance=obj, schema=data, **kwargs)  # type:ignore[arg-type]
+            )
+            instance = await check_if_coroutine(instance)
+
+            assert (
+                instance
+            ), "`service.update_async` or `custom_handler` must return a value"
+            return instance
+
+        update_item.__name__ = cls._change_name("update_item")
+        return update_item
+
+    @classmethod
+    def _create_handler(
+        cls,
+        *,
+        schema_in: t.Type[PydanticModel],
+        custom_handler: t.Optional[t.Callable[..., t.Any]],
+    ) -> t.Callable:
+        async def create_item(
+            self: "ModelControllerBase",
+            data: schema_in = Body(default=...),  # type:ignore[valid-type]
+            **kwargs: t.Any,
+        ) -> t.Any:
+            instance = (
+                custom_handler(self, data, **kwargs)
+                if custom_handler
+                else self.service.create_async(data, **kwargs)
+            )
+            instance = await check_if_coroutine(instance)
+
+            assert (
+                instance
+            ), "`service.create_async` or  `custom_handler` must return a value"
+            return instance
+
+        create_item.__name__ = cls._change_name("create_item")
+        return create_item

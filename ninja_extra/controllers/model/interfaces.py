@@ -6,6 +6,36 @@ from django.db.models import QuerySet
 from pydantic import BaseModel as PydanticModel
 
 
+class AsyncModelServiceBase(ABC):
+    @abstractmethod
+    async def get_one_async(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
+        pass
+
+    @abstractmethod
+    async def get_all_async(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
+        pass
+
+    @abstractmethod
+    async def create_async(self, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
+        pass
+
+    @abstractmethod
+    async def update_async(
+        self, instance: DjangoModel, schema: PydanticModel, **kwargs: t.Any
+    ) -> t.Any:
+        pass
+
+    @abstractmethod
+    async def patch_async(
+        self, instance: DjangoModel, schema: PydanticModel, **kwargs: t.Any
+    ) -> t.Any:
+        pass
+
+    @abstractmethod
+    async def delete_async(self, instance: DjangoModel, **kwargs: t.Any) -> t.Any:
+        pass
+
+
 class ModelServiceBase(ABC):
     """
     Abstract service that handles Model Controller model CRUD operations

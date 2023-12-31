@@ -6,6 +6,7 @@ import django
 
 from ninja_extra.controllers import (
     ControllerBase,
+    ModelAsyncEndpointFactory,
     ModelConfig,
     ModelControllerBase,
     ModelControllerBuilder,
@@ -63,4 +64,5 @@ __all__ = [
     "ModelServiceBase",
     "ModelControllerBase",
     "ModelEndpointFactory",
+    "ModelAsyncEndpointFactory",
 ]

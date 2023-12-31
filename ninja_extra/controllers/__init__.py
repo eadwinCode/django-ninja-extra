@@ -1,5 +1,6 @@
 from .base import ControllerBase, ModelControllerBase, api_controller
 from .model import (
+    ModelAsyncEndpointFactory,
     ModelConfig,
     ModelControllerBuilder,
     ModelEndpointFactory,
@@ -49,4 +50,5 @@ __all__ = [
     "ModelPagination",
     "ModelServiceBase",
     "ModelEndpointFactory",
+    "ModelAsyncEndpointFactory",
 ]
