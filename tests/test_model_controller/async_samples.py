@@ -1,6 +1,5 @@
 from asgiref.sync import sync_to_async
 from ninja.pagination import LimitOffsetPagination
-from ninja_schema import ModelSchema
 
 from ninja_extra import (
     ModelAsyncEndpointFactory,
@@ -14,18 +13,7 @@ from ninja_extra import (
 from ninja_extra.schemas import NinjaPaginationResponseSchema
 
 from ..models import Event
-
-
-class CreateEventSchema(ModelSchema):
-    class Config:
-        model = Event
-        include = ["title", "start_date", "end_date"]
-
-
-class EventSchema(ModelSchema):
-    class Config:
-        model = Event
-        exclude = ["category"]
+from .samples import CreateEventSchema, EventSchema
 
 
 @api_controller("/event")
@@ -120,6 +108,12 @@ class AsyncEventController(ModelService):
         queryset_getter=lambda self, **kw: sync_to_async(
             Event.objects.filter, thread_sensitive=True
         )(id=kw["event_id"]),
+    )
+
+    list_event_names = ModelAsyncEndpointFactory.list(
+        path="/event-names",
+        schema_out=str,
+        queryset_getter=lambda self, **kw: ["event1", "event2", "event3"],
     )
 
     delete_event = ModelAsyncEndpointFactory.delete(

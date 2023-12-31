@@ -245,6 +245,12 @@ async def test_event_model_controller_manual_control_async():
     data = res.json()
     assert data["count"]
     assert data["results"]
+    # LIST Event Names
+    res = await client.get("/event-names", query={"event_id": working_id})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["count"] == 3
+    assert data["results"] == ["event1", "event2", "event3"]
     # PUT
     test_item.update(title="test updated")
     res = await client.put(f"/{working_id}", json=test_item)
