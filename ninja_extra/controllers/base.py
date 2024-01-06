@@ -313,7 +313,7 @@ class APIController:
             self._prefix_has_route_param = True
 
         self.has_auth_async = False
-        if auth is not NOT_SET:
+        if auth and auth is not NOT_SET:
             auth_callbacks = isinstance(auth, Sequence) and auth or [auth]
             for _auth in auth_callbacks:
                 _call_back = _auth if inspect.isfunction(_auth) else _auth.__call__
