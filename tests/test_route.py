@@ -344,7 +344,7 @@ class TestRouteFunction:
 
 @pytest.mark.django_db
 class TestAPIControllerRoutePermission:
-    def setup(self):
+    def setup_method(self):
         self.controller = PermissionController()
 
     @classmethod
