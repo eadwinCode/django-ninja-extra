@@ -225,6 +225,7 @@ class PaginatorOperation:
             ), "Request object is None"
             params = dict(kw)
             params["request"] = controller.context.request
+            params["response"] = controller.context.response
             return self.paginator.paginate_queryset(items, **params)
 
         return as_view

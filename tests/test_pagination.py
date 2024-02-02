@@ -43,7 +43,15 @@ class CustomPagination(PaginationBase):
 
     def paginate_queryset(self, items, request, **params):
         skip = params["pagination"].skip
-        return items[skip : skip + 5]
+        return items[skip: skip + 5]
+
+
+class CustomHeaderPagination(PageNumberPaginationExtra):
+
+    def paginate_queryset(self, queryset, pagination, request, **params):
+        response = params.get("response")
+        response.headers.setdefault("test", "123")
+        return super().paginate_queryset(queryset, pagination, request)
 
 
 @api_controller
@@ -78,6 +86,11 @@ class SomeAPIController:
     @paginate()
     def items_6_empty_query_set(self):
         return FakeQuerySet([])
+
+    @route.get("/items_7")
+    @paginate(CustomHeaderPagination, page_size=10)
+    def items_7(self):
+        return ITEMS
 
 
 api = NinjaExtraAPI()
@@ -271,6 +284,13 @@ class TestPagination:
         response = client.get("/items_6?page=1").json()
         assert response.get("items") is not None
         assert response["items"] == []
+
+    def test_case7(self):
+        response = client.get("/items_7?page=1")
+        json_response = response.json()
+        assert json_response.get("results") is not None
+        assert json_response["results"] == ITEMS[0:10]
+        assert response.headers.get("test", None) == "123"
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
