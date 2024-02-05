@@ -26,3 +26,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.8.10
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Deploy Documentation
+        run: make doc-deploy
