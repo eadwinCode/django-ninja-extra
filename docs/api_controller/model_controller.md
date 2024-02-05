@@ -1,11 +1,9 @@
 # **Model APIController**
-!!! Note
-    `ModelController` is only available from **v0.19.5**
+Model Controllers extend the `ControllerBase` class and introduce two configuration variables, namely `model_config` and `model_service`. 
 
-**Model Controllers** inherit from the `ControllerBase` class and provide two important variables: `model_config` and `model_service`. 
-These variables guide the route generation, schema generation, and model operations.
+The `model_config` is responsible for defining configurations related to routes and schema generation, while the `model_service` refers to a class that manages CRUD (Create, Read, Update, Delete) operations for the specified model.
 
-For instance, let's create a ModelController for an Event model defined as follows:
+For example, consider the definition of an `Event` model in Django:
 
 ```python
 from django.db import models
@@ -23,9 +21,9 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
-
 ```
-Then, in `api.py`, we create an `EventModelController`:
+
+Now, let's create a `ModelController` for the `Event` model. In the `api.py` file, we define an `EventModelController`:
 
 ```python
 from ninja_extra import (
@@ -46,37 +44,45 @@ class EventModelController(ModelControllerBase):
     
 api = NinjaExtraAPI()
 api.register_controllers(EventModelController)
-
 ```
 
-Model Controllers require the `ninja-schema` package for auto schema generation, which can be installed with:
+It's important to note that Model Controllers rely on the `ninja-schema` package for automatic schema generation. To install the package, use the following command:
+
 ```shell
 pip install ninja-schema
 ```
 
+After installation, you can access the auto-generated API documentation by visiting 
+[http://localhost:8000/api/docs](http://localhost:8000/api/docs). 
+
+This documentation provides a detailed overview of the available routes, schemas, and functionalities 
+exposed by the `EventModelController` for the `Event` model.
+
+
 ## **Model Configuration**
-`ModelConfig` is a Pydantic schema used for validating and configuring Model Controller behaviors. Configuration options include:
+The `ModelConfig` is a Pydantic schema designed for validating and configuring the behavior of Model Controllers. Key configuration options include:
 
-- **model**: A required field that holds the Django model type for the Model Controller.
-- **allowed_routes**: A list of API actions allowed to be generated in the Model Controller. The default value is `["create", "find_one", "update", "patch", "delete", "list"]`.
-- **create_schema**: An optional Pydantic schema that describes the data input types for a `create` or `POST` operation in the Model Controller. The default value is `None`. If not provided, the `ModelController` will create a new schema based on the `schema_config` option.
-- **update_schema**: An optional Pydantic schema that describes the data input types for an `update` or `PUT` operation in the Model Controller. The default value is `None`. If not provided, the `create_schema` will be used if available, or a new schema will be generated based on the `schema_config` option.
-- **retrieve_schema**: An optional Pydantic schema output that describes the data output types for various operations. The default value is `None`. If not provided, the `ModelController` will generate a schema based on the `schema_config` option.
-- **patch_schema**: An optional Pydantic schema output that describes the data input types for `patch/PATCH` operations. The default value is `None`. If not provided, the `ModelController` will generate a schema with all of its fields optional.
-- **schema_config**: This is also a required field that describes how schema should be generated as required by Model Controller operations. Configuration options include:
-    - `include`: List of Fields to be included. The default is `__all__`.
-    - `exclude`: List of Fields to be excluded. The default is `[]`.
-    - `optional`: List of Fields to be forced as optional. The default is `[pk]`.
-    - `depth`: Depth to nest schema generation.
-    - `read_only_fields`: List of fields to be excluded when generating input schemas for create, update, and patch operations.
-    - `write_only_fields`: List of fields to be excluded when generating output schemas for find_one and list operations.
-- **pagination**: This is required for the model `list/GET` operation to avoid sending `100_000` items at once in a request. The pagination configuration requires a `ModelPagination` Pydantic schema object to be configured. Options include:
-    - `klass`: The pagination class of type `PaginationBase`. The default is `PageNumberPaginationExtra`.
-    - `paginator_kwargs`: A dictionary value for `PaginationBase` initialization. The default is None.
-    - `pagination_schema`: A Pydantic generic schema that will be combined with `retrieve_schema` to generate a response schema for `list/GET `operation.
+- **model**: A mandatory field representing the Django model type associated with the Model Controller.
+- **async_routes**: Indicates if controller **routes** should be created as **`asynchronous`** route functions
+- **allowed_routes**: A list specifying the API actions permissible for generation in the Model Controller. The default value is `["create", "find_one", "update", "patch", "delete", "list"]`.
+- **create_schema**: An optional Pydantic schema outlining the data input types for a `create` or `POST` operation in the Model Controller. The default is `None`. If not provided, the `ModelController` will generate a new schema based on the `schema_config` option.
+- **update_schema**: An optional Pydantic schema detailing the data input types for an `update` or `PUT` operation in the Model Controller. The default is `None`. If not provided, the `create_schema` will be used if available, or a new schema will be generated based on the `schema_config` option.
+- **retrieve_schema**: An optional Pydantic schema output defining the data output types for various operations. The default is `None`. If not provided, the `ModelController` will generate a schema based on the `schema_config` option.
+- **patch_schema**: An optional Pydantic schema output specifying the data input types for `patch/PATCH` operations. The default is `None`. If not provided, the `ModelController` will generate a schema with all its fields optional.
+- **schema_config**: Another mandatory field describing the schema generation approach required by Model Controller operations. Configuration options encompass:
+    - `include`: A list of Fields to be included. The default is `__all__`.
+    - `exclude`: A list of Fields to be excluded. The default is `[]`.
+    - `optional`: A list of Fields to be enforced as optional. The default is `[pk]`.
+    - `depth`: The depth for nesting schema generation.
+    - `read_only_fields`: A list of fields to be excluded when generating input schemas for create, update, and patch operations.
+    - `write_only_fields`: A list of fields to be excluded when generating output schemas for find_one and list operations.
+  - **pagination**: A requisite for the model `list/GET` operation to prevent sending `100_000` items at once in a request. The pagination configuration mandates a `ModelPagination` Pydantic schema object for setup. Options encompass:
+      - `klass`: The pagination class of type `PaginationBase`. The default is `PageNumberPaginationExtra`.
+      - `paginator_kwargs`: A dictionary value for `PaginationBase` initialization. The default is None.
+      - `pagination_schema`: A Pydantic generic schema that combines with `retrieve_schema` to generate a response schema for the `list/GET` operation.
    
-    For example, if you want to use `ninja` pagination like `LimitOffsetPagination`:
-
+    For instance, if opting for `ninja` pagination like `LimitOffsetPagination`:
+  
     ```python
     from ninja.pagination import LimitOffsetPagination
     from ninja_extra.schemas import NinjaPaginationResponseSchema
@@ -86,7 +92,7 @@ pip install ninja-schema
         api_controller,
         ModelPagination
     )
-    
+  
     @api_controller("/events")
     class EventModelController(ModelControllerBase):
         model_config = ModelConfig(
@@ -96,11 +102,11 @@ pip install ninja-schema
                 pagination_schema=NinjaPaginationResponseSchema
             ),
         )
-    
-    ```  
+    ```
 
 ## **More on Model Controller Operations**
-In NinjaExtra Model Controller, the controller's behavior can be controlled by what is provided in the `allowed_routes` list within the `model_config` option.
+In NinjaExtra Model Controller, the controller's behavior can be controlled by what is provided in the `allowed_routes` 
+list within the `model_config` option.
 
 For example, you can create a read-only controller like this:
 
@@ -200,6 +206,37 @@ class EventModelController(ModelControllerBase):
     )
 
 ```
+
+### **Enable Async Routes**
+In `model_config`, set `async_routes` to `True`
+
+```python 
+from ninja_extra import (
+    ModelConfig,
+    ModelControllerBase,
+    ModelSchemaConfig,
+    api_controller,
+)
+from .service import EventModelService
+from .models import Event
+
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    service = EventModelService(model=Event)
+    model_config = ModelConfig(
+        model=Event,
+        async_routes=True,
+        schema_config=ModelSchemaConfig(read_only_fields=["id", "category"]),
+    )
+```
+
+By setting the `async_routes` parameter to `True` in the `model_config`, the `ModelController` 
+dynamically switches between [`ModelAsyncEndpointFactory`](#async-model-endpoint-factory) and 
+[`ModelEndpointFactory`](#model-endpoint-factory) to generate 
+either asynchronous or synchronous endpoints based on the configuration.
+
+
 ### **ModelController and ModelService Together**
 It's also possible to merge the controller and the model service together if needed:
 
@@ -278,6 +315,59 @@ In the above example, we created an endpoint `POST /{int:event_id}/new-category`
 and passed in input and output schemas along with a custom handler. 
 By passing in a `custom_handler`, the generated route function will delegate its handling action to the provided 
 `custom_handler` instead of calling `service.create`.
+
+
+## **Async Model Endpoint Factory**
+The `ModelAsyncEndpointFactory` shares the same API interface as `ModelEndpointFactory` 
+but is specifically designed for generating asynchronous endpoints.
+
+we can create same example as with `ModelEndpointFactory`,
+
+For example:
+
+```python
+from typing import Any
+from pydantic import BaseModel
+from ninja_extra import (
+    ModelConfig,
+    ModelControllerBase,
+    ModelSchemaConfig,
+    api_controller,
+    ModelAsyncEndpointFactory
+)
+from .models import Event, Category
+
+class CreateCategorySchema(BaseModel):
+    title: str
+
+class CategorySchema(BaseModel):
+    id: str
+    title: str
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        schema_config=ModelSchemaConfig(read_only_fields=["id", "category"]),
+    )
+
+    add_event_to_new_category = ModelAsyncEndpointFactory.create(
+        path="/{int:event_id}/new-category",
+        schema_in=CreateCategorySchema,
+        schema_out=CategorySchema,
+        custom_handler=lambda self, data, **kw: self.handle_add_event_to_new_category(data, **kw)
+    )
+
+    async def handle_add_event_to_new_category(self, data: CreateCategorySchema, **kw: Any) -> Category:
+        event = await self.service.get_one_async(pk=kw['event_id'])
+        category = Category.objects.create(title=data.title)
+        event.category = category
+        event.save()
+        return category
+```
+In the above illustration, we created `add_event_to_new_category` as an asynchronous function and converted 
+`handle_add_event_to_new_category` to asynchronous function as well. 
+
 
 ### **QueryGetter and ObjectGetter**
 `ModelEndpointFactory` exposes a more flexible way to get a model object or get a queryset filter in the case of 

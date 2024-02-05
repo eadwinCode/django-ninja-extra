@@ -4,7 +4,7 @@ from ninja.orm.fields import TYPES
 
 from ninja_extra.constants import ROUTE_FUNCTION
 
-from .endpoints import ModelEndpointFactory
+from .endpoints import ModelAsyncEndpointFactory, ModelEndpointFactory
 from .schemas import ModelConfig
 
 if t.TYPE_CHECKING:
@@ -42,6 +42,12 @@ class ModelControllerBuilder:
         self._update_schema = self._config.update_schema
         self._patch_schema = self._config.patch_schema
 
+        self._route_factory: ModelEndpointFactory = (
+            ModelAsyncEndpointFactory()
+            if base_cls.model_config.async_routes
+            else ModelEndpointFactory()
+        )
+
     def _add_to_controller(self, func: t.Callable) -> None:
         route_function = getattr(func, ROUTE_FUNCTION)
         route_function.api_controller = self._api_controller_instance
@@ -54,7 +60,7 @@ class ModelControllerBuilder:
             "summary": "Create an item",
         }
         kw.update(self._config.create_route_info)
-        create_item = ModelEndpointFactory.create(
+        create_item = self._route_factory.create(
             schema_in=self._create_schema,  # type:ignore[arg-type]
             schema_out=self._retrieve_schema,  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
@@ -74,7 +80,7 @@ class ModelControllerBuilder:
         }
         kw.update(self._config.update_route_info)
 
-        update_item = ModelEndpointFactory.update(
+        update_item = self._route_factory.update(
             path=_path,
             lookup_param=self._model_pk_name,
             schema_in=self._update_schema,  # type:ignore[arg-type]
@@ -98,7 +104,7 @@ class ModelControllerBuilder:
         }
         kw.update(self._config.patch_route_info)
 
-        patch_item = ModelEndpointFactory.patch(
+        patch_item = self._route_factory.patch(
             path=_path,
             lookup_param=self._model_pk_name,
             schema_out=self._retrieve_schema,  # type:ignore[arg-type]
@@ -120,7 +126,7 @@ class ModelControllerBuilder:
         }
         kw.update(self._config.find_one_route_info)
 
-        get_item = ModelEndpointFactory.find_one(
+        get_item = self._route_factory.find_one(
             path=_path,
             lookup_param=self._model_pk_name,
             schema_out=self._retrieve_schema,  # type:ignore[arg-type]
@@ -148,7 +154,7 @@ class ModelControllerBuilder:
             if self._config.pagination.paginator_kwargs:  # pragma: no cover
                 paginate_kwargs.update(self._config.pagination.paginator_kwargs)
 
-        list_items = ModelEndpointFactory.list(
+        list_items = self._route_factory.list(
             path="/",
             schema_out=self._retrieve_schema,  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
@@ -169,7 +175,7 @@ class ModelControllerBuilder:
         }
         kw.update(self._config.delete_route_info)
 
-        delete_item = ModelEndpointFactory.delete(
+        delete_item = self._route_factory.delete(
             path=_path,
             lookup_param=self._model_pk_name,
             **kw,  # type:ignore[arg-type]

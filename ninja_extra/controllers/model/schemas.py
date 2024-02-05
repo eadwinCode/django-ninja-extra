@@ -74,7 +74,7 @@ class ModelConfig(PydanticModel):
             "list",
         ]
     )
-
+    async_routes: bool = False
     create_schema: Optional[Type[PydanticModel]] = None
     retrieve_schema: Optional[Type[PydanticModel]] = None
     update_schema: Optional[Type[PydanticModel]] = None

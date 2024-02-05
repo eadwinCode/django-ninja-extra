@@ -111,3 +111,5 @@ You will see the automatic interactive API documentation (provided by <a href="h
 
 ![Swagger UI](docs/images/ui_swagger_preview_readme.gif)
 
+## Tutorials
+- [django-ninja - Permissions, Controllers & Throttling with django-ninja-extra!](https://www.youtube.com/watch?v=yQqig-c2dd4) - Learn how to permission, controller and throttling with django-ninja-extra

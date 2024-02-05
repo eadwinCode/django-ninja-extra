@@ -1,16 +1,17 @@
 import traceback
 import typing as t
 
+from asgiref.sync import sync_to_async
 from django.db.models import Model, QuerySet
 from pydantic import BaseModel as PydanticModel
 
 from ninja_extra.exceptions import NotFound
 from ninja_extra.shortcuts import get_object_or_exception
 
-from .interfaces import ModelServiceBase
+from .interfaces import AsyncModelServiceBase, ModelServiceBase
 
 
-class ModelService(ModelServiceBase):
+class ModelService(ModelServiceBase, AsyncModelServiceBase):
     """
     Model Service for Model Controller model CRUD operations with a simple logic for simple models.
 
@@ -26,11 +27,17 @@ class ModelService(ModelServiceBase):
         )
         return obj
 
+    async def get_one_async(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
+        return await sync_to_async(self.get_one, thread_sensitive=True)(pk, **kwargs)
+
     def get_all(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
         return self.model.objects.all()
 
+    async def get_all_async(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
+        return await sync_to_async(self.get_all, thread_sensitive=True)(**kwargs)
+
     def create(self, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
-        data = schema.dict(by_alias=True)
+        data = schema.model_dump(by_alias=True)
         data.update(kwargs)
 
         try:
@@ -56,16 +63,34 @@ class ModelService(ModelServiceBase):
             )
             raise TypeError(msg) from tex
 
+    async def create_async(self, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
+        return await sync_to_async(self.create, thread_sensitive=True)(schema, **kwargs)
+
     def update(self, instance: Model, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
-        data = schema.dict(exclude_none=True)
+        data = schema.model_dump(exclude_none=True)
         data.update(kwargs)
         for attr, value in data.items():
             setattr(instance, attr, value)
         instance.save()
         return instance
 
+    async def update_async(
+        self, instance: Model, schema: PydanticModel, **kwargs: t.Any
+    ) -> t.Any:
+        return await sync_to_async(self.update, thread_sensitive=True)(
+            instance, schema, **kwargs
+        )
+
     def patch(self, instance: Model, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
         return self.update(instance=instance, schema=schema, **kwargs)
 
+    async def patch_async(
+        self, instance: Model, schema: PydanticModel, **kwargs: t.Any
+    ) -> t.Any:
+        return await self.update_async(instance=instance, schema=schema, **kwargs)
+
     def delete(self, instance: Model, **kwargs: t.Any) -> t.Any:
         instance.delete()
+
+    async def delete_async(self, instance: Model, **kwargs: t.Any) -> t.Any:
+        return await sync_to_async(self.delete, thread_sensitive=True)(instance)

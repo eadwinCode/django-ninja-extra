@@ -25,8 +25,22 @@ class RouteInvalidParameterException(Exception):
 
 class Route(object):
     """
-    APIController Class Route definition method decorator
-    That converts class instance methods to `RouteFunction(s) | AsyncRouteFunction(s)`
+    Decorates Controller class methods with HTTP Operation methods and as a route function handler
+
+    Example:
+        ```python
+        from ninja_extra import api_controller
+
+        @api_controller
+        class SampleController:
+            @route.post('/create')
+            def create_sample():
+                pass
+
+            @route.get('/list')
+            def get_all_samples():
+                pass
+        ```
     """
 
     permissions: t.Optional[t.Optional[t.List[t.Type[BasePermission]]]] = None

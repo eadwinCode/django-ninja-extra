@@ -4,7 +4,7 @@
 [![PyPI version](https://img.shields.io/pypi/pyversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![PyPI version](https://img.shields.io/pypi/djversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![Codecov](https://img.shields.io/codecov/c/gh/eadwinCode/django-ninja-extra)](https://codecov.io/gh/eadwinCode/django-ninja-extra)
-[![Downloads](https://pepy.tech/badge/django-ninja-extra/month)](https://pepy.tech/project/django-ninja-extra)
+[![Downloads](https://pepy.tech/badge/django-ninja-extra)](https://pepy.tech/project/django-ninja-extra)
 
 # Django Ninja Extra
 
@@ -112,3 +112,6 @@ Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.
 You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
 
 ![Swagger UI](images/ui_swagger_preview_readme.gif)
+
+## Tutorials
+- [django-ninja - Permissions, Controllers & Throttling with django-ninja-extra!](https://www.youtube.com/watch?v=yQqig-c2dd4) - Learn how to permission, controller and throttling with django-ninja-extra
