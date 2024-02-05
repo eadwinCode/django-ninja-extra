@@ -57,6 +57,7 @@ nav:
 - RouteContext: route_context.md
 - Settings: settings.md
 - Dependency Injection: service_module_injector.md
+- Contribution: contribution.md
 
 markdown_extensions:
 - codehilite

@@ -1,14 +1,9 @@
 # **APIController Route Decorator**
+The `route` class is a function decorator designed to annotate a Controller class function as an endpoint with a specific HTTP method.
 
-The `route` class is a function decorator, used to mark an instance function of an APIController class, as an endpoint.
-
-!!! info
-    `ControllerRoute` or `route` is not the same with **django-ninja** `router` and can't be used interchangeably.
-
-For example
+For instance:
 ```python
 from ninja_extra import route, api_controller
-from ninja_extra.controllers import RouteFunction
 
 @api_controller
 class MyController:
@@ -16,80 +11,65 @@ class MyController:
     def test(self):
         return {'message': 'test'}
 
-assert isinstance(MyController.test, RouteFunction) # true
-
 ```
-The `route` has predefined method that helps create the following operations and their names proceeds its operation
+The `route` provides predefined methods that simplify the creation of various operations, and their names align with the respective HTTP methods:
 
-- GET
-- POST
-- PUT
-- DELETE
-- PATCH
-- GENERIC-for operation combination eg: `methods=['POST', 'PATCH']`
+- GET: `route.get`
+- POST: `route.post`
+- PUT: `route.put`
+- DELETE: `route.delete`
+- PATCH: `route.patch`
+- GENERIC - for combinations of operations, e.g., `route.generic(methods=['POST', 'PATCH'])`
+
 
 ## **Initialization Parameters**
--  ### **`path`**
-it's a required uniques endpoint path string
- 
--  ### **`methods`**
-it's required a collection of endpoint operational mode eg: `['POST', 'PUT']`
- 
--  ### **`auth`**
-defines endpoint authentication method. default: `NOT_SET`
- 
--  ### **`response`**
-defines `dict[status_code, schema]` or `Schema`. It is used validated returned response. default: `NOT_SET`
- 
--  ### **`operation_id`**
-it is an optional unique id that distinguishes `operations` in path view. default: `NOT_SET`
- 
--  ### **`summary`**
-it is an optional summary that describes your endpoint. default: `None`
- 
--  ### **`description`**
-it is an optional description that describes your endpoint. default: `None`
- 
--  ### **`tags`**
-It is a list of strings useful for endpoint grouping for documentation purpose. default: `None`
- 
--  ### **`deprecated`**
-it is an optional boolean parameter that declares an endpoint deprecated. default: `None`
- 
--  ### **`by_alias`**
-it is an optional parameter that is applied to filter `response` schema object. default: `False`
- 
--  ### **`exclude_unset`**
-it is an optional parameter that is applied to filter `response` schema object. default: `False`
- 
--  ### **`exclude_defaults`**
-it is an optional parameter that is applied to filter `response` schema object. default: `False`
- 
--  ### **`exclude_none`**
-it is an optional parameter that is applied to filter `response` schema object. default: `False`
- 
--  ### **`include_in_schema`**
-indicates whether an endpoint should appear on the swagger documentation. default: `True`
- 
--  ### **`url_name`**
-it gives a name to an endpoint which can be resolved using `reverse` function in django. default: `None`
- 
--  ### **`permissions`**
-defines collection route permission classes. default: `None`
+Here's a summarized description of the parameters for the `route` class in NinjaExtra:
 
-Most of these parameters are what is used in creating and endpoint in Django-Ninja, but it has been abstracted here to be for the same purpose on APIController class
+- **`path`**: A required unique endpoint path string.
+
+- **`methods`**: A collection of required HTTP methods for the endpoint, e.g., `['POST', 'PUT']`.
+
+- **`auth`**: Defines the authentication method for the endpoint. Default: `NOT_SET`
+
+- **`response`**: Defines the response format as `dict[status_code, schema]` or `Schema`. It is used to validate the returned response.Default: `NOT_SET`
+
+- **`operation_id`**: An optional unique identifier distinguishing operations in path view.Default: `NOT_SET`
+
+- **`summary`**: An optional summary describing the endpoint. Default: `None`
+
+- **`description`**: An optional description providing additional details about the endpoint. Default: `None`
+
+- **`tags`**: A list of strings for grouping the endpoint for documentation purposes. Default: `None`
+
+- **`deprecated`**: An optional boolean parameter indicating if the endpoint is deprecated. Default: `None`
+
+- **`by_alias`**: An optional parameter applied to filter the `response` schema object. Default: `False`
+
+- **`exclude_unset`**: An optional parameter applied to filter the `response` schema object.  Default: `False`
+
+- **`exclude_defaults`**: An optional parameter applied to filter the `response` schema object.  Default: `False`
+
+- **`exclude_none`**: An optional parameter applied to filter the `response` schema object.  Default: `False`
+
+- **`include_in_schema`**: Indicates whether the endpoint should appear on the Swagger documentation.  Default: `True`
+
+- **`url_name`**: Gives a name to the endpoint that can be resolved using the `reverse` function in Django.  Default: `None`
+
+- **`permissions`**: Defines a collection of route permission classes for the endpoint. Default: `None`
+
+These parameters serve a similar purpose to those used in creating an endpoint in Django-Ninja 
+but have been abstracted to apply to Controller classes in NinjaExtra.
 
 
 ## **Async Route Definition**
-**Django-Ninja-Extra** `route` class also supports async endpoint definition just like in Django-Ninja.
-This is only available on Django > 3.0.
+In **Django-Ninja-Extra**, the `route` class supports the definition of asynchronous endpoints, similar to Django-Ninja. 
+This feature is available for Django versions greater than 3.0.
 
-For Example
+For example:
 
 ```python
 import asyncio
 from ninja_extra import http_get, api_controller
-from ninja_extra.controllers import AsyncRouteFunction
 
 @api_controller
 class MyController:
@@ -97,10 +77,10 @@ class MyController:
     async def say_after(self, delay: int, word: str):
         await asyncio.sleep(delay)
         return {'saying': word}
-
-assert isinstance(MyController.say_after, AsyncRouteFunction) # true
-
 ```
+
+In this illustration, the `say_after` endpoint is defined as an asynchronous function using the `async` 
+keyword, allowing for asynchronous operations within the endpoint.
 
 !!! info
     Read more on Django-Ninja [Async Support](https://django-ninja.rest-framework.com/async-support/#quick-example)

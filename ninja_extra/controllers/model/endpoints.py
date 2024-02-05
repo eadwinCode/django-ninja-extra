@@ -36,6 +36,26 @@ def path_resolver(path: str, func: t.Callable) -> t.Callable:
 
 
 class ModelEndpointFactory:
+    """
+    Factory for creating CRUD operations of a model controller and for adding custom route functions to controllers.
+
+    example:
+    ```python
+
+    api_controller
+    class SampleMocelController(ModelControllerBase):
+
+        create_sample = ModelEndpointFactory.create()
+        update_sample = ModelEndpointFactory.update()
+
+        delete_sample = ModelEndpointFactory.delete()
+        patch_sample = ModelEndpointFactory.patch()
+
+        get_sample = ModelEndpointFactory.get()
+        list_samples = ModelEndpointFactory.list()
+    ```
+    """
+
     @classmethod
     def _clean_path(cls, path: str) -> str:
         working_path = path.split("?")
@@ -554,7 +574,24 @@ class ModelEndpointFactory:
 
 class ModelAsyncEndpointFactory(ModelEndpointFactory):
     """
-    For create Async Route Functions
+    Factory for creating asynchronous CRUD operations of a model controller
+    and for adding custom asynchronous route functions to controllers
+
+    example:
+    ```python
+
+    api_controller
+    class SampleMocelController(ModelControllerBase):
+
+        create_sample = ModelAsyncEndpointFactory.create()
+        update_sample = ModelAsyncEndpointFactory.update()
+
+        delete_sample = ModelAsyncEndpointFactory.delete()
+        patch_sample = ModelAsyncEndpointFactory.patch()
+
+        get_sample = ModelAsyncEndpointFactory.get()
+        list_samples = ModelAsyncEndpointFactory.list()
+    ```
     """
 
     @classmethod
