@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/api_controller/model_controller/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-7.3.6">
     
     
       
@@ -385,6 +385,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#enable-async-routes" class="md-nav__link">
+    Enable Async Routes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#modelcontroller-and-modelservice-together" class="md-nav__link">
     ModelController and ModelService Together
   </a>
@@ -401,7 +408,14 @@
     Model Endpoint Factory
   </a>
   
-    <nav class="md-nav" aria-label="Model Endpoint Factory">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-model-endpoint-factory" class="md-nav__link">
+    Async Model Endpoint Factory
+  </a>
+  
+    <nav class="md-nav" aria-label="Async Model Endpoint Factory">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -746,6 +760,21 @@
   
 
     
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribution/" class="md-nav__link">
+        Contribution
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -803,6 +832,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#enable-async-routes" class="md-nav__link">
+    Enable Async Routes
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#modelcontroller-and-modelservice-together" class="md-nav__link">
     ModelController and ModelService Together
   </a>
@@ -819,7 +855,14 @@
     Model Endpoint Factory
   </a>
   
-    <nav class="md-nav" aria-label="Model Endpoint Factory">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-model-endpoint-factory" class="md-nav__link">
+    Async Model Endpoint Factory
+  </a>
+  
+    <nav class="md-nav" aria-label="Async Model Endpoint Factory">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -859,14 +902,10 @@
                 
                 
                 <h1 id="model-apicontroller"><strong>Model APIController</strong></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><code>ModelController</code> is only available from <strong>v0.19.5</strong></p>
-</div>
-<p><strong>Model Controllers</strong> inherit from the <code>ControllerBase</code> class and provide two important variables: <code>model_config</code> and <code>model_service</code>. 
-These variables guide the route generation, schema generation, and model operations.</p>
-<p>For instance, let's create a ModelController for an Event model defined as follows:</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+<p>Model Controllers extend the <code>ControllerBase</code> class and introduce two configuration variables, namely <code>model_config</code> and <code>model_service</code>. </p>
+<p>The <code>model_config</code> is responsible for defining configurations related to routes and schema generation, while the <code>model_service</code> refers to a class that manages CRUD (Create, Read, Update, Delete) operations for the specified model.</p>
+<p>For example, consider the definition of an <code>Event</code> model in Django:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
 
 <span class="k">class</span> <span class="nc">Category</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
@@ -882,7 +921,7 @@ These variables guide the route generation, schema generation, and model operati
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span>
 </code></pre></div>
-Then, in <code>api.py</code>, we create an <code>EventModelController</code>:</p>
+<p>Now, let's create a <code>ModelController</code> for the <code>Event</code> model. In the <code>api.py</code> file, we define an <code>EventModelController</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">ModelConfig</span><span class="p">,</span>
     <span class="n">ModelControllerBase</span><span class="p">,</span>
@@ -902,35 +941,40 @@ Then, in <code>api.py</code>, we create an <code>EventModelController</code>:</p
 <span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">()</span>
 <span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span><span class="n">EventModelController</span><span class="p">)</span>
 </code></pre></div>
-<p>Model Controllers require the <code>ninja-schema</code> package for auto schema generation, which can be installed with:
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>ninja-schema
-</code></pre></div></p>
+<p>It's important to note that Model Controllers rely on the <code>ninja-schema</code> package for automatic schema generation. To install the package, use the following command:</p>
+<div class="highlight"><pre><span></span><code>pip install ninja-schema
+</code></pre></div>
+<p>After installation, you can access the auto-generated API documentation by visiting 
+<a href="http://localhost:8000/api/docs">http://localhost:8000/api/docs</a>. </p>
+<p>This documentation provides a detailed overview of the available routes, schemas, and functionalities 
+exposed by the <code>EventModelController</code> for the <code>Event</code> model.</p>
 <h2 id="model-configuration"><strong>Model Configuration</strong></h2>
-<p><code>ModelConfig</code> is a Pydantic schema used for validating and configuring Model Controller behaviors. Configuration options include:</p>
+<p>The <code>ModelConfig</code> is a Pydantic schema designed for validating and configuring the behavior of Model Controllers. Key configuration options include:</p>
 <ul>
-<li><strong>model</strong>: A required field that holds the Django model type for the Model Controller.</li>
-<li><strong>allowed_routes</strong>: A list of API actions allowed to be generated in the Model Controller. The default value is <code>["create", "find_one", "update", "patch", "delete", "list"]</code>.</li>
-<li><strong>create_schema</strong>: An optional Pydantic schema that describes the data input types for a <code>create</code> or <code>POST</code> operation in the Model Controller. The default value is <code>None</code>. If not provided, the <code>ModelController</code> will create a new schema based on the <code>schema_config</code> option.</li>
-<li><strong>update_schema</strong>: An optional Pydantic schema that describes the data input types for an <code>update</code> or <code>PUT</code> operation in the Model Controller. The default value is <code>None</code>. If not provided, the <code>create_schema</code> will be used if available, or a new schema will be generated based on the <code>schema_config</code> option.</li>
-<li><strong>retrieve_schema</strong>: An optional Pydantic schema output that describes the data output types for various operations. The default value is <code>None</code>. If not provided, the <code>ModelController</code> will generate a schema based on the <code>schema_config</code> option.</li>
-<li><strong>patch_schema</strong>: An optional Pydantic schema output that describes the data input types for <code>patch/PATCH</code> operations. The default value is <code>None</code>. If not provided, the <code>ModelController</code> will generate a schema with all of its fields optional.</li>
-<li><strong>schema_config</strong>: This is also a required field that describes how schema should be generated as required by Model Controller operations. Configuration options include:<ul>
-<li><code>include</code>: List of Fields to be included. The default is <code>__all__</code>.</li>
-<li><code>exclude</code>: List of Fields to be excluded. The default is <code>[]</code>.</li>
-<li><code>optional</code>: List of Fields to be forced as optional. The default is <code>[pk]</code>.</li>
-<li><code>depth</code>: Depth to nest schema generation.</li>
-<li><code>read_only_fields</code>: List of fields to be excluded when generating input schemas for create, update, and patch operations.</li>
-<li><code>write_only_fields</code>: List of fields to be excluded when generating output schemas for find_one and list operations.</li>
+<li><strong>model</strong>: A mandatory field representing the Django model type associated with the Model Controller.</li>
+<li><strong>async_routes</strong>: Indicates if controller <strong>routes</strong> should be created as <strong><code>asynchronous</code></strong> route functions</li>
+<li><strong>allowed_routes</strong>: A list specifying the API actions permissible for generation in the Model Controller. The default value is <code>["create", "find_one", "update", "patch", "delete", "list"]</code>.</li>
+<li><strong>create_schema</strong>: An optional Pydantic schema outlining the data input types for a <code>create</code> or <code>POST</code> operation in the Model Controller. The default is <code>None</code>. If not provided, the <code>ModelController</code> will generate a new schema based on the <code>schema_config</code> option.</li>
+<li><strong>update_schema</strong>: An optional Pydantic schema detailing the data input types for an <code>update</code> or <code>PUT</code> operation in the Model Controller. The default is <code>None</code>. If not provided, the <code>create_schema</code> will be used if available, or a new schema will be generated based on the <code>schema_config</code> option.</li>
+<li><strong>retrieve_schema</strong>: An optional Pydantic schema output defining the data output types for various operations. The default is <code>None</code>. If not provided, the <code>ModelController</code> will generate a schema based on the <code>schema_config</code> option.</li>
+<li><strong>patch_schema</strong>: An optional Pydantic schema output specifying the data input types for <code>patch/PATCH</code> operations. The default is <code>None</code>. If not provided, the <code>ModelController</code> will generate a schema with all its fields optional.</li>
+<li><strong>schema_config</strong>: Another mandatory field describing the schema generation approach required by Model Controller operations. Configuration options encompass:<ul>
+<li><code>include</code>: A list of Fields to be included. The default is <code>__all__</code>.</li>
+<li><code>exclude</code>: A list of Fields to be excluded. The default is <code>[]</code>.</li>
+<li><code>optional</code>: A list of Fields to be enforced as optional. The default is <code>[pk]</code>.</li>
+<li><code>depth</code>: The depth for nesting schema generation.</li>
+<li><code>read_only_fields</code>: A list of fields to be excluded when generating input schemas for create, update, and patch operations.</li>
+<li><code>write_only_fields</code>: A list of fields to be excluded when generating output schemas for find_one and list operations.</li>
 </ul>
 </li>
 <li>
-<p><strong>pagination</strong>: This is required for the model <code>list/GET</code> operation to avoid sending <code>100_000</code> items at once in a request. The pagination configuration requires a <code>ModelPagination</code> Pydantic schema object to be configured. Options include:</p>
+<p><strong>pagination</strong>: A requisite for the model <code>list/GET</code> operation to prevent sending <code>100_000</code> items at once in a request. The pagination configuration mandates a <code>ModelPagination</code> Pydantic schema object for setup. Options encompass:</p>
 <ul>
 <li><code>klass</code>: The pagination class of type <code>PaginationBase</code>. The default is <code>PageNumberPaginationExtra</code>.</li>
 <li><code>paginator_kwargs</code>: A dictionary value for <code>PaginationBase</code> initialization. The default is None.</li>
-<li><code>pagination_schema</code>: A Pydantic generic schema that will be combined with <code>retrieve_schema</code> to generate a response schema for <code>list/GET</code>operation.</li>
+<li><code>pagination_schema</code>: A Pydantic generic schema that combines with <code>retrieve_schema</code> to generate a response schema for the <code>list/GET</code> operation.</li>
 </ul>
-<p>For example, if you want to use <code>ninja</code> pagination like <code>LimitOffsetPagination</code>:</p>
+<p>For instance, if opting for <code>ninja</code> pagination like <code>LimitOffsetPagination</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja.pagination</span> <span class="kn">import</span> <span class="n">LimitOffsetPagination</span>
 <span class="kn">from</span> <span class="nn">ninja_extra.schemas</span> <span class="kn">import</span> <span class="n">NinjaPaginationResponseSchema</span>
 <span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="p">(</span>
@@ -953,7 +997,8 @@ Then, in <code>api.py</code>, we create an <code>EventModelController</code>:</p
 </li>
 </ul>
 <h2 id="more-on-model-controller-operations"><strong>More on Model Controller Operations</strong></h2>
-<p>In NinjaExtra Model Controller, the controller's behavior can be controlled by what is provided in the <code>allowed_routes</code> list within the <code>model_config</code> option.</p>
+<p>In NinjaExtra Model Controller, the controller's behavior can be controlled by what is provided in the <code>allowed_routes</code> 
+list within the <code>model_config</code> option.</p>
 <p>For example, you can create a read-only controller like this:</p>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">ModelControllerBase</span><span class="p">,</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">ModelSchemaConfig</span>
 <span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">Event</span>
@@ -981,7 +1026,7 @@ This will only create <code>GET/{id}</code> and <code>GET/</code> routes for lis
 
     <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;/subtract&#39;</span><span class="p">,)</span>
     <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Subtracts a from b&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Subtracts a from b&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">}</span>
 </code></pre></div>
 <h2 id="model-service"><strong>Model Service</strong></h2>
@@ -989,7 +1034,7 @@ This will only create <code>GET/{id}</code> and <code>GET/</code> routes for lis
 Usually, these model service actions would have been part of the model controller, 
 but they are abstracted to a service to allow a more dynamic approach.</p>
 <p><div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ModelService</span><span class="p">(</span><span class="n">ModelServiceBase</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model Service for Model Controller model CRUD operations with simple logic for simple models.</span>
 
 <span class="sd">    It&#39;s advised to override this class if you have a complex model.</span>
@@ -1034,6 +1079,31 @@ And then in <code>api.py</code>
         <span class="n">schema_config</span><span class="o">=</span><span class="n">ModelSchemaConfig</span><span class="p">(</span><span class="n">read_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;category&quot;</span><span class="p">]),</span>
     <span class="p">)</span>
 </code></pre></div></p>
+<h3 id="enable-async-routes"><strong>Enable Async Routes</strong></h3>
+<p>In <code>model_config</code>, set <code>async_routes</code> to <code>True</code></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ModelConfig</span><span class="p">,</span>
+    <span class="n">ModelControllerBase</span><span class="p">,</span>
+    <span class="n">ModelSchemaConfig</span><span class="p">,</span>
+    <span class="n">api_controller</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.service</span> <span class="kn">import</span> <span class="n">EventModelService</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">Event</span>
+
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">service</span> <span class="o">=</span> <span class="n">EventModelService</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">)</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">async_routes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">schema_config</span><span class="o">=</span><span class="n">ModelSchemaConfig</span><span class="p">(</span><span class="n">read_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;category&quot;</span><span class="p">]),</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>By setting the <code>async_routes</code> parameter to <code>True</code> in the <code>model_config</code>, the <code>ModelController</code> 
+dynamically switches between <a href="#async-model-endpoint-factory"><code>ModelAsyncEndpointFactory</code></a> and 
+<a href="#model-endpoint-factory"><code>ModelEndpointFactory</code></a> to generate 
+either asynchronous or synchronous endpoints based on the configuration.</p>
 <h3 id="modelcontroller-and-modelservice-together"><strong>ModelController and ModelService Together</strong></h3>
 <p>It's also possible to merge the controller and the model service together if needed:</p>
 <p>For example, using the <code>EventModelService</code> we created
@@ -1104,6 +1174,52 @@ It can also be used directly in any NinjaExtra Controller for the same purpose.<
 and passed in input and output schemas along with a custom handler. 
 By passing in a <code>custom_handler</code>, the generated route function will delegate its handling action to the provided 
 <code>custom_handler</code> instead of calling <code>service.create</code>.</p>
+<h2 id="async-model-endpoint-factory"><strong>Async Model Endpoint Factory</strong></h2>
+<p>The <code>ModelAsyncEndpointFactory</code> shares the same API interface as <code>ModelEndpointFactory</code> 
+but is specifically designed for generating asynchronous endpoints.</p>
+<p>we can create same example as with <code>ModelEndpointFactory</code>,</p>
+<p>For example:</p>
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ModelConfig</span><span class="p">,</span>
+    <span class="n">ModelControllerBase</span><span class="p">,</span>
+    <span class="n">ModelSchemaConfig</span><span class="p">,</span>
+    <span class="n">api_controller</span><span class="p">,</span>
+    <span class="n">ModelAsyncEndpointFactory</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">Event</span><span class="p">,</span> <span class="n">Category</span>
+
+<span class="k">class</span> <span class="nc">CreateCategorySchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+
+<span class="k">class</span> <span class="nc">CategorySchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">schema_config</span><span class="o">=</span><span class="n">ModelSchemaConfig</span><span class="p">(</span><span class="n">read_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;category&quot;</span><span class="p">]),</span>
+    <span class="p">)</span>
+
+    <span class="n">add_event_to_new_category</span> <span class="o">=</span> <span class="n">ModelAsyncEndpointFactory</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/{int:event_id}/new-category&quot;</span><span class="p">,</span>
+        <span class="n">schema_in</span><span class="o">=</span><span class="n">CreateCategorySchema</span><span class="p">,</span>
+        <span class="n">schema_out</span><span class="o">=</span><span class="n">CategorySchema</span><span class="p">,</span>
+        <span class="n">custom_handler</span><span class="o">=</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_add_event_to_new_category</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_add_event_to_new_category</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">CreateCategorySchema</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Category</span><span class="p">:</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">get_one_async</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">kw</span><span class="p">[</span><span class="s1">&#39;event_id&#39;</span><span class="p">])</span>
+        <span class="n">category</span> <span class="o">=</span> <span class="n">Category</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="n">category</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">category</span>
+</code></pre></div>
+In the above illustration, we created <code>add_event_to_new_category</code> as an asynchronous function and converted 
+<code>handle_add_event_to_new_category</code> to asynchronous function as well. </p>
 <h3 id="querygetter-and-objectgetter"><strong>QueryGetter and ObjectGetter</strong></h3>
 <p><code>ModelEndpointFactory</code> exposes a more flexible way to get a model object or get a queryset filter in the case of 
 <code>ModelEndpointFactory.find_one</code> and <code>ModelEndpointFactory.list</code>, respectively.</p>

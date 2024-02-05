@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/api_controller/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-7.3.6">
     
     
       
@@ -699,6 +699,21 @@
   
 
     
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribution/" class="md-nav__link">
+        Contribution
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -864,7 +879,7 @@ And <code>get_users</code> and <code>create_user</code> are route function that 
 
     <span class="nd">@http_generic</span><span class="p">(</span><span class="s1">&#39;/{int:user_id}&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;put&#39;</span><span class="p">,</span> <span class="s1">&#39;patch&#39;</span><span class="p">],</span> <span class="n">response</span><span class="o">=</span><span class="n">UserSchema</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">update_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Django Ninja will serialize Django ORM model to schema provided as `response`&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Django Ninja will serialize Django ORM model to schema provided as `response`&quot;&quot;&quot;</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object_or_exception</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_model</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">user</span>
 

@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/">
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-7.3.6">
     
     
       
@@ -308,6 +308,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tutorials" class="md-nav__link">
+    Tutorials
+  </a>
   
 </li>
       
@@ -717,6 +724,21 @@
   
 
     
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="contribution/" class="md-nav__link">
+        Contribution
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -785,6 +807,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#tutorials" class="md-nav__link">
+    Tutorials
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -808,7 +837,7 @@
 <a href="https://pypi.python.org/pypi/django-ninja-extra"><img alt="PyPI version" src="https://img.shields.io/pypi/pyversions/django-ninja-extra.svg" /></a>
 <a href="https://pypi.python.org/pypi/django-ninja-extra"><img alt="PyPI version" src="https://img.shields.io/pypi/djversions/django-ninja-extra.svg" /></a>
 <a href="https://codecov.io/gh/eadwinCode/django-ninja-extra"><img alt="Codecov" src="https://img.shields.io/codecov/c/gh/eadwinCode/django-ninja-extra" /></a>
-<a href="https://pepy.tech/project/django-ninja-extra"><img alt="Downloads" src="https://pepy.tech/badge/django-ninja-extra/month" /></a></p>
+<a href="https://pepy.tech/project/django-ninja-extra"><img alt="Downloads" src="https://pepy.tech/badge/django-ninja-extra" /></a></p>
 <h1 id="django-ninja-extra">Django Ninja Extra</h1>
 <p><strong>Django Ninja Extra</strong> package offers a <strong>class-based</strong> approach plus extra functionalities that will speed up your RESTful API development with <a href="https://django-ninja.rest-framework.com"><strong>Django Ninja</strong></a></p>
 <p><strong>Key features:</strong></p>
@@ -863,17 +892,17 @@ After installation, add <code>ninja_extra</code> to your <code>INSTALLED_APPS</c
 
     <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;/subtract&#39;</span><span class="p">,)</span>
     <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Subtracts a from b&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Subtracts a from b&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">}</span>
 
     <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;/divide&#39;</span><span class="p">,)</span>
     <span class="k">def</span> <span class="nf">divide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Divides a by b&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Divides a by b&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">}</span>
 
     <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;/multiple&#39;</span><span class="p">,)</span>
     <span class="k">def</span> <span class="nf">multiple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Multiples a with b&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Multiples a with b&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">}</span>
 
 <span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span>
@@ -894,6 +923,10 @@ After installation, add <code>ninja_extra</code> to your <code>INSTALLED_APPS</c
 <p>Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.0.1:8000/api/docs</a></p>
 <p>You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):</p>
 <p><img alt="Swagger UI" src="images/ui_swagger_preview_readme.gif" /></p>
+<h2 id="tutorials">Tutorials</h2>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=yQqig-c2dd4">django-ninja - Permissions, Controllers &amp; Throttling with django-ninja-extra!</a> - Learn how to use permissions, controllers and throttling with django-ninja-extra</li>
+</ul>
                 
               
               

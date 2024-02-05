@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/api_controller/api_controller_permission/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-7.3.6">
     
     
       
@@ -362,6 +362,41 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#using-permission-object-in-controllers" class="md-nav__link">
+    Using Permission Object in Controllers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allowany" class="md-nav__link">
+    AllowAny
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isauthenticated" class="md-nav__link">
+    IsAuthenticated
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isadminuser" class="md-nav__link">
+    IsAdminUser
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isauthenticatedorreadonly" class="md-nav__link">
+    IsAuthenticatedOrReadOnly
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -699,6 +734,21 @@
   
 
     
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribution/" class="md-nav__link">
+        Contribution
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -747,6 +797,41 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#using-permission-object-in-controllers" class="md-nav__link">
+    Using Permission Object in Controllers
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allowany" class="md-nav__link">
+    AllowAny
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isauthenticated" class="md-nav__link">
+    IsAuthenticated
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isadminuser" class="md-nav__link">
+    IsAdminUser
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#isauthenticatedorreadonly" class="md-nav__link">
+    IsAuthenticatedOrReadOnly
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -774,12 +859,15 @@ This corresponds to the <code>IsAuthenticated</code> class in <strong>Django Nin
 <p>A slightly less strict style of permission would be to allow full access to authenticated users, but allow read-only access to unauthenticated users. 
 This corresponds to the <code>IsAuthenticatedOrReadOnly</code> class in <strong>Django Ninja Extra</strong>.</p>
 <h3 id="limitations-of-object-level-permissions"><strong>Limitations of object level permissions</strong></h3>
-<p>During route function call, we can only <code>has_permission</code> in permissions list are called automatic. 
-But since we don't have the object, we can only invoke <code>has_object_permission</code> if you use <code>get_object_or_exception</code> or <code>get_object_or_none</code> methods which are available to APIController.</p>
+<p>During the handling of a request, the <code>has_permission</code> method is automatically invoked for all the permissions specified 
+in the permission list of the route function. However, <code>has_object_permission</code> is not triggered since 
+it requires an object for permission validation. As a result of that, <code>has_object_permission</code> method for permissions are
+invoked when attempting to retrieve an object using the <code>get_object_or_exception</code> 
+or <code>get_object_or_none</code> methods within the controller.</p>
 <h2 id="custom-permissions"><strong>Custom permissions</strong></h2>
 <p>To implement a custom permission, override <code>BasePermission</code> and implement either, or both, of the following methods:</p>
-<div class="codehilite"><pre><span></span><code><span class="na">.has_permission</span><span class="p">(</span><span class="no">self</span><span class="p">,</span><span class="w"> </span><span class="no">request</span><span class="p">:</span><span class="w"> </span><span class="no">HttpRequest</span><span class="p">,</span><span class="w"> </span><span class="no">controller</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;APIController&quot;</span><span class="p">)</span>
-<span class="na">.has_object_permission</span><span class="p">(</span><span class="no">self</span><span class="p">,</span><span class="w"> </span><span class="no">request</span><span class="p">:</span><span class="w"> </span><span class="no">HttpRequest</span><span class="p">,</span><span class="w"> </span><span class="no">controller</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;APIController&quot;</span><span class="p">,</span><span class="w"> </span><span class="no">obj</span><span class="p">:</span><span class="w"> </span><span class="no">Any</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="na">.has_permission</span><span class="p">(</span><span class="no">self</span><span class="p">,</span><span class="w"> </span><span class="no">request</span><span class="p">:</span><span class="w"> </span><span class="no">HttpRequest</span><span class="p">,</span><span class="w"> </span><span class="no">controller</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;APIController&quot;</span><span class="p">)</span><span class="w"></span>
+<span class="na">.has_object_permission</span><span class="p">(</span><span class="no">self</span><span class="p">,</span><span class="w"> </span><span class="no">request</span><span class="p">:</span><span class="w"> </span><span class="no">HttpRequest</span><span class="p">,</span><span class="w"> </span><span class="no">controller</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;APIController&quot;</span><span class="p">,</span><span class="w"> </span><span class="no">obj</span><span class="p">:</span><span class="w"> </span><span class="no">Any</span><span class="p">)</span><span class="w"></span>
 </code></pre></div>
 
 <p>Example</p>
@@ -795,22 +883,29 @@ But since we don't have the object, we can only invoke <code>has_object_permissi
     <span class="k">def</span> <span class="nf">must_be_authenticated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">word</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">says</span><span class="o">=</span><span class="n">word</span><span class="p">)</span>
 </code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New in <strong>v0.18.7</strong>
-Controller Permission and Route Function <code>permissions</code> can now take <code>BasePermission</code> instance.</p>
-<p>For example, we can pass the <code>ReadOnly</code> instance to the <code>permission</code> parameter.
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">permissions</span><span class="p">,</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_get</span>
+<h2 id="permissions-supported-operands"><strong>Permissions Supported Operands</strong></h2>
+<ul>
+<li>&amp; (and) eg: <code>permissions.IsAuthenticated &amp; ReadOnly</code></li>
+<li>| (or) eg: <code>permissions.IsAuthenticated | ReadOnly</code></li>
+<li>~ (not) eg: <code>~(permissions.IsAuthenticated &amp; ReadOnly)</code></li>
+</ul>
+<h2 id="using-permission-object-in-controllers"><strong>Using Permission Object in Controllers</strong></h2>
+<p>The Ninja-Extra permission system provides flexibility in defining permissions either as an instance of a permission class or as a type.</p>
+<p>In the example below, the <code>ReadOnly</code> class is defined as a subclass of <code>permissions.BasePermission</code> and 
+its instance is then passed to the <code>permissions</code> parameter within the <code>api_controller</code> decorator.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">permissions</span><span class="p">,</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">ControllerBase</span>
 
 <span class="k">class</span> <span class="nc">ReadOnly</span><span class="p">(</span><span class="n">permissions</span><span class="o">.</span><span class="n">BasePermission</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">has_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">view</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="ow">in</span> <span class="n">permissions</span><span class="o">.</span><span class="n">SAFE_METHODS</span>
 
 <span class="nd">@api_controller</span><span class="p">(</span><span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">permissions</span><span class="o">.</span><span class="n">IsAuthenticated</span> <span class="o">|</span> <span class="n">ReadOnly</span><span class="p">()])</span>
-<span class="o">...</span>
+<span class="k">class</span> <span class="nc">SampleController</span><span class="p">(</span><span class="n">ControllerBase</span><span class="p">):</span>
+    <span class="k">pass</span>
 </code></pre></div>
-For example:
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">permissions</span>
+<p>In the provided example, the <code>UserWithPermission</code> class is utilized to assess different permissions for distinct controllers or route functions.</p>
+<p>For instance:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">permissions</span><span class="p">,</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">ControllerBase</span><span class="p">,</span> <span class="n">http_post</span><span class="p">,</span> <span class="n">http_delete</span>
 
 <span class="k">class</span> <span class="nc">UserWithPermission</span><span class="p">(</span><span class="n">permissions</span><span class="o">.</span><span class="n">BasePermission</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">permission</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -819,16 +914,35 @@ For example:
     <span class="k">def</span> <span class="nf">has_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">view</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_permission</span><span class="p">)</span>
 
-<span class="c1"># in controller or route function</span>
-<span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">UserWithPermission</span><span class="p">(</span><span class="s1">&#39;blog.add&#39;</span><span class="p">)]</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s1">&#39;/blog&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">BlogController</span><span class="p">(</span><span class="n">ControllerBase</span><span class="p">):</span>
+    <span class="nd">@http_post</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">permissions</span><span class="o">.</span><span class="n">IsAuthenticated</span> <span class="o">&amp;</span> <span class="n">UserWithPermission</span><span class="p">(</span><span class="s1">&#39;blog.add&#39;</span><span class="p">)])</span>
+    <span class="k">def</span> <span class="nf">add_blog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@http_delete</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">permissions</span><span class="o">.</span><span class="n">IsAuthenticated</span> <span class="o">&amp;</span> <span class="n">UserWithPermission</span><span class="p">(</span><span class="s1">&#39;blog.delete&#39;</span><span class="p">)])</span>
+    <span class="k">def</span> <span class="nf">delete_blog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
 </code></pre></div></p>
-</div>
-<h2 id="permissions-supported-operands"><strong>Permissions Supported Operands</strong></h2>
-<ul>
-<li>&amp; (and) eg: <code>permissions.IsAuthenticated &amp; ReadOnly</code></li>
-<li>| (or) eg: <code>permissions.IsAuthenticated | ReadOnly</code></li>
-<li>~ (not) eg: <code>~(permissions.IsAuthenticated &amp; ReadOnly)</code></li>
-</ul>
+<p>In this scenario, the <code>UserWithPermission</code> class is employed to verify whether the user possesses the <code>blog.add</code> 
+permission to access the <code>add_blog</code> action and <code>blog.delete</code> permission for the <code>delete_blog</code> action within the <code>BlogController</code>. 
+The permissions are explicitly configured for each route function, allowing fine-grained control over user access based on specific permissions.</p>
+<h2 id="allowany"><strong>AllowAny</strong></h2>
+<p>The <code>AllowAny</code> permission class grants unrestricted access, irrespective of whether the request is authenticated or unauthenticated. While not mandatory, using this permission class is optional, as you can achieve the same outcome by employing an empty list or tuple for the permissions setting. 
+However, specifying the <code>AllowAny</code> class can be beneficial as it explicitly communicates the intention of allowing unrestricted access.</p>
+<h2 id="isauthenticated"><strong>IsAuthenticated</strong></h2>
+<p>The <code>IsAuthenticated</code> permission class denies permission to unauthenticated users and grants permission to authenticated users. </p>
+<p>This permission is appropriate if you intend to restrict API access solely to registered users.</p>
+<h2 id="isadminuser"><strong>IsAdminUser</strong></h2>
+<p>The <code>IsAdminUser</code> permission class denies permission to any user, except when <code>user.is_staff</code> is <code>True</code>, 
+in which case permission is granted. </p>
+<p>This permission is suitable if you intend to restrict API access to a 
+specific subset of trusted administrators.</p>
+<h2 id="isauthenticatedorreadonly"><strong>IsAuthenticatedOrReadOnly</strong></h2>
+<p>The <code>IsAuthenticatedOrReadOnly</code> permission class allows authenticated users to perform any request. 
+For unauthenticated users, requests will only be permitted if the method is one of the "safe" methods: GET, HEAD, or OPTIONS. </p>
+<p>This permission is appropriate if you want your API to grant read permissions to anonymous users while restricting write permissions to authenticated users.</p>
                 
               
               
