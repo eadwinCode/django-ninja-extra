@@ -37,9 +37,6 @@ Plus **Extra**:
 
 Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
-## Sample Project
-Django-Ninja-Tutorial Project, [visit](https://github.com/eadwinCode/bookstoreapi)
-
 ## Installation
 
 ```
@@ -115,3 +112,4 @@ You will see the automatic interactive API documentation (provided by <a href="h
 
 ## Tutorials
 - [django-ninja - Permissions, Controllers & Throttling with django-ninja-extra!](https://www.youtube.com/watch?v=yQqig-c2dd4) - Learn how to use permissions, controllers and throttling with django-ninja-extra
+- [BookStore API](https://github.com/eadwinCode/bookstoreapi) - A sample project that demonstrates how to use django-ninja-extra with ninja schema and ninja-jwt
