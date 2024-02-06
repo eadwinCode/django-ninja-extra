@@ -120,7 +120,7 @@ class ControllerBase(ABC):
     # `context` variable will change based on the route function called on the APIController
     # that way we can get some specific items things that belong the route function during execution
     context: Optional["RouteContext"] = None
-    throttling_classes: List["BaseThrottle"] = []
+    throttling_classes: List[Type["BaseThrottle"]] = []
     throttling_init_kwargs: Optional[Dict[Any, Any]] = None
 
     Ok = Ok
