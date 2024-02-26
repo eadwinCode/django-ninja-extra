@@ -1,5 +1,5 @@
 # **Model APIController**
-Model Controllers dynamically creates **CRUD** operations for a **Django ORM** model in a controller based on some configurations.
+Model Controllers dynamically generate **CRUD** (Create, Read, Update, Delete) operations for a **Django ORM** model within a controller, based on specified configurations.
 
 Model Controllers extend the `ControllerBase` class and introduce two configuration variables, namely `model_config` and `model_service`. 
 
