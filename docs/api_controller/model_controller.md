@@ -1,7 +1,10 @@
 # **Model APIController**
+Model Controllers dynamically creates **CRUD** operations for a **Django ORM** model in a controller based on some configurations.
+
 Model Controllers extend the `ControllerBase` class and introduce two configuration variables, namely `model_config` and `model_service`. 
 
-The `model_config` is responsible for defining configurations related to routes and schema generation, while the `model_service` refers to a class that manages CRUD (Create, Read, Update, Delete) operations for the specified model.
+- `model_config` is responsible for defining configurations related to routes and schema generation
+- `model_service` refers to a class that manages CRUD (Create, Read, Update, Delete) operations for the specified model.
 
 For example, consider the definition of an `Event` model in Django:
 
@@ -369,7 +372,7 @@ In the above illustration, we created `add_event_to_new_category` as an asynchro
 `handle_add_event_to_new_category` to asynchronous function as well. 
 
 
-### **QueryGetter and ObjectGetter**
+## **QueryGetter and ObjectGetter**
 `ModelEndpointFactory` exposes a more flexible way to get a model object or get a queryset filter in the case of 
 `ModelEndpointFactory.find_one` and `ModelEndpointFactory.list`, respectively.
 
@@ -436,7 +439,7 @@ Note that our `queryset_getter` may fail if an invalid ID is supplied, as this i
 Also, keep in mind that `model_config` settings like `create_schema`, `retrieve_schema`, `patch_schema`, and `update_schema` 
 are all available after ModelConfig instantiation.
 
-### **Path and Query Parameters**
+## **Path and Query Parameters**
 
 In `ModelEndpointFactory`, path parameters are parsed to identify both `path` and `query` parameters. 
 These parameters are then created as fields within the Ninja input schema and resolved during the request, 
