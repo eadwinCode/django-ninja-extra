@@ -415,25 +415,19 @@
     Async Model Endpoint Factory
   </a>
   
-    <nav class="md-nav" aria-label="Async Model Endpoint Factory">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
   <a href="#querygetter-and-objectgetter" class="md-nav__link">
     QueryGetter and ObjectGetter
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#path-and-query-parameters" class="md-nav__link">
     Path and Query Parameters
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -862,25 +856,19 @@
     Async Model Endpoint Factory
   </a>
   
-    <nav class="md-nav" aria-label="Async Model Endpoint Factory">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
   <a href="#querygetter-and-objectgetter" class="md-nav__link">
     QueryGetter and ObjectGetter
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#path-and-query-parameters" class="md-nav__link">
     Path and Query Parameters
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -902,8 +890,12 @@
                 
                 
                 <h1 id="model-apicontroller"><strong>Model APIController</strong></h1>
+<p>Model Controllers dynamically creates <strong>CRUD</strong> operations for a <strong>Django ORM</strong> model in a controller based on some configurations.</p>
 <p>Model Controllers extend the <code>ControllerBase</code> class and introduce two configuration variables, namely <code>model_config</code> and <code>model_service</code>. </p>
-<p>The <code>model_config</code> is responsible for defining configurations related to routes and schema generation, while the <code>model_service</code> refers to a class that manages CRUD (Create, Read, Update, Delete) operations for the specified model.</p>
+<ul>
+<li><code>model_config</code> is responsible for defining configurations related to routes and schema generation</li>
+<li><code>model_service</code> refers to a class that manages CRUD (Create, Read, Update, Delete) operations for the specified model.</li>
+</ul>
 <p>For example, consider the definition of an <code>Event</code> model in Django:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
 
@@ -1220,7 +1212,7 @@ but is specifically designed for generating asynchronous endpoints.</p>
 </code></pre></div>
 In the above illustration, we created <code>add_event_to_new_category</code> as an asynchronous function and converted 
 <code>handle_add_event_to_new_category</code> to asynchronous function as well. </p>
-<h3 id="querygetter-and-objectgetter"><strong>QueryGetter and ObjectGetter</strong></h3>
+<h2 id="querygetter-and-objectgetter"><strong>QueryGetter and ObjectGetter</strong></h2>
 <p><code>ModelEndpointFactory</code> exposes a more flexible way to get a model object or get a queryset filter in the case of 
 <code>ModelEndpointFactory.find_one</code> and <code>ModelEndpointFactory.list</code>, respectively.</p>
 <p>For example, to retrieve the category of an event (not practical but for illustration):
@@ -1279,7 +1271,7 @@ By using <code>ModelEndpointFactory.list</code> and <code>queryset_getter</code>
 Note that our <code>queryset_getter</code> may fail if an invalid ID is supplied, as this is just an illustration.</p>
 <p>Also, keep in mind that <code>model_config</code> settings like <code>create_schema</code>, <code>retrieve_schema</code>, <code>patch_schema</code>, and <code>update_schema</code> 
 are all available after ModelConfig instantiation.</p>
-<h3 id="path-and-query-parameters"><strong>Path and Query Parameters</strong></h3>
+<h2 id="path-and-query-parameters"><strong>Path and Query Parameters</strong></h2>
 <p>In <code>ModelEndpointFactory</code>, path parameters are parsed to identify both <code>path</code> and <code>query</code> parameters. 
 These parameters are then created as fields within the Ninja input schema and resolved during the request, 
 passing them as kwargs to the handler.</p>
