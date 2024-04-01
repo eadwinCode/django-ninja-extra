@@ -13,6 +13,10 @@ clean: ## Removing cached python compiled files
 
 install:clean ## Install dependencies
 	pip install -r requirements.txt
+	flit install --symlink
+
+install-full: ## Install dependencies
+	make install
 	pre-commit install -f
 
 lint:fmt ## Run code linters
