@@ -28,7 +28,7 @@ Please take a moment to review the following guidelines before getting started.
 4. **Install Dependencies:** Install development libraries and pre-commit hooks.
 
    ```bash
-   make install
+   make install-full
    ```
 
 ### **Code Style and Formatting**
