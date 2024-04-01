@@ -53,30 +53,6 @@ requires-python = ">=3.7"
 [tool.flit.metadata.urls]
 Documentation = "https://eadwincode.github.io/django-ninja-extra/"
 
-[tool.flit.metadata.requires-extra]
-test = [
-    "pytest",
-    "pytest-cov",
-    "pytest-django",
-    "pytest-asyncio==0.20.3",
-    "mypy == 1.7.1",
-    "ruff ==0.1.7",
-    "ninja-schema>=0.13.4",
-    "django-stubs",
-]
-doc = [
-    "mkdocs >=1.1.2,<2.0.0",
-    "mkdocs-material >=7.1.9,<8.0.0",
-    "mdx-include >=1.4.1,<2.0.0",
-    "mkdocs-markdownextradata-plugin >=0.1.7,<0.3.0",
-    "markdown-include",
-    "mkdocstrings"
-]
-
-dev = [
-    "pre-commit"
-]
-
 [tool.ruff]
 select = [
     "E",  # pycodestyle errors
