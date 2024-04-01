@@ -50,7 +50,7 @@ class RouteFunction(object):
             *args,
             **kwargs,
         )
-        return self.as_view(request, *args, context=context, **kwargs)
+        return self.as_view(request, *args, route_context=context, **kwargs)
 
     def _get_required_api_func_signature(self) -> Tuple:
         skip_parameters = ["self", "request"]
@@ -77,12 +77,14 @@ class RouteFunction(object):
     def get_view_function(self) -> Callable:
         def as_view(
             request: HttpRequest,
-            context: Optional[RouteContext] = None,
+            route_context: Optional[RouteContext] = None,
             *args: Any,
             **kwargs: Any,
         ) -> Any:
-            context = context or cast(RouteContext, service_resolver(RouteContext))
-            with self._prep_controller_route_execution(context, **kwargs) as ctx:
+            _route_context = route_context or cast(
+                RouteContext, service_resolver(RouteContext)
+            )
+            with self._prep_controller_route_execution(_route_context, **kwargs) as ctx:
                 ctx.controller_instance.check_permissions()
                 result = self.route.view_func(
                     ctx.controller_instance, *args, **ctx.view_func_kwargs
@@ -134,14 +136,14 @@ class RouteFunction(object):
 
     @contextmanager
     def _prep_controller_route_execution(
-        self, context: RouteContext, **kwargs: Any
+        self, route_context: RouteContext, **kwargs: Any
     ) -> Iterator[RouteFunctionContext]:
         controller_instance = self._get_controller_instance()
-        controller_instance.context = context
+        controller_instance.context = route_context
 
-        api_func_kwargs = dict(**kwargs)
+        api_func_kwargs = dict(kwargs)
         if self.has_request_param:
-            api_func_kwargs.update(request=context.request)
+            api_func_kwargs.update(request=route_context.request)
         try:
             yield RouteFunctionContext(
                 controller_instance=controller_instance, **api_func_kwargs
@@ -164,14 +166,16 @@ class AsyncRouteFunction(RouteFunction):
     def get_view_function(self) -> Callable:
         async def as_view(
             request: HttpRequest,
-            context: Optional[RouteContext] = None,
+            route_context: Optional[RouteContext] = None,
             *args: Any,
             **kwargs: Any,
         ) -> Any:
             from asgiref.sync import sync_to_async
 
-            context = context or cast(RouteContext, service_resolver(RouteContext))
-            with self._prep_controller_route_execution(context, **kwargs) as ctx:
+            _route_context = route_context or cast(
+                RouteContext, service_resolver(RouteContext)
+            )
+            with self._prep_controller_route_execution(_route_context, **kwargs) as ctx:
                 await sync_to_async(ctx.controller_instance.check_permissions)()
                 result = await self.route.view_func(
                     ctx.controller_instance, *args, **ctx.view_func_kwargs
@@ -201,4 +205,4 @@ class AsyncRouteFunction(RouteFunction):
             *args,
             **kwargs,
         )
-        return await self.as_view(request, *args, context=context, **kwargs)
+        return await self.as_view(request, *args, route_context=context, **kwargs)

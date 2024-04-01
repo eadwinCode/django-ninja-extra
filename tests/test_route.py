@@ -394,7 +394,9 @@ class TestAPIControllerRoutePermission:
     def test_route_prep_controller_route_execution_context_works(self):
         route_function: RouteFunction = get_route_function(SomeTestController().example)
         context = get_route_execution_context(request=anonymous_request)
-        with route_function._prep_controller_route_execution(context=context) as ctx:
+        with route_function._prep_controller_route_execution(
+            route_context=context
+        ) as ctx:
             assert isinstance(ctx.controller_instance, SomeTestController)
             assert ctx.controller_instance.context
         assert ctx.controller_instance.context is None
@@ -404,7 +406,9 @@ class TestAPIControllerRoutePermission:
     ):
         route_function: RouteFunction = get_route_function(SomeTestController().example)
         context = get_route_execution_context(request=anonymous_request)
-        with route_function._prep_controller_route_execution(context=context) as ctx:
+        with route_function._prep_controller_route_execution(
+            route_context=context
+        ) as ctx:
             assert isinstance(ctx.controller_instance, SomeTestController)
             assert ctx.controller_instance.context
 
