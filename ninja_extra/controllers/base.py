@@ -14,6 +14,7 @@ from typing import (
     Sequence,
     Tuple,
     Type,
+    TypeVar,
     Union,
     cast,
     overload,
@@ -517,13 +518,16 @@ def api_controller(
     ...
 
 
+InputClassType = TypeVar("InputClassType", bound=ControllerBase)
+
+
 def api_controller(
     prefix_or_class: Union[str, Type] = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[Type[ControllerBase], Callable[[Type], Type[ControllerBase]]]:
+) -> Union[Type[ControllerBase], Callable[[InputClassType], Type[InputClassType]]]:
     if isinstance(prefix_or_class, type):
         return APIController(
             prefix="",
@@ -533,7 +537,7 @@ def api_controller(
             auto_import=auto_import,
         )(prefix_or_class)
 
-    def _decorator(cls: Type) -> Type[ControllerBase]:
+    def _decorator(cls: InputClassType) -> Type[InputClassType]:
         return APIController(
             prefix=str(prefix_or_class),
             auth=auth,
