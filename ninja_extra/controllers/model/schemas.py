@@ -15,9 +15,9 @@ try:
         ModelSchemaConfigAdapter,
     )
 except Exception:  # pragma: no cover
-    ConfigError = (
-        NinjaSchemaModelSchemaConfig
-    ) = ModelSchemaConfigAdapter = SchemaFactory = None
+    ConfigError = NinjaSchemaModelSchemaConfig = ModelSchemaConfigAdapter = (
+        SchemaFactory
+    ) = None
 
 
 from ...pagination import PageNumberPaginationExtra, PaginatedResponseSchema

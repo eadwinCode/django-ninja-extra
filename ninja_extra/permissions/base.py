@@ -2,6 +2,7 @@
 Copied from DRF
 Provides a set of pluggable permission policies.
 """
+
 from abc import ABC, ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, Tuple, Type, TypeVar, Union
 

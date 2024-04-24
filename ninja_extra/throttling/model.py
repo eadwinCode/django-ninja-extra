@@ -2,6 +2,7 @@
 Provides various throttling policies.
 From DjangoRestFramework - https://github.com/encode/django-rest-framework/blob/master/rest_framework/throttling.py
 """
+
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 

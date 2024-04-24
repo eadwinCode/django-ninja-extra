@@ -56,8 +56,7 @@ def _isicontains(a: str, b: str) -> bool:
 
 
 class SearchingBase(ABC):
-    class Input(Schema):
-        ...
+    class Input(Schema): ...
 
     InputSource = Query(...)
 
@@ -67,8 +66,7 @@ class SearchingBase(ABC):
     @abstractmethod
     def searching_queryset(
         self, items: Union[QuerySet, List], searching_input: Any
-    ) -> Union[QuerySet, List]:
-        ...
+    ) -> Union[QuerySet, List]: ...
 
 
 class Searching(SearchingBase):
