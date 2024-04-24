@@ -245,8 +245,8 @@ class ModelControllerBase(ControllerBase):
     model_config: Optional[ModelConfig] = None
 
 
-InputClassType = TypeVar(
-    "InputClassType",
+ControllerClassType = TypeVar(
+    "ControllerClassType",
     bound=Union[Type[ControllerBase], Type],
 )
 
@@ -347,7 +347,7 @@ class APIController:
             tag = [value]
         self._tags = tag
 
-    def __call__(self, cls: InputClassType) -> InputClassType:
+    def __call__(self, cls: ControllerClassType) -> ControllerClassType:
         from ninja_extra.throttling import throttle
 
         self.auto_import = getattr(cls, "auto_import", self.auto_import)
@@ -527,12 +527,12 @@ def api_controller(
 
 
 def api_controller(
-    prefix_or_class: Union[str, InputClassType] = "",
+    prefix_or_class: Union[str, ControllerClassType] = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[InputClassType, Callable[[InputClassType], InputClassType]]:
+) -> Union[ControllerClassType, Callable[[ControllerClassType], ControllerClassType]]:
     if isinstance(prefix_or_class, type):
         return APIController(
             prefix="",
@@ -542,7 +542,7 @@ def api_controller(
             auto_import=auto_import,
         )(prefix_or_class)
 
-    def _decorator(cls: InputClassType) -> InputClassType:
+    def _decorator(cls: ControllerClassType) -> ControllerClassType:
         return APIController(
             prefix=str(prefix_or_class),
             auth=auth,
