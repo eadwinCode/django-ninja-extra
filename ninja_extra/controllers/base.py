@@ -55,6 +55,8 @@ if TYPE_CHECKING:  # pragma: no cover
 
     from .route.context import RouteContext
 
+T = TypeVar("T")
+
 
 class MissingAPIControllerDecoratorException(Exception):
     pass
@@ -243,6 +245,12 @@ class ModelControllerBase(ControllerBase):
     model_config: Optional[ModelConfig] = None
 
 
+InputClassType = TypeVar(
+    "InputClassType",
+    bound=Union[Type[ControllerBase], Type],
+)
+
+
 class APIController:
     _PATH_PARAMETER_COMPONENT_RE = r"{(?:(?P<converter>[^>:]+):)?(?P<parameter>[^>]+)}"
 
@@ -339,13 +347,13 @@ class APIController:
             tag = [value]
         self._tags = tag
 
-    def __call__(self, cls: Type) -> Type[ControllerBase]:
+    def __call__(self, cls: InputClassType) -> InputClassType:
         from ninja_extra.throttling import throttle
 
         self.auto_import = getattr(cls, "auto_import", self.auto_import)
         if not issubclass(cls, ControllerBase):
             # We force the cls to inherit from `ControllerBase` by creating another type.
-            cls = type(cls.__name__, (ControllerBase, cls), {"_api_controller": self})
+            cls = type(cls.__name__, (ControllerBase, cls), {"_api_controller": self})  # type:ignore[assignment]
         else:
             cls._api_controller = self
 
@@ -388,7 +396,7 @@ class APIController:
             fail_silently(inject, constructor_or_class=cls)
 
         ControllerRegistry().add_controller(cls)
-        return cls
+        return cls  # type:ignore[return-value]
 
     @property
     def path_operations(self) -> Dict[str, PathView]:
@@ -502,8 +510,8 @@ class APIController:
 
 @overload
 def api_controller(
-    prefix_or_class: Type,
-) -> Type[ControllerBase]:  # pragma: no cover
+    prefix_or_class: Type[T],
+) -> Union[Type[ControllerBase], Type[T]]:  # pragma: no cover
     ...
 
 
@@ -514,20 +522,17 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Callable[[Type], Type[ControllerBase]]:  # pragma: no cover
+) -> Callable[[Type[T]], Union[Type[ControllerBase], Type[T]]]:  # pragma: no cover
     ...
 
 
-InputClassType = TypeVar("InputClassType", bound=ControllerBase)
-
-
 def api_controller(
-    prefix_or_class: Union[str, Type] = "",
+    prefix_or_class: Union[str, InputClassType] = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Union[Type[ControllerBase], Callable[[InputClassType], Type[InputClassType]]]:
+) -> Union[InputClassType, Callable[[InputClassType], InputClassType]]:
     if isinstance(prefix_or_class, type):
         return APIController(
             prefix="",
@@ -537,7 +542,7 @@ def api_controller(
             auto_import=auto_import,
         )(prefix_or_class)
 
-    def _decorator(cls: InputClassType) -> Type[InputClassType]:
+    def _decorator(cls: InputClassType) -> InputClassType:
         return APIController(
             prefix=str(prefix_or_class),
             auth=auth,

@@ -41,8 +41,7 @@ __all__ = [
 
 
 class OrderingBase(ABC):
-    class Input(Schema):
-        ...
+    class Input(Schema): ...
 
     InputSource = Query(...)
 
@@ -52,8 +51,7 @@ class OrderingBase(ABC):
     @abstractmethod
     def ordering_queryset(
         self, items: Union[QuerySet, List], ordering_input: Any
-    ) -> Union[QuerySet, List]:
-        ...
+    ) -> Union[QuerySet, List]: ...
 
 
 class Ordering(OrderingBase):
