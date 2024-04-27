@@ -1,10 +1,21 @@
 from importlib import import_module
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
 from django.urls import URLPattern, URLResolver
-from django.utils.module_loading import module_has_submodule
+from django.utils.module_loading import import_string, module_has_submodule
 from ninja import NinjaAPI
 from ninja.constants import NOT_SET
 from ninja.openapi.docs import DocsBase, Swagger
@@ -94,9 +105,14 @@ class NinjaExtraAPI(NinjaAPI):
         )
 
     def register_controllers(
-        self, *controllers: Union[Type[ControllerBase], Type]
+        self, *controllers: Union[Type[ControllerBase], Type, str]
     ) -> None:
         for controller in controllers:
+            if isinstance(controller, str):
+                controller = cast(
+                    Union[Type[ControllerBase], Type], import_string(controller)
+                )
+
             if not issubclass(controller, ControllerBase):
                 raise ImproperlyConfigured(
                     f"{controller.__class__.__name__} class is not a controller"
