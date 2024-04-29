@@ -189,16 +189,17 @@ class TestOrdering:
         assert response[0]["title"] == "title_2"
 
         schema = api.get_openapi_schema()["paths"]["/api/items_4"]["get"]
-        # print(schema)
+        print(schema["parameters"])
         assert schema["parameters"] == [
             {
                 "in": "query",
                 "name": "ordering",
-                "required": False,
                 "schema": {
                     "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": "title",
                     "title": "Ordering",
                 },
+                "required": False,
             }
         ]
 
@@ -382,11 +383,12 @@ class TestAsyncOrdering:
                 {
                     "in": "query",
                     "name": "ordering",
-                    "required": False,
                     "schema": {
                         "anyOf": [{"type": "string"}, {"type": "null"}],
+                        "default": "title",
                         "title": "Ordering",
                     },
+                    "required": False,
                 }
             ]
 

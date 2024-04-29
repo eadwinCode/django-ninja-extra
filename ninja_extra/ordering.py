@@ -18,7 +18,8 @@ from typing import (
 
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet
-from ninja import Field, Query, Schema
+from django.http import HttpRequest
+from ninja import Field, P, Query, Schema
 from ninja.constants import NOT_SET
 from ninja.signature import is_async
 from pydantic import BaseModel
@@ -65,14 +66,24 @@ class Ordering(OrderingBase):
     ) -> None:
         super().__init__(pass_parameter=pass_parameter)
         self.ordering_fields = ordering_fields or "__all__"
+        self.Input = self.create_input(ordering_fields)  # type:ignore
+
+    def create_input(self, ordering_fields: Optional[List[str]]) -> Type[Input]:
+        if ordering_fields:
+
+            class DynamicInput(Ordering.Input):
+                ordering: Query[Optional[str], P(default=",".join(ordering_fields))]  # type:ignore[type-arg,valid-type]
+
+            return DynamicInput
+        return Ordering.Input
 
     def ordering_queryset(
         self, items: Union[QuerySet, List], ordering_input: Input
     ) -> Union[QuerySet, List]:
-        ordering = self.get_ordering(items, ordering_input.ordering)
-        if ordering:
+        ordering_ = self.get_ordering(items, ordering_input.ordering)
+        if ordering_:
             if isinstance(items, QuerySet):  # type:ignore
-                return items.order_by(*ordering)
+                return items.order_by(*ordering_)
             elif isinstance(items, list) and items:
 
                 def multisort(xs: List, specs: List[Tuple[str, bool]]) -> List:
@@ -85,7 +96,7 @@ class Ordering(OrderingBase):
                     items,
                     [
                         (o[int(o.startswith("-")) :], o.startswith("-"))
-                        for o in ordering
+                        for o in ordering_
                     ],
                 )
         return items
@@ -201,14 +212,9 @@ class OrderatorOperation:
         self.view_func = view_func
 
         orderator_view = self.get_view_function()
-        _ninja_contribute_args: List[Tuple] = getattr(
-            self.view_func, "_ninja_contribute_args", []
-        )
-        orderator_view._ninja_contribute_args = (  # type:ignore[attr-defined]
-            _ninja_contribute_args
-        )
+        self.as_view = wraps(view_func)(orderator_view)
         add_ninja_contribute_args(
-            orderator_view,
+            self.as_view,
             (
                 self.orderator_kwargs_name,
                 self.orderator.Input,
@@ -216,20 +222,23 @@ class OrderatorOperation:
             ),
         )
         orderator_view.orderator_operation = self  # type:ignore[attr-defined]
-        self.as_view = wraps(view_func)(orderator_view)
 
     @property
     def view_func_has_kwargs(self) -> bool:  # pragma: no cover
         return self.orderator.pass_parameter is not None
 
     def get_view_function(self) -> Callable:
-        def as_view(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
+        def as_view(
+            request_or_controller: Union["ControllerBase", HttpRequest],
+            *args: Any,
+            **kw: Any,
+        ) -> Any:
             func_kwargs = dict(**kw)
             ordering_params = func_kwargs.pop(self.orderator_kwargs_name)
             if self.orderator.pass_parameter:
                 func_kwargs[self.orderator.pass_parameter] = ordering_params
 
-            items = self.view_func(controller, *args, **func_kwargs)
+            items = self.view_func(request_or_controller, *args, **func_kwargs)
             return self.orderator.ordering_queryset(items, ordering_params)
 
         return as_view
@@ -237,13 +246,17 @@ class OrderatorOperation:
 
 class AsyncOrderatorOperation(OrderatorOperation):
     def get_view_function(self) -> Callable:
-        async def as_view(controller: "ControllerBase", *args: Any, **kw: Any) -> Any:
+        async def as_view(
+            request_or_controller: Union["ControllerBase", HttpRequest],
+            *args: Any,
+            **kw: Any,
+        ) -> Any:
             func_kwargs = dict(**kw)
             ordering_params = func_kwargs.pop(self.orderator_kwargs_name)
             if self.orderator.pass_parameter:
                 func_kwargs[self.orderator.pass_parameter] = ordering_params
 
-            items = await self.view_func(controller, *args, **func_kwargs)
+            items = await self.view_func(request_or_controller, *args, **func_kwargs)
             ordering_queryset = cast(
                 Callable, sync_to_async(self.orderator.ordering_queryset)
             )

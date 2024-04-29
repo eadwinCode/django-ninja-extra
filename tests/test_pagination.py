@@ -3,7 +3,7 @@ import typing
 
 import django
 import pytest
-from ninja import Schema
+from ninja import NinjaAPI, Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
 from ninja_extra.controllers import RouteFunction
@@ -385,5 +385,52 @@ class TestAsyncOperations:
             assert data["items"] == ITEMS[10:20]
 
 
-def test_pagination_extra_get_schema():
-    pass
+def test_pagination_extra_with_ninja_api():
+    app = NinjaAPI()
+
+    @app.get("/items_2", response=NinjaPaginationResponseSchema[int])
+    @paginate()  # with brackets (should use default pagination)
+    def items_2(request, someparam: int = 0):
+        # also having custom param `someparam` - that should not be lost
+        return FakeQuerySet()
+
+    @app.get("/items_3")
+    @paginate(CustomPagination, pass_parameter="pass_kwargs")
+    def items_3(request, **kwargs):
+        return ITEMS
+
+    _client = TestClient(app)
+
+    response = _client.get("/items_3?skip=5")
+    assert response.json() == ITEMS[5:10]
+
+    response = _client.get("/items_2?limit=10").json()
+    assert response.get("items")
+    assert response["items"] == ITEMS[:10]
+
+
+@pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
+@pytest.mark.asyncio
+async def test_pagination_extra_with_ninja_api_async():
+    app = NinjaAPI()
+
+    @app.get("/items_2", response=NinjaPaginationResponseSchema[int])
+    @paginate()  # with brackets (should use default pagination)
+    async def items_2(request, someparam: int = 0):
+        # also having custom param `someparam` - that should not be lost
+        return FakeQuerySet()
+
+    @app.get("/items_3")
+    @paginate(CustomPagination, pass_parameter="pass_kwargs")
+    async def items_3(request, **kwargs):
+        return ITEMS
+
+    _client = TestAsyncClient(app)
+
+    response = await _client.get("/items_3?skip=5")
+    assert response.json() == ITEMS[5:10]
+
+    response = await _client.get("/items_2?limit=10")
+    result = response.json()
+    assert result.get("items")
+    assert result["items"] == ITEMS[:10]
