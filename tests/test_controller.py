@@ -207,6 +207,15 @@ class TestAPIController:
                 assert isinstance(ex, exceptions.PermissionDenied)
 
 
+def test_controller_registration_through_string():
+    assert DisableAutoImportController.get_api_controller().registered is False
+
+    api = NinjaExtraAPI()
+    api.register_controllers("tests.test_controller.DisableAutoImportController")
+
+    assert DisableAutoImportController.get_api_controller().registered
+
+
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 def test_async_controller():
     api_controller_decorator = api_controller(

@@ -91,8 +91,8 @@ class Searching(SearchingBase):
         search_fields: Optional[List[str]] = None,
         pass_parameter: Optional[str] = None,
     ) -> None:
+        super().__init__(pass_parameter=pass_parameter)
         self.search_fields = search_fields or []
-        self.pass_parameter = pass_parameter
 
     def searching_queryset(
         self, items: Union[QuerySet, List], searching_input: Input
@@ -240,14 +240,9 @@ class SearcheratorOperation:
         self.view_func = view_func
 
         searcherator_view = self.get_view_function()
-        _ninja_contribute_args: List[Tuple] = getattr(
-            self.view_func, "_ninja_contribute_args", []
-        )
-        searcherator_view._ninja_contribute_args = (  # type:ignore[attr-defined]
-            _ninja_contribute_args
-        )
+        self.as_view = wraps(view_func)(searcherator_view)
         add_ninja_contribute_args(
-            searcherator_view,
+            self.as_view,
             (
                 self.searcherator_kwargs_name,
                 self.searcherator.Input,
@@ -255,7 +250,6 @@ class SearcheratorOperation:
             ),
         )
         searcherator_view.searcherator_operation = self  # type:ignore[attr-defined]
-        self.as_view = wraps(view_func)(searcherator_view)
 
     @property
     def view_func_has_kwargs(self) -> bool:  # pragma: no cover
