@@ -88,7 +88,7 @@ class Ordering(OrderingBase):
 
                 def multisort(xs: List, specs: List[Tuple[str, bool]]) -> List:
                     orerator = itemgetter if isinstance(xs[0], dict) else attrgetter
-                    for key, reverse in specs:
+                    for key, reverse in reversed(specs):
                         xs.sort(key=orerator(key), reverse=reverse)
                     return xs
 
