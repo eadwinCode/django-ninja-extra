@@ -20,6 +20,7 @@ from django.http import HttpRequest
 from django.http.response import HttpResponse, HttpResponseBase
 from django.utils.encoding import force_str
 from ninja.constants import NOT_SET
+from ninja.errors import AuthenticationError
 from ninja.operation import (
     AsyncOperation as NinjaAsyncOperation,
 )
@@ -245,7 +246,8 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             if result:
                 request.auth = result  # type: ignore
                 return None
-        return self.api.create_response(request, {"detail": "Unauthorized"}, status=401)
+
+        return self.api.on_exception(request, AuthenticationError())
 
     @asynccontextmanager
     async def _prep_run(  # type:ignore
