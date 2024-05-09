@@ -35,7 +35,7 @@ class TestOperation:
 
     # @mock_signal_call("route_context_started")
     # @mock_signal_call("route_context_finished")
-    @mock_log_call("error")
+    @mock_log_call("warning")
     def test_route_operation_execution_should_log_execution(self):
         client = TestClient(self.SomeTestController)
         with pytest.raises(CustomException):
@@ -108,7 +108,7 @@ class TestAsyncOperations:
 
         # @mock_signal_call("route_context_started")
         # @mock_signal_call("route_context_finished")
-        @mock_log_call("error")
+        @mock_log_call("warning")
         async def test_async_route_operation_execution_should_log_execution(self):
             client = TestAsyncClient(self.SomeTestController)
             with pytest.raises(CustomException):

@@ -167,7 +167,7 @@ class Operation(NinjaOperation):
             )
         except Exception as e:
             self._log_action(
-                request_logger.error,
+                request_logger.warning,
                 request=request,
                 ex=e,
                 extra={"request": request},
@@ -269,7 +269,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             )
         except Exception as e:
             self._log_action(
-                request_logger.error,
+                request_logger.warning,
                 request=request,
                 ex=e,
                 extra={"request": request},
