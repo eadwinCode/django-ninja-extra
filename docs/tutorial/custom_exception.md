@@ -12,7 +12,7 @@ from ninja import constants
 
 class CustomAPIException(APIException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    message = 'UnAuthorized'
+    default_detail = 'UnAuthorized'
 
     
 @api_controller('', tags=['My Operations'], auth=constants.NOT_SET, permissions=[])
