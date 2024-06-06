@@ -84,7 +84,7 @@ class TestAPIController:
         api_controller_instance = controller_type.get_api_controller()
         assert api_controller_instance.prefix == ""
         assert api_controller_instance.tags == ["any"]
-        assert "abc" in SomeController.__module__
+        assert "ninja_extra.controllers.base" in SomeController.__module__
         assert "tests.test_controller" in Some2Controller.__module__
         assert Some2Controller.get_api_controller()
 
