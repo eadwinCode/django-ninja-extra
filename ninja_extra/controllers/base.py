@@ -87,7 +87,7 @@ def compute_api_route_function(
         api_controller_instance.add_controller_route_function(cls_route_function)
 
 
-class ControllerBase(ABC):
+class ControllerBase:
     """
     Abstract Controller Base implementation all Controller class should implement
 
