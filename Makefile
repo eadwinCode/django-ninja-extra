@@ -10,6 +10,7 @@ clean: ## Removing cached python compiled files
 	find . -name \*~  | xargs  rm -fv
 	find . -name __pycache__  | xargs  rm -rfv
 	find . -name .ruff_cache  | xargs  rm -rfv
+	find . -name .mypy_cache  | xargs  rm -rfv
 
 install:clean ## Install dependencies
 	pip install -r requirements.txt

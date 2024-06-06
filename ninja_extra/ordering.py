@@ -82,7 +82,7 @@ class Ordering(OrderingBase):
     ) -> Union[QuerySet, List]:
         ordering_ = self.get_ordering(items, ordering_input.ordering)
         if ordering_:
-            if isinstance(items, QuerySet):  # type:ignore
+            if isinstance(items, QuerySet):
                 return items.order_by(*ordering_)
             elif isinstance(items, list) and items:
 
@@ -124,7 +124,7 @@ class Ordering(OrderingBase):
     def get_valid_fields(self, items: Union[QuerySet, List]) -> List[str]:
         valid_fields: List[str] = []
         if self.ordering_fields == "__all__":
-            if isinstance(items, QuerySet):  # type:ignore
+            if isinstance(items, QuerySet):
                 valid_fields = self.get_all_valid_fields_from_queryset(items)
             elif isinstance(items, list):
                 valid_fields = self.get_all_valid_fields_from_list(items)

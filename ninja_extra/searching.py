@@ -100,7 +100,7 @@ class Searching(SearchingBase):
         search_terms = self.get_search_terms(searching_input.search)
 
         if self.search_fields and search_terms:
-            if isinstance(items, QuerySet):  # type:ignore
+            if isinstance(items, QuerySet):
                 conditions_queryset = self.construct_conditions_for_queryset(
                     search_terms
                 )
