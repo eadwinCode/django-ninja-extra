@@ -5,9 +5,9 @@ build-backend = "flit_core.buildapi"
 [tool.flit.metadata]
 module = "ninja_extra"
 dist-name = "django-ninja-extra"
-author = "Diego Saraiva"
-author-email = "diegosaraiva@gmail.com"
-home-page = "https://github.com/jdiego/django-ninja-extra"
+author = "Ezeudoh Tochukwu"
+author-email = "tochukwu.ezeudoh@gmail.com"
+home-page = "https://github.com/eadwinCode/django-ninja-extra"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Information Technology",
