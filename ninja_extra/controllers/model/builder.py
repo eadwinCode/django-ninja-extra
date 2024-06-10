@@ -55,7 +55,7 @@ class ModelControllerBuilder:
 
     def _register_create_endpoint(self) -> None:
         kw = {
-            "url_name": f"{self._model_name}-create",
+            "url_name": f"{self._model_name.lower()}-create",
             "description": f"Create {self._model_name} item",
             "summary": "Create an item",
         }
@@ -74,7 +74,7 @@ class ModelControllerBuilder:
             self._model_pk_name,
         )
         kw = {
-            "url_name": f"{self._model_pk_name}-put",
+            "url_name": f"{self._model_name.lower()}-put",
             "description": f"""Update {self._model_name} item by {self._model_pk_name}""",
             "summary": "Update an item",
         }
@@ -98,7 +98,7 @@ class ModelControllerBuilder:
         )
 
         kw = {
-            "url_name": f"{self._model_pk_name}-patch",
+            "url_name": f"{self._model_name.lower()}-patch",
             "description": f"""Patch {self._model_name} item by {self._model_pk_name}""",
             "summary": "Patch an item",
         }
@@ -120,7 +120,7 @@ class ModelControllerBuilder:
             self._model_pk_name,
         )
         kw = {
-            "url_name": f"{self._model_pk_name}-get-item",
+            "url_name": f"{self._model_name.lower()}-get-item",
             "description": f"""Get {self._model_name} item by {self._model_pk_name}""",
             "summary": "Get a specific item",
         }
@@ -138,7 +138,7 @@ class ModelControllerBuilder:
     def _register_list_endpoint(self) -> None:
         kw = {
             "description": f"List {self._model_name} model items",
-            "url_name": f"{self._model_pk_name}-list",
+            "url_name": f"{self._model_name.lower()}-list",
             "summary": "List Items",
         }
         kw.update(self._config.list_route_info)
@@ -169,7 +169,7 @@ class ModelControllerBuilder:
             self._model_pk_name,
         )
         kw = {
-            "url_name": f"{self._model_pk_name}-delete",
+            "url_name": f"{self._model_name.lower()}-delete",
             "description": f"""Delete {self._model_name} item""",
             "summary": "Delete an item",
         }
