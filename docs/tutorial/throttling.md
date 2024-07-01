@@ -46,10 +46,6 @@ You can set globally default throttling classes and rates in your project `setti
 ```python
 # django settings.py
 NINJA_EXTRA = {
-    'THROTTLE_CLASSES': [
-        "ninja_extra.throttling.AnonRateThrottle",
-        "ninja_extra.throttling.UserRateThrottle",
-    ],
     'THROTTLE_RATES': {
         'user': '1000/day',
         'anon': '100/day',
