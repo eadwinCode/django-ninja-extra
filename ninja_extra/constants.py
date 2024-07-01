@@ -15,6 +15,7 @@ OPTIONS = "OPTIONS"
 TRACE = "TRACE"
 ROUTE_METHODS = [POST, PUT, PATCH, DELETE, GET, HEAD, OPTIONS, TRACE]
 THROTTLED_FUNCTION = "__throttled_endpoint__"
+THROTTLED_OBJECTS = "__throttled_objects__"
 ROUTE_FUNCTION = "__route_function__"
 
 ROUTE_CONTEXT_VAR: contextvars.ContextVar[t.Optional["RouteContext"]] = (

@@ -42,7 +42,7 @@ classifiers = [
 
 requires = [
     "Django >= 2.2",
-    "django-ninja==1.1.0",
+    "django-ninja>=1.2.0",
     "injector >= 0.19.0",
     "asgiref",
     "contextlib2"
@@ -92,6 +92,7 @@ warn_unused_ignores = true
 disallow_untyped_defs = true
 check_untyped_defs = true
 no_implicit_reexport = true
+disable_error_code = ['var-annotated', 'misc']
 
 [[tool.mypy.overrides]]
 module = "ninja_extra.compatible.*"

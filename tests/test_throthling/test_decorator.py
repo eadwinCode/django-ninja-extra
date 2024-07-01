@@ -7,7 +7,11 @@ from ninja.testing import TestAsyncClient, TestClient
 
 from ninja_extra import NinjaExtraAPI
 from ninja_extra.conf import settings
-from ninja_extra.throttling import DynamicRateThrottle, throttle
+from ninja_extra.throttling import (
+    AnonRateThrottle,
+    DynamicRateThrottle,
+    UserRateThrottle,
+)
 
 from .sample_models import (
     ThrottlingMockUser,
@@ -19,32 +23,33 @@ from .sample_models import (
 api = NinjaExtraAPI(urls_namespace="throttle_decorator_1")
 
 
-@api.get("/throttle_user_default")
-@throttle
+@api.get(
+    "/throttle_user_default",
+    throttle=[UserRateThrottle("3/sec"), AnonRateThrottle("2/sec")],
+)
 def throttle_user_default(request):
     return "foo"
 
 
-@api.get("/throttle_user_3_sec")
-@throttle(User3SecRateThrottle)
+@api.get("/throttle_user_3_sec", throttle=User3SecRateThrottle())
 def throttle_user_3_sec(request):
     return "foo"
 
 
-@api.get("/throttling_multiple_throttle")
-@throttle(User3SecRateThrottle, User6MinRateThrottle)
+@api.get(
+    "/throttling_multiple_throttle",
+    throttle=[User3SecRateThrottle(), User6MinRateThrottle()],
+)
 def throttling_multiple_throttle(request):
     return "foo"
 
 
-@api.get("/throttle_user_3_min")
-@throttle(User3MinRateThrottle)
+@api.get("/throttle_user_3_min", throttle=[User3MinRateThrottle()])
 def throttle_user_3_min(request):
     return "foo"
 
 
-@api.get("/dynamic_throttling_scope")
-@throttle(DynamicRateThrottle, scope="dynamic_scope")
+@api.get("/dynamic_throttling_scope", throttle=DynamicRateThrottle(rate="3/min"))
 def dynamic_throttling_scope(request):
     return "foo"
 
@@ -57,12 +62,10 @@ class TestThrottling:
         self.user = ThrottlingMockUser("Ninja")
         self.user.set_id(uuid.uuid4())
 
-    def test_requests_are_throttled_using_default_user_scope(self, monkeypatch):
-        with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", {"user": "3/sec", "anon": "2/sec"})
-            for _dummy in range(4):
-                response = client.get("/throttle_user_default", user=self.user)
-            assert response.status_code == 429
+    def test_requests_are_throttled_using_default_user_scope(self):
+        for _dummy in range(4):
+            response = client.get("/throttle_user_default", user=self.user)
+        assert response.status_code == 429
 
     def test_requests_are_throttled(self):
         """
@@ -229,62 +232,59 @@ class TestThrottling:
             ),
         )
 
-    def test_request_throttling_for_dynamic_throttling(self, monkeypatch):
+    def test_request_throttling_for_dynamic_throttling(self):
         # for authenticated user
-        with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for _dummy in range(4):
-                response = client.get("/dynamic_throttling_scope", user=self.user)
-            assert response.status_code == 429
+        for _dummy in range(4):
+            response = client.get("/dynamic_throttling_scope", user=self.user)
+        assert response.status_code == 429
         # for unauthenticated user
-        with monkeypatch.context() as m:
-            m.setattr(settings, "THROTTLE_RATES", {"dynamic_scope": "3/min"})
-            for _dummy in range(4):
-                response = client.get("/dynamic_throttling_scope")
-            assert response.status_code == 429
+
+        for _dummy in range(4):
+            response = client.get("/dynamic_throttling_scope")
+        assert response.status_code == 429
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 @pytest.mark.asyncio
 async def test_async_throttling(monkeypatch):
     api_async = NinjaExtraAPI(urls_namespace="decorator_async_1")
-
-    @api_async.get("/throttle_user_default_async")
-    @throttle
-    async def throttle_user_default_async(request):
-        return "foo"
-
-    @api_async.get("/throttle_user_3_sec_async")
-    @throttle(User3SecRateThrottle)
-    async def throttle_user_3_sec_async(request):
-        return "foo"
-
-    @api_async.get("/throttle_user_3_min_async")
-    @throttle(User3MinRateThrottle)
-    async def throttle_user_3_min_async(request):
-        return "foo"
-
-    def create_user():
-        _user = ThrottlingMockUser("Ninja")
-        _user.set_id(uuid.uuid4())
-        return _user
-
-    client_async = TestAsyncClient(api_async)
-
-    user = create_user()
-
     with monkeypatch.context() as m:
         m.setattr(settings, "THROTTLE_RATES", {"user": "3/sec", "anon": "2/sec"})
+
+        @api_async.get(
+            "/throttle_user_default_async",
+            throttle=[UserRateThrottle(), AnonRateThrottle()],
+        )
+        async def throttle_user_default_async(request):
+            return "foo"
+
+        @api_async.get("/throttle_user_3_sec_async", throttle=User3SecRateThrottle())
+        async def throttle_user_3_sec_async(request):
+            return "foo"
+
+        @api_async.get("/throttle_user_3_min_async", throttle=User3MinRateThrottle())
+        async def throttle_user_3_min_async(request):
+            return "foo"
+
+        def create_user():
+            _user = ThrottlingMockUser("Ninja")
+            _user.set_id(uuid.uuid4())
+            return _user
+
+        client_async = TestAsyncClient(api_async)
+
+        user = create_user()
+
         for _dummy in range(4):
             response = await client_async.get("/throttle_user_default_async", user=user)
         assert response.status_code == 429
 
-    user = create_user()
-    for _idx, _dummy in enumerate(range(4)):
-        response = await client_async.get("/throttle_user_3_sec_async", user=user)
-    assert response.status_code == 429
+        user = create_user()
+        for _idx, _dummy in enumerate(range(4)):
+            response = await client_async.get("/throttle_user_3_sec_async", user=user)
+        assert response.status_code == 429
 
-    user = create_user()
-    for _idx, _dummy in enumerate(range(4)):
-        response = await client_async.get("/throttle_user_3_min_async", user=user)
-    assert response.status_code == 429
+        user = create_user()
+        for _idx, _dummy in enumerate(range(4)):
+            response = await client_async.get("/throttle_user_3_min_async", user=user)
+        assert response.status_code == 429
