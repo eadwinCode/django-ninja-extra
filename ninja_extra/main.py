@@ -21,6 +21,7 @@ from ninja.constants import NOT_SET
 from ninja.openapi.docs import DocsBase, Swagger
 from ninja.parser import Parser
 from ninja.renderers import BaseRenderer
+from ninja.throttling import BaseThrottle
 from ninja.types import DictStrAny, TCallable
 
 from ninja_extra import exceptions, router
@@ -48,6 +49,7 @@ class NinjaExtraAPI(NinjaAPI):
         urls_namespace: Optional[str] = None,
         csrf: bool = False,
         auth: Optional[Union[Sequence[Callable], Callable, NOT_SET_TYPE]] = NOT_SET,
+        throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         renderer: Optional[BaseRenderer] = None,
         parser: Optional[Parser] = None,
         openapi_extra: Optional[Dict[str, Any]] = None,
