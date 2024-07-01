@@ -531,6 +531,7 @@ def api_controller(
 def api_controller(
     prefix_or_class: str = "",
     auth: Any = NOT_SET,
+    throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
@@ -543,6 +544,7 @@ def api_controller(
 def api_controller(
     prefix_or_class: Union[str, Union[ControllerClassType, Type]] = "",
     auth: Any = NOT_SET,
+    throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
@@ -554,6 +556,7 @@ def api_controller(
             tags=tags,
             permissions=permissions,
             auto_import=auto_import,
+            throttle=throttle,
         )(prefix_or_class)
 
     def _decorator(cls: ControllerClassType) -> ControllerClassType:
@@ -563,6 +566,7 @@ def api_controller(
             tags=tags,
             permissions=permissions,
             auto_import=auto_import,
+            throttle=throttle,
         )(cls)
 
     return _decorator

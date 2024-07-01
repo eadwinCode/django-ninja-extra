@@ -4,11 +4,11 @@ Throttling can be seen as a permission that determines if a request should be au
 It indicates a temporary state used to control the rate of requests that clients can make to an API.
 
 ```python
-from ninja_extra import NinjaExtraAPI, throttle
+from ninja_extra import NinjaExtraAPI
+from ninja_extra.throttling import UserRateThrottle, AnonRateThrottle
 api = NinjaExtraAPI()
 
-@api.get('/users')
-@throttle  # this will apply default throttle classes [UserRateThrottle, AnonRateThrottle]
+@api.get('/users', throttle=[AnonRateThrottle(), UserRateThrottle()])
 def my_throttled_endpoint(request):
     return 'foo'
 ```
@@ -23,7 +23,7 @@ constraints, which could be burst throttling rate or sustained throttling rates,
 for example, you might want to limit a user to a maximum of 60 requests per minute, and 1000 requests per day.
 
 ```python
-from ninja_extra import NinjaExtraAPI, throttle
+from ninja_extra import NinjaExtraAPI
 from ninja_extra.throttling import UserRateThrottle
 api = NinjaExtraAPI()
 
@@ -36,8 +36,7 @@ class User1000PerDayRateThrottle(UserRateThrottle):
     rate = "1000/day"
     scope = "days"
 
-@api.get('/users')
-@throttle(User60MinRateThrottle, User1000PerDayRateThrottle)
+@api.get('/users', throttle=[User60MinRateThrottle(), User1000PerDayRateThrottle()])
 def my_throttled_endpoint(request):
     return 'foo'
 
@@ -61,13 +60,12 @@ NINJA_EXTRA = {
 The rate descriptions used in `THROTTLE_RATES` may include `second`, `minute`, `hour` or `day` as the throttle period.
 
 ```python
-from ninja_extra import NinjaExtraAPI, throttle
+from ninja_extra import NinjaExtraAPI
 from ninja_extra.throttling import UserRateThrottle
 
 api = NinjaExtraAPI()
 
-@api.get('/users')
-@throttle(UserRateThrottle)
+@api.get('/users', throttle=UserRateThrottle())
 def my_throttled_endpoint(request):
     return 'foo'
 ```
@@ -162,17 +160,15 @@ NINJA_EXTRA = {
 
 ```python
 # api.py
-from ninja_extra import NinjaExtraAPI, throttle
+from ninja_extra import NinjaExtraAPI
 from ninja_extra.throttling import DynamicRateThrottle
 api = NinjaExtraAPI()
 
-@api.get('/users')
-@throttle(DynamicRateThrottle, scope='burst')
+@api.get('/users', throttle=DynamicRateThrottle(scope='burst'))
 def get_users(request):
     return 'foo'
 
-@api.get('/users/<int:id>')
-@throttle(DynamicRateThrottle, scope='sustained')
+@api.get('/users/<int:id>', throttle=DynamicRateThrottle(scope='sustained'))
 def get_user_by_id(request, id: int):
     return 'foo'
 ```
@@ -187,21 +183,15 @@ Here, we dynamically applied `sustained` rates and `burst` rates to `get_users` 
 ```python
 # api.py
 from ninja_extra import (
-    NinjaExtraAPI, throttle, api_controller, ControllerBase,
+    NinjaExtraAPI, api_controller, ControllerBase,
     http_get
 )
 from ninja_extra.throttling import DynamicRateThrottle
 api = NinjaExtraAPI()
 
-@api_controller("/throttled-controller")
+@api_controller("/throttled-controller", throttle=[DynamicRateThrottle(scope="sustained")])
 class ThrottlingControllerSample(ControllerBase):
-    throttling_classes = [
-        DynamicRateThrottle,
-    ]
-    throttling_init_kwargs = dict(scope="sustained")
-
-    @http_get("/endpoint_1")
-    @throttle(DynamicRateThrottle, scope='burst')
+    @http_get("/endpoint_1", throttle=DynamicRateThrottle(scope="burst"))
     def endpoint_1(self, request):
         # this will override the generally throttling applied at the controller
         return "foo"
