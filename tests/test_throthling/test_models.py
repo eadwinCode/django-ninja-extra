@@ -6,7 +6,6 @@ from django.http import HttpRequest
 from ninja_extra.conf import settings
 from ninja_extra.throttling import (
     AnonRateThrottle,
-    BaseThrottle,
     DynamicRateThrottle,
     SimpleRateThrottle,
     UserRateThrottle,
@@ -30,53 +29,11 @@ class TestAnonRateThrottle:
         assert cache_key == "throttle_anon_None"
 
 
-class TestBaseThrottle:
-    def setup_method(self):
-        self.throttling = BaseThrottle()
-        self.request = HttpRequest()
-
-    def test_allow_request_raises_not_implemented_error(self):
-        with pytest.raises(NotImplementedError):
-            self.throttling.allow_request(self.request)
-
-    def test_get_ident_x_forward_for_works(self):
-        self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2"
-        ident = self.throttling.get_ident(self.request)
-        assert ident == "2.2.2.2"
-        self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2, 1.1.1.1, 0.0.0.0"
-        ident = self.throttling.get_ident(self.request)
-        assert ident == "2.2.2.2,1.1.1.1,0.0.0.0"
-
-    def test_get_ident_remote_forward_for_works(self):
-        self.request.META["HTTP_X_FORWARDED_FOR"] = None
-        self.request.META["REMOTE_ADDR"] = "2.2.2.2"
-        ident = self.throttling.get_ident(self.request)
-        assert ident == "2.2.2.2"
-
-    def test_get_ident_with_num_proxies(self, monkeypatch):
-        with monkeypatch.context() as m:
-            m.setattr(settings, "NUM_PROXIES", 0)
-            ident = self.throttling.get_ident(self.request)
-            assert ident is None
-            self.request.META["REMOTE_ADDR"] = "2.2.2.2"
-            ident = self.throttling.get_ident(self.request)
-            assert ident == "2.2.2.2"
-        with monkeypatch.context() as m:
-            m.setattr(settings, "NUM_PROXIES", 1)
-            self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2, 1.1.1.1, 0.0.0.0"
-            ident = self.throttling.get_ident(self.request)
-            assert ident == "0.0.0.0"
-
-        with monkeypatch.context() as m:
-            m.setattr(settings, "NUM_PROXIES", 2)
-            self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2, 1.1.1.1, 0.0.0.0"
-            ident = self.throttling.get_ident(self.request)
-            assert ident == "1.1.1.1"
-
-
 class TestSimpleRateThrottle:
     def setup_method(self):
         SimpleRateThrottle.scope = "anon"
+        self.request = HttpRequest()
+        self.request.user = None
 
     def test_get_rate_raises_error_if_scope_is_missing(self):
         throttle = SimpleRateThrottle()
@@ -122,6 +79,40 @@ class TestSimpleRateThrottle:
         throttle.now = throttle.timer()
         throttle.history = [throttle.timer() for _ in range(3)]
         assert throttle.wait() is None
+
+    def test_get_ident_x_forward_for_works(self):
+        self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2"
+        ident = SimpleRateThrottle().get_ident(self.request)
+        assert ident == "2.2.2.2"
+        self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2, 1.1.1.1, 0.0.0.0"
+        ident = SimpleRateThrottle().get_ident(self.request)
+        assert ident == "2.2.2.2,1.1.1.1,0.0.0.0"
+
+    def test_get_ident_remote_forward_for_works(self):
+        self.request.META["HTTP_X_FORWARDED_FOR"] = None
+        self.request.META["REMOTE_ADDR"] = "2.2.2.2"
+        ident = SimpleRateThrottle().get_ident(self.request)
+        assert ident == "2.2.2.2"
+
+    def test_get_ident_with_num_proxies(self, monkeypatch):
+        with monkeypatch.context() as m:
+            m.setattr(settings, "NUM_PROXIES", 0)
+            ident = SimpleRateThrottle().get_ident(self.request)
+            assert ident is None
+            self.request.META["REMOTE_ADDR"] = "2.2.2.2"
+            ident = SimpleRateThrottle().get_ident(self.request)
+            assert ident == "2.2.2.2"
+        with monkeypatch.context() as m:
+            m.setattr(settings, "NUM_PROXIES", 1)
+            self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2, 1.1.1.1, 0.0.0.0"
+            ident = SimpleRateThrottle().get_ident(self.request)
+            assert ident == "0.0.0.0"
+
+        with monkeypatch.context() as m:
+            m.setattr(settings, "NUM_PROXIES", 2)
+            self.request.META["HTTP_X_FORWARDED_FOR"] = "2.2.2.2, 1.1.1.1, 0.0.0.0"
+            ident = SimpleRateThrottle().get_ident(self.request)
+            assert ident == "1.1.1.1"
 
 
 class TestUserRateThrottle:

@@ -2,6 +2,8 @@ import dataclasses
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from ninja import Schema
+from ninja.constants import NOT_SET, NOT_SET_TYPE
+from ninja.throttling import BaseThrottle
 from pydantic import BeforeValidator, TypeAdapter, field_validator
 from pydantic.networks import HttpUrl
 from typing_extensions import Annotated
@@ -57,6 +59,7 @@ class RouteParameter:
     methods: List[str]
     openapi_extra: Optional[Dict[str, Any]]
     auth: Optional[Union[Type, Any]] = None
+    throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET
     response: Optional[Union[Type, Any]] = None
     operation_id: Optional[str] = None
     summary: Optional[str] = None

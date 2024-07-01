@@ -1,7 +1,8 @@
-from typing import Any, Callable, Dict, List, Optional, get_type_hints
+from typing import Any, Callable, Dict, List, Optional, Union, get_type_hints
 
-from ninja.constants import NOT_SET
+from ninja.constants import NOT_SET, NOT_SET_TYPE
 from ninja.router import Router as NinjaRouter
+from ninja.throttling import BaseThrottle
 
 from ninja_extra.operation import PathView
 
@@ -10,9 +11,13 @@ __all__ = ["Router"]
 
 class Router(NinjaRouter):
     def __init__(
-        self, *, auth: Any = NOT_SET, tags: Optional[List[str]] = None
+        self,
+        *,
+        auth: Any = NOT_SET,
+        tags: Optional[List[str]] = None,
+        throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
     ) -> None:
-        super().__init__(auth=auth, tags=tags)
+        super().__init__(auth=auth, tags=tags, throttle=throttle)
         self.path_operations: Dict[str, PathView] = {}  # type: ignore
 
     def add_api_operation(
@@ -22,6 +27,7 @@ class Router(NinjaRouter):
         view_func: Callable,
         *,
         auth: Any = NOT_SET,
+        throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: Any = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
@@ -47,6 +53,7 @@ class Router(NinjaRouter):
 
         path_view.add_operation(
             path=path,
+            throttle=throttle,
             methods=methods,
             view_func=view_func,
             auth=auth,

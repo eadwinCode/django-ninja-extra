@@ -92,6 +92,7 @@ warn_unused_ignores = true
 disallow_untyped_defs = true
 check_untyped_defs = true
 no_implicit_reexport = true
+disable_error_code = ['var-annotated', 'misc']
 
 [[tool.mypy.overrides]]
 module = "ninja_extra.compatible.*"

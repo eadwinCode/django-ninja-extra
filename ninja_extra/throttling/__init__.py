@@ -1,7 +1,8 @@
+from ninja.throttling import BaseThrottle
+
 from .decorator import throttle
 from .model import (
     AnonRateThrottle,
-    BaseThrottle,
     DynamicRateThrottle,
     SimpleRateThrottle,
     UserRateThrottle,

@@ -26,12 +26,13 @@ from django.urls import URLPattern
 from django.urls import path as django_path
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI, Router
-from ninja.constants import NOT_SET
+from ninja.constants import NOT_SET, NOT_SET_TYPE
 from ninja.security.base import AuthBase
 from ninja.signature import is_async
+from ninja.throttling import BaseThrottle
 from ninja.utils import normalize_path
 
-from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION
+from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION, THROTTLED_OBJECTS
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import Operation, PathView
@@ -51,7 +52,6 @@ from .route.route_functions import AsyncRouteFunction, RouteFunction
 
 if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra import NinjaExtraAPI
-    from ninja_extra.throttling import BaseThrottle
 
     from .route.context import RouteContext
 
@@ -126,10 +126,10 @@ class ControllerBase:
     throttling_classes: List[Type["BaseThrottle"]] = []
     throttling_init_kwargs: Optional[Dict[Any, Any]] = None
 
-    Ok = Ok
-    Id = Id
-    Detail = Detail
-    bad_request = bad_request
+    Ok = Ok  # TODO: remove soonest
+    Id = Id  # TODO: remove soonest
+    Detail = Detail  # TODO: remove soonest
+    bad_request = bad_request  # TODO: remove soonest
 
     @classmethod
     def get_api_controller(cls) -> "APIController":
@@ -294,6 +294,7 @@ class APIController:
         prefix: str,
         *,
         auth: Any = NOT_SET,
+        throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         tags: Union[Optional[List[str]], str] = None,
         permissions: Optional["PermissionType"] = None,
         auto_import: bool = True,
@@ -303,6 +304,7 @@ class APIController:
         self.auth: Optional[AuthBase] = auth
 
         self.tags = tags  # type: ignore
+        self.throttle = throttle
 
         self.auto_import: bool = auto_import  # set to false and it would be ignored when api.auto_discover is called
         # `controller_class` target class that the APIController wraps
@@ -348,8 +350,6 @@ class APIController:
         self._tags = tag
 
     def __call__(self, cls: ControllerClassType) -> ControllerClassType:
-        from ninja_extra.throttling import throttle
-
         self.auto_import = getattr(cls, "auto_import", self.auto_import)
         if not issubclass(cls, ControllerBase):
             # We force the cls to inherit from `ControllerBase` by creating another type.
@@ -360,8 +360,15 @@ class APIController:
         assert isinstance(
             cls.throttling_classes, (list, tuple)
         ), f"Controller[{cls.__name__}].throttling_class must be a list or tuple"
-        has_throttling_classes = len(cls.throttling_classes) > 0
-        throttling_init_kwargs = cls.throttling_init_kwargs or {}
+
+        throttling_objects: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE]
+        if cls.throttling_classes:
+            throttling_init_kwargs = cls.throttling_init_kwargs or {}
+            throttling_objects = [
+                item(**throttling_init_kwargs) for item in cls.throttling_classes
+            ]
+        else:
+            throttling_objects = self.throttle
 
         if not self.tags:
             tag = str(cls.__name__).lower().replace("controller", "")
@@ -386,10 +393,13 @@ class APIController:
 
         for _, v in self._controller_class_route_functions.items():
             throttled_endpoint = v.as_view.__dict__.get(THROTTLED_FUNCTION)
-            if not throttled_endpoint and has_throttling_classes:
-                v.route.view_func = throttle(
-                    *cls.throttling_classes, **throttling_init_kwargs
-                )(v.route.view_func)
+
+            if throttled_endpoint or throttling_objects is not NOT_SET:
+                v.route.route_params.throttle = v.as_view.__dict__.get(
+                    THROTTLED_OBJECTS, lambda: throttling_objects
+                )()
+                setattr(v.route.view_func, THROTTLED_FUNCTION, True)
+
             self._add_operation_from_route_function(v)
 
         if not is_decorated_with_inject(cls.__init__):
@@ -463,6 +473,7 @@ class APIController:
         view_func: Callable,
         *,
         auth: Any = NOT_SET,
+        throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: Any = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
@@ -504,13 +515,14 @@ class APIController:
             url_name=url_name,
             include_in_schema=include_in_schema,
             openapi_extra=openapi_extra,
+            throttle=throttle,
         )
         return operation
 
 
 @overload
 def api_controller(
-    prefix_or_class: Type[T],
+    prefix_or_class: Union[ControllerClassType, Type[T]],
 ) -> Union[Type[ControllerBase], Type[T]]:  # pragma: no cover
     ...
 
@@ -522,12 +534,14 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,
     auto_import: bool = True,
-) -> Callable[[Type[T]], Union[Type[ControllerBase], Type[T]]]:  # pragma: no cover
+) -> Callable[
+    [Union[Type, Type[T]]], Union[Type[ControllerBase], Type[T]]
+]:  # pragma: no cover
     ...
 
 
 def api_controller(
-    prefix_or_class: Union[str, ControllerClassType] = "",
+    prefix_or_class: Union[str, Union[ControllerClassType, Type]] = "",
     auth: Any = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional["PermissionType"] = None,

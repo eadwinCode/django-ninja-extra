@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from django.core.cache import cache
 from ninja.testing import TestClient
 
-from ninja_extra import NinjaExtraAPI, throttle
+from ninja_extra import NinjaExtraAPI
 from ninja_extra.conf import settings
 from ninja_extra.throttling import DynamicRateThrottle
 
@@ -19,8 +19,7 @@ class Throttle(DynamicRateThrottle):
 api = NinjaExtraAPI(urls_namespace="decorator_xxf")
 
 
-@api.get("/throttling_xxf")
-@throttle(Throttle, scope="test_limit")
+@api.get("/throttling_xxf", throttle=Throttle(scope="test_limit"))
 def throttling_xxf(request):
     return "foo"
 

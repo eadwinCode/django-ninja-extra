@@ -41,7 +41,12 @@ class NinjaExtraSettings(BaseModel):
     THROTTLE_RATES: Dict[str, Optional[str]] = Field(
         {"user": "1000/day", "anon": "100/day"}
     )
-    THROTTLE_CLASSES: List[Any] = []
+    THROTTLE_CLASSES: List[Any] = Field(
+        [
+            "ninja_extra.throttling.AnonRateThrottle",
+            "ninja_extra.throttling.UserRateThrottle",
+        ]
+    )
     NUM_PROXIES: Optional[int] = None
     INJECTOR_MODULES: List[Any] = []
     ORDERING_CLASS: Any = Field(

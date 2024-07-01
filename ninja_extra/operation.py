@@ -19,7 +19,7 @@ from typing import (
 from django.http import HttpRequest
 from django.http.response import HttpResponse, HttpResponseBase
 from django.utils.encoding import force_str
-from ninja.constants import NOT_SET
+from ninja.constants import NOT_SET, NOT_SET_TYPE
 from ninja.errors import AuthenticationError
 from ninja.operation import (
     AsyncOperation as NinjaAsyncOperation,
@@ -31,12 +31,13 @@ from ninja.operation import (
     PathView as NinjaPathView,
 )
 from ninja.signature import is_async
+from ninja.throttling import BaseThrottle
 from ninja.types import TCallable
 from ninja.utils import check_csrf
 
 from ninja_extra.compatible import asynccontextmanager
 from ninja_extra.constants import ROUTE_CONTEXT_VAR
-from ninja_extra.exceptions import APIException
+from ninja_extra.exceptions import APIException, Throttled
 from ninja_extra.helper import get_function_name
 from ninja_extra.logger import request_logger
 
@@ -204,6 +205,22 @@ class Operation(NinjaOperation):
                 e.args = (msg,) + e.args[1:]
             return self.api.on_exception(request, e)
 
+    def _check_throttles(self, request: HttpRequest) -> Optional[HttpResponse]:
+        throttle_durations = []
+        for throttle in self.throttle_objects:
+            if not throttle.allow_request(request):
+                throttle_durations.append(throttle.wait())
+
+        if throttle_durations:
+            # Filter out `None` values which may happen in case of config / rate
+            durations = [
+                duration for duration in throttle_durations if duration is not None
+            ]
+
+            duration = max(durations, default=None)
+            raise Throttled(wait=duration)
+        return None
+
 
 class AsyncOperation(Operation, NinjaAsyncOperation):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -218,15 +235,21 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
     async def _run_checks(self, request: HttpRequest) -> Optional[HttpResponse]:  # type: ignore
         """Runs security checks for each operation"""
-        # auth:
-        if self.auth_callbacks:
-            error = await self._run_authentication(request)
-            if error:
-                return error
-
         # csrf:
         if self.api.csrf:
             error = check_csrf(request, self.view_func)
+            if error:
+                return error
+
+        # auth:
+        if self.auth_callbacks:
+            error = await self._run_authentication(request)  # type: ignore[assignment]
+            if error:
+                return error
+
+        # Throttling:
+        if self.throttle_objects:
+            error = self._check_throttles(request)  # type: ignore
             if error:
                 return error
 
@@ -295,7 +318,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 result = await self.view_func(request, **values)
                 _processed_results = await self._result_to_response(
                     request, result, temporal_response
-                )  # type: ignore
+                )
                 return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
@@ -317,6 +340,7 @@ class PathView(NinjaPathView):
         view_func: Callable,
         *,
         auth: Optional[Union[Sequence[Callable], Callable, object]] = NOT_SET,
+        throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: Any = NOT_SET,
         operation_id: Optional[str] = None,
         summary: Optional[str] = None,
@@ -352,6 +376,7 @@ class PathView(NinjaPathView):
             include_in_schema=include_in_schema,
             url_name=url_name,
             openapi_extra=openapi_extra,
+            throttle=throttle,
         )
 
         self.operations.append(operation)

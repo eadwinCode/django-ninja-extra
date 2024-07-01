@@ -1,7 +1,8 @@
 import typing as t
 
-from ninja.constants import NOT_SET
+from ninja.constants import NOT_SET, NOT_SET_TYPE
 from ninja.signature import is_async
+from ninja.throttling import BaseThrottle
 from ninja.types import TCallable
 
 from ninja_extra.constants import (
@@ -52,6 +53,7 @@ class Route(object):
         path: str,
         methods: t.List[str],
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -97,6 +99,7 @@ class Route(object):
             path=path,
             methods=methods,
             auth=auth,
+            throttle=throttle,
             response=_response,
             operation_id=operation_id,
             summary=summary,
@@ -124,6 +127,7 @@ class Route(object):
         path: str,
         methods: t.List[str],
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -164,6 +168,7 @@ class Route(object):
             include_in_schema=include_in_schema,
             permissions=permissions,
             openapi_extra=openapi_extra,
+            throttle=throttle,
         )
         route_function_class = RouteFunction
         if route_obj.is_async:
@@ -178,6 +183,7 @@ class Route(object):
         path: str = "",
         *,
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -242,6 +248,7 @@ class Route(object):
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                throttle=throttle,
             )
 
         return decorator
@@ -252,6 +259,7 @@ class Route(object):
         path: str = "",
         *,
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -316,6 +324,7 @@ class Route(object):
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                throttle=throttle,
             )
 
         return decorator
@@ -326,6 +335,7 @@ class Route(object):
         path: str = "",
         *,
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -390,6 +400,7 @@ class Route(object):
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                throttle=throttle,
             )
 
         return decorator
@@ -400,6 +411,7 @@ class Route(object):
         path: str = "",
         *,
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -465,6 +477,7 @@ class Route(object):
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                throttle=throttle,
             )
 
         return decorator
@@ -475,6 +488,7 @@ class Route(object):
         path: str = "",
         *,
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -540,6 +554,7 @@ class Route(object):
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                throttle=throttle,
             )
 
         return decorator
@@ -551,6 +566,7 @@ class Route(object):
         *,
         methods: t.List[str],
         auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         response: t.Union[t.Any, t.List[t.Any]] = NOT_SET,
         operation_id: t.Optional[str] = None,
         summary: t.Optional[str] = None,
@@ -617,6 +633,7 @@ class Route(object):
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                throttle=throttle,
             )
 
         return decorator
