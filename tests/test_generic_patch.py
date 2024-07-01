@@ -24,7 +24,7 @@ class AGenericPatch(GenericType, generic_base_name="A"):
 def test_generic_patch_works():
     B = AGenericPatch[int]
     assert str(B.__name__) == "A[int]"
-    assert B.__annotations__["wrap_generic"] == int
+    assert B.__annotations__["wrap_generic"] is int
     assert hasattr(B, "__generic_model__")
     assert B.__generic_model__ == AGenericPatch
     assert B == AGenericPatch[int]
