@@ -128,10 +128,6 @@ class SustainedRateThrottle(UserRateThrottle):
 ```python
 # django settings.py
 NINJA_EXTRA = {
-    'THROTTLE_CLASSES': [
-        'example.throttles.BurstRateThrottle',
-        'example.throttles.SustainedRateThrottle'
-    ],
     'THROTTLE_RATES': {
         'burst': '60/min',
         'sustained': '1000/day'
