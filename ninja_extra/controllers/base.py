@@ -361,14 +361,17 @@ class APIController:
             cls.throttling_classes, (list, tuple)
         ), f"Controller[{cls.__name__}].throttling_class must be a list or tuple"
 
-        throttling_objects: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE]
-        if cls.throttling_classes:
+        throttling_objects: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = (
+            NOT_SET
+        )
+
+        if self.throttle is not NOT_SET:
+            throttling_objects = self.throttle
+        elif cls.throttling_classes:
             throttling_init_kwargs = cls.throttling_init_kwargs or {}
             throttling_objects = [
                 item(**throttling_init_kwargs) for item in cls.throttling_classes
             ]
-        else:
-            throttling_objects = self.throttle
 
         if not self.tags:
             tag = str(cls.__name__).lower().replace("controller", "")
@@ -393,12 +396,11 @@ class APIController:
 
         for _, v in self._controller_class_route_functions.items():
             throttled_endpoint = v.as_view.__dict__.get(THROTTLED_FUNCTION)
-
-            if throttled_endpoint or throttling_objects is not NOT_SET:
-                v.route.route_params.throttle = v.as_view.__dict__.get(
-                    THROTTLED_OBJECTS, lambda: throttling_objects
-                )()
-                setattr(v.route.view_func, THROTTLED_FUNCTION, True)
+            if v.route.route_params.throttle is NOT_SET:
+                if throttled_endpoint or throttling_objects is not NOT_SET:
+                    v.route.route_params.throttle = v.as_view.__dict__.get(
+                        THROTTLED_OBJECTS, lambda: throttling_objects
+                    )()
 
             self._add_operation_from_route_function(v)
 
