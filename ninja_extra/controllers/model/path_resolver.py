@@ -55,7 +55,7 @@ def compile_path(path: str) -> PathCompiledResult:
         if param_name in param_convertors:
             duplicated_params.add(param_name)
 
-        param_convertors[param_name] = STRING_TYPES[convertor]
+        param_convertors[param_name] = STRING_TYPES[convertor.lower()]
 
     if duplicated_params:
         names = ", ".join(sorted(duplicated_params))
