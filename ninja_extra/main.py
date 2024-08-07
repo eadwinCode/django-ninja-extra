@@ -71,6 +71,7 @@ class NinjaExtraAPI(NinjaAPI):
             servers=servers,
             docs=docs,
             docs_decorator=docs_decorator,
+            throttle=throttle,
             **kwargs,
         )
         self.app_name = app_name
