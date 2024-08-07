@@ -28,11 +28,9 @@ class ModelControllerBuilder:
         model_pk = getattr(
             self._config.model._meta.pk,
             "name",
-            self._config.model._meta.pk.attname,  # type:ignore[union-attr]
+            self._config.model._meta.pk.attname,
         )
-        internal_type = (
-            self._config.model._meta.pk.get_internal_type()  # type:ignore[union-attr]
-        )
+        internal_type = self._config.model._meta.pk.get_internal_type()
         self._pk_type: t.Type = TYPES.get(internal_type, str)
         self._model_pk_name = model_pk
         self._model_name = self._config.model.__name__.replace("Model", "")
