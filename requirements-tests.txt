@@ -2,7 +2,7 @@ django-stubs
 mypy == 1.10.1
 ninja-schema>=0.13.4
 pytest
-pytest-asyncio==0.23.7
+pytest-asyncio==0.23.8
 pytest-cov
 pytest-django
 ruff ==0.5.0
