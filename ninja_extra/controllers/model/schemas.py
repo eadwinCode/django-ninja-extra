@@ -109,7 +109,7 @@ class ModelConfig(PydanticModel):
         model_pk = getattr(
             self.model._meta.pk,
             "name",
-            self.model._meta.pk.attname,  # type:ignore[union-attr]
+            self.model._meta.pk.attname,
         )
 
         if (
