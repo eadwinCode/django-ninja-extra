@@ -450,7 +450,10 @@ class APIController:
     def _add_operation_from_route_function(self, route_function: RouteFunction) -> None:
         # converts route functions to Operation model
         if route_function.route.route_params.operation_id is None:
-            route_function.route.route_params.operation_id = f"{str(uuid.uuid4())[:8]}_controller_{route_function.route.view_func.__name__}"
+            controller_name = (
+                str(self.controller_class.__name__).lower().replace("controller", "")
+            )
+            route_function.route.route_params.operation_id = f"{controller_name}_{route_function.route.view_func.__name__}_{str(uuid.uuid4())[:8]}"
 
         if (
             self.auth
