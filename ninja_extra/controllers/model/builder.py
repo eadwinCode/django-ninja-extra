@@ -68,7 +68,7 @@ class ModelControllerBuilder:
 
     def _register_update_endpoint(self) -> None:
         _path = "/{%s:%s}" % (
-            self._pk_type.__name__,
+            self._pk_type.__name__.lower(),
             self._model_pk_name,
         )
         kw = {
@@ -91,7 +91,7 @@ class ModelControllerBuilder:
     def _register_patch_endpoint(self) -> None:
         _pk_type = self._pk_type
         _path = "/{%s:%s}" % (
-            _pk_type.__name__,
+            _pk_type.__name__.lower(),
             self._model_pk_name,
         )
 
@@ -114,7 +114,7 @@ class ModelControllerBuilder:
 
     def _register_find_one_endpoint(self) -> None:
         _path = "/{%s:%s}" % (
-            self._pk_type.__name__,
+            self._pk_type.__name__.lower(),
             self._model_pk_name,
         )
         kw = {
@@ -163,7 +163,7 @@ class ModelControllerBuilder:
 
     def _register_delete_endpoint(self) -> None:
         _path = "/{%s:%s}" % (
-            self._pk_type.__name__,
+            self._pk_type.__name__.lower(),
             self._model_pk_name,
         )
         kw = {
