@@ -1,7 +1,6 @@
 import inspect
 import re
 import uuid
-from abc import ABC
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -63,7 +62,7 @@ class MissingAPIControllerDecoratorException(Exception):
 
 
 def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
-    for method in cls.__dict__.values():
+    for _, method in inspect.getmembers(cls, predicate=inspect.isfunction):
         if hasattr(method, ROUTE_FUNCTION):
             yield getattr(method, ROUTE_FUNCTION)
 
@@ -389,10 +388,7 @@ class APIController:
                 if not hasattr(cls, "service"):
                     cls.service = ModelService(cls.model_config.model)
 
-        bases = inspect.getmro(cls)
-        for base_cls in reversed(bases):
-            if base_cls not in [ControllerBase, ABC, object]:
-                compute_api_route_function(base_cls, self)
+        compute_api_route_function(cls, self)
 
         for _, v in self._controller_class_route_functions.items():
             throttled_endpoint = v.as_view.__dict__.get(THROTTLED_FUNCTION)
