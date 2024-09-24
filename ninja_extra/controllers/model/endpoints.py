@@ -8,25 +8,31 @@ from ninja.params import Body
 from ninja.signature import is_async
 from pydantic import BaseModel as PydanticModel
 
+from ninja_extra import status
+from ninja_extra.controllers.model.path_resolver import (
+    AsyncPathResolverOperation,
+    PathResolverOperation,
+)
+from ninja_extra.controllers.route import route
+from ninja_extra.exceptions import NotFound
+from ninja_extra.pagination import (
+    PageNumberPaginationExtra,
+    PaginatedResponseSchema,
+    paginate,
+)
 from ninja_extra.permissions import BasePermission
 
-from ... import status
-from ...exceptions import NotFound
-from ...pagination import PageNumberPaginationExtra, PaginatedResponseSchema, paginate
-from ..route import route
-from .path_resolver import AsyncPathResolverOperation, PathResolverOperation
-
 if t.TYPE_CHECKING:
-    from ..base import ModelControllerBase
+    from ninja_extra.controllers.base import ModelControllerBase
 
 
-async def check_if_coroutine(func_result: t.Union[t.Any, t.Coroutine]) -> t.Any:
+async def _check_if_coroutine(func_result: t.Union[t.Any, t.Coroutine]) -> t.Any:
     if isinstance(func_result, t.Coroutine):
         return await func_result
     return func_result
 
 
-def path_resolver(path: str, func: t.Callable) -> t.Callable:
+def _path_resolver(path: str, func: t.Callable) -> t.Callable:
     resolver_class = PathResolverOperation
     if is_async(func):
         resolver_class = AsyncPathResolverOperation
@@ -43,7 +49,7 @@ class ModelEndpointFactory:
     ```python
 
     api_controller
-    class SampleMocelController(ModelControllerBase):
+    class SampleModelController(ModelControllerBase):
 
         create_sample = ModelEndpointFactory.create()
         update_sample = ModelEndpointFactory.update()
@@ -95,7 +101,7 @@ class ModelEndpointFactory:
         """
         working_path = cls._clean_path(path)
 
-        create_item = path_resolver(
+        create_item = _path_resolver(
             path,
             cls._create_handler(schema_in=schema_in, custom_handler=custom_handler),
         )
@@ -147,7 +153,7 @@ class ModelEndpointFactory:
         Creates a PUT Action
         """
         working_path = cls._clean_path(path)
-        update_item = path_resolver(
+        update_item = _path_resolver(
             path,
             cls._update_handler(
                 schema_in=schema_in,
@@ -204,7 +210,7 @@ class ModelEndpointFactory:
         Creates a PATCH Action
         """
         working_path = cls._clean_path(path)
-        patch_item = path_resolver(
+        patch_item = _path_resolver(
             path,
             cls._patch_handler(
                 object_getter=object_getter,
@@ -259,7 +265,7 @@ class ModelEndpointFactory:
         Creates a GET Action
         """
         working_path = cls._clean_path(path)
-        get_item = path_resolver(
+        get_item = _path_resolver(
             path,
             cls._find_one_handler(
                 object_getter=object_getter, lookup_param=lookup_param
@@ -317,7 +323,7 @@ class ModelEndpointFactory:
         Creates a GET Action to list Items
         """
         working_path = cls._clean_path(path)
-        list_items = path_resolver(
+        list_items = _path_resolver(
             path, cls._list_handler(queryset_getter=queryset_getter)
         )
 
@@ -389,7 +395,7 @@ class ModelEndpointFactory:
         Creates a DELETE Action to list Items
         """
         working_path = cls._clean_path(path)
-        delete_item = path_resolver(
+        delete_item = _path_resolver(
             path,
             cls._delete_handler(
                 object_getter=object_getter,
@@ -581,7 +587,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
     ```python
 
     api_controller
-    class SampleMocelController(ModelControllerBase):
+    class SampleModelController(ModelControllerBase):
 
         create_sample = ModelAsyncEndpointFactory.create()
         update_sample = ModelAsyncEndpointFactory.update()
@@ -605,7 +611,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             else:
                 res = self.service.get_all_async(**kwargs)  # type:ignore[assignment]
 
-            return await check_if_coroutine(res)
+            return await _check_if_coroutine(res)
 
         list_items.__name__ = cls._change_name("list_items")
         return list_items
@@ -626,7 +632,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 if object_getter
                 else self.service.get_one_async(pk=pk, **kwargs)
             )
-            obj = await check_if_coroutine(obj)
+            obj = await _check_if_coroutine(obj)
             if not obj:  # pragma: no cover
                 raise NotFound()
             self.check_object_permissions(obj)
@@ -637,7 +643,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 else self.service.delete_async(instance=obj, **kwargs)  # type:ignore[arg-type]
             )
 
-            await check_if_coroutine(res)
+            await _check_if_coroutine(res)
             return self.create_response(message="", status_code=status_code)
 
         delete_item.__name__ = cls._change_name("delete_item")
@@ -657,7 +663,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 if object_getter
                 else self.service.get_one_async(pk=pk, **kwargs)
             )
-            obj = await check_if_coroutine(obj)
+            obj = await _check_if_coroutine(obj)
 
             if not obj:  # pragma: no cover
                 raise NotFound()
@@ -688,7 +694,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 if object_getter
                 else self.service.get_one_async(pk=pk, **kwargs)
             )
-            obj = await check_if_coroutine(obj)
+            obj = await _check_if_coroutine(obj)
 
             if not obj:  # pragma: no cover
                 raise NotFound()
@@ -699,7 +705,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 if custom_handler
                 else self.service.patch_async(instance=obj, schema=data, **kwargs)  # type:ignore[arg-type]
             )
-            instance = await check_if_coroutine(instance)
+            instance = await _check_if_coroutine(instance)
 
             assert (
                 instance
@@ -729,7 +735,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 if object_getter
                 else self.service.get_one_async(pk=pk, **kwargs)
             )
-            obj = await check_if_coroutine(obj)
+            obj = await _check_if_coroutine(obj)
 
             if not obj:  # pragma: no cover
                 raise NotFound()
@@ -740,7 +746,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 if custom_handler
                 else self.service.update_async(instance=obj, schema=data, **kwargs)  # type:ignore[arg-type]
             )
-            instance = await check_if_coroutine(instance)
+            instance = await _check_if_coroutine(instance)
 
             assert (
                 instance
@@ -767,7 +773,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
                 if custom_handler
                 else self.service.create_async(data, **kwargs)
             )
-            instance = await check_if_coroutine(instance)
+            instance = await _check_if_coroutine(instance)
 
             assert (
                 instance

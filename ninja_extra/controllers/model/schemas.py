@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, List, Optional, Set, Type, Union
+import typing as t
 
 from django.db.models import Model
 from ninja.pagination import PaginationBase
@@ -20,7 +20,7 @@ except Exception:  # pragma: no cover
     ) = None
 
 
-from ...pagination import PageNumberPaginationExtra, PaginatedResponseSchema
+from ninja_extra.pagination import PageNumberPaginationExtra, PaginatedResponseSchema
 
 
 class ModelPagination(PydanticModel):
@@ -28,16 +28,16 @@ class ModelPagination(PydanticModel):
     Model Controller Pagination Configuration
     """
 
-    klass: Type[PaginationBase] = PageNumberPaginationExtra
-    paginator_kwargs: Optional[dict] = None
-    pagination_schema: Type[PydanticModel] = PaginatedResponseSchema
+    klass: t.Type[PaginationBase] = PageNumberPaginationExtra
+    paginator_kwargs: t.Optional[dict] = None
+    pagination_schema: t.Type[PydanticModel] = PaginatedResponseSchema
 
     @field_validator("pagination_schema", mode="before")
-    def validate_schema(cls, value: Any) -> Any:
+    def validate_schema(cls, value: t.Any) -> t.Any:
         if (
             isinstance(value, type)
             and issubclass(value, PydanticModel)
-            and issubclass(value, Generic)  # type:ignore[arg-type]
+            and issubclass(value, t.Generic)  # type:ignore[arg-type]
         ):
             return value
         raise ValueError(
@@ -50,13 +50,13 @@ class ModelSchemaConfig(PydanticModel):
     Model Controller Auto Schema Generation Configuration
     """
 
-    include: Union[str, List[str]] = Field(default="__all__")
-    exclude: Set[str] = Field(set())
-    optional: Optional[Union[str, Set[str]]] = Field(default=None)
+    include: t.Union[str, t.List[str]] = Field(default="__all__")
+    exclude: t.Set[str] = Field(set())
+    optional: t.Optional[t.Union[str, t.Set[str]]] = Field(default=None)
     depth: int = 0
     #
-    read_only_fields: Optional[List[str]] = Field(default=None)
-    write_only_fields: Optional[Union[List[str]]] = Field(default=None)
+    read_only_fields: t.Optional[t.List[str]] = Field(default=None)
+    write_only_fields: t.Optional[t.Union[t.List[str]]] = Field(default=None)
 
 
 class ModelConfig(PydanticModel):
@@ -64,7 +64,7 @@ class ModelConfig(PydanticModel):
     Model Controller Configuration
     """
 
-    allowed_routes: List[str] = Field(
+    allowed_routes: t.List[str] = Field(
         [
             "create",
             "find_one",
@@ -75,32 +75,32 @@ class ModelConfig(PydanticModel):
         ]
     )
     async_routes: bool = False
-    create_schema: Optional[Type[PydanticModel]] = None
-    retrieve_schema: Optional[Type[PydanticModel]] = None
-    update_schema: Optional[Type[PydanticModel]] = None
-    patch_schema: Optional[Type[PydanticModel]] = None
+    create_schema: t.Optional[t.Type[PydanticModel]] = None
+    retrieve_schema: t.Optional[t.Type[PydanticModel]] = None
+    update_schema: t.Optional[t.Type[PydanticModel]] = None
+    patch_schema: t.Optional[t.Type[PydanticModel]] = None
 
-    pagination: Optional[ModelPagination] = Field(default=ModelPagination())
-    model: Type[Model]
+    pagination: t.Optional[ModelPagination] = Field(default=ModelPagination())
+    model: t.Type[Model]
 
     schema_config: ModelSchemaConfig = Field(default=ModelSchemaConfig(exclude=set()))
 
-    create_route_info: Dict = {}  # extra @post() information
-    find_one_route_info: Dict = {}  # extra @get('/{id}') information
-    update_route_info: Dict = {}  # extra @put() information
-    patch_route_info: Dict = {}  # extra @patch() information
-    list_route_info: Dict = {}  # extra @get('/') information
-    delete_route_info: Dict = {}  # extra @delete() information
+    create_route_info: t.Dict = {}  # extra @post() information
+    find_one_route_info: t.Dict = {}  # extra @get('/{id}') information
+    update_route_info: t.Dict = {}  # extra @put() information
+    patch_route_info: t.Dict = {}  # extra @patch() information
+    list_route_info: t.Dict = {}  # extra @get('/') information
+    delete_route_info: t.Dict = {}  # extra @delete() information
 
     @field_validator("allowed_routes")
-    def validate_allow_routes(cls, value: List[Any]) -> Any:
+    def validate_allow_routes(cls, value: t.List[t.Any]) -> t.Any:
         defaults = ["create", "find_one", "update", "patch", "delete", "list"]
         for item in value:
             if item not in defaults:
                 raise ValueError(f"'{item}' action is not recognized in [{defaults}]")
         return value
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs: t.Any) -> None:
         super().__init__(**kwargs)
         self.generate_all_schema()
 
