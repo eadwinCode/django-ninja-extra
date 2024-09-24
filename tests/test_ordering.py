@@ -91,6 +91,11 @@ class SomeAPIController:
     def items_9(self):
         return list(range(3))
 
+    @route.get("/items_10", response={200: List[CategorySchema], 404: dict})
+    @ordering
+    def items_10(self):
+        return (404, {"message": "Not Found"})
+
 
 api = NinjaExtraAPI()
 api.register_controllers(SomeAPIController)
@@ -229,6 +234,11 @@ class TestOrdering:
         response = client.get("/items_9?ordering=-title").json()
         assert response[0] == 0
 
+    def test_case10(self):
+        response = client.get("/items_10?ordering=-title")
+        assert response.status_code == 404
+        assert response.json() == {"message": "Not Found"}
+
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 @pytest.mark.asyncio
@@ -282,6 +292,11 @@ class TestAsyncOrdering:
             @ordering
             async def items_9(self):
                 return await sync_to_async(list)(list(range(3)))
+
+            @route.get("/items_10", response={200: List[CategorySchema], 404: dict})
+            @ordering
+            async def items_10(self):
+                return (404, {"message": "Not Found"})
 
         api_async = NinjaExtraAPI()
         api_async.register_controllers(AsyncSomeAPIController)
@@ -411,3 +426,8 @@ class TestAsyncOrdering:
             response = await self.client.get("/items_9?ordering=-title")
             data = response.json()
             assert data[0] == 0
+
+        async def test_case10(self):
+            response = await self.client.get("/items_10?ordering=-title")
+            assert response.status_code == 404
+            assert response.json() == {"message": "Not Found"}

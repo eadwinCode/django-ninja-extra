@@ -239,6 +239,12 @@ class OrderatorOperation:
                 func_kwargs[self.orderator.pass_parameter] = ordering_params
 
             items = self.view_func(request_or_controller, *args, **func_kwargs)
+            if (
+                isinstance(items, tuple)
+                and len(items) == 2
+                and isinstance(items[0], int)
+            ):
+                return items
             return self.orderator.ordering_queryset(items, ordering_params)
 
         return as_view
@@ -257,6 +263,14 @@ class AsyncOrderatorOperation(OrderatorOperation):
                 func_kwargs[self.orderator.pass_parameter] = ordering_params
 
             items = await self.view_func(request_or_controller, *args, **func_kwargs)
+
+            if (
+                isinstance(items, tuple)
+                and len(items) == 2
+                and isinstance(items[0], int)
+            ):
+                return items
+
             ordering_queryset = cast(
                 Callable, sync_to_async(self.orderator.ordering_queryset)
             )

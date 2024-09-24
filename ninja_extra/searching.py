@@ -263,6 +263,13 @@ class SearcheratorOperation:
                 func_kwargs[self.searcherator.pass_parameter] = searching_params
 
             items = self.view_func(controller, *args, **func_kwargs)
+            if (
+                isinstance(items, tuple)
+                and len(items) == 2
+                and isinstance(items[0], int)
+            ):
+                return items
+
             return self.searcherator.searching_queryset(items, searching_params)
 
         return as_view
@@ -277,6 +284,14 @@ class AsyncSearcheratorOperation(SearcheratorOperation):
                 func_kwargs[self.searcherator.pass_parameter] = searching_params
 
             items = await self.view_func(controller, *args, **func_kwargs)
+
+            if (
+                isinstance(items, tuple)
+                and len(items) == 2
+                and isinstance(items[0], int)
+            ):
+                return items
+
             searching_queryset = cast(
                 Callable, sync_to_async(self.searcherator.searching_queryset)
             )

@@ -72,6 +72,11 @@ class SomeAPIController:
     def items_5(self, **kwargs):
         return Category.objects.all()
 
+    @route.get("/items_6", response={200: List[CategorySchema], 404: dict})
+    @searching(search_fields=["^title"], pass_parameter="pass_kwargs")
+    def items_6(self, **kwargs):
+        return (404, {"message": "Not Found"})
+
 
 api = NinjaExtraAPI()
 api.register_controllers(SomeAPIController)
@@ -204,6 +209,11 @@ class TestSearch:
             }
         ]
 
+    def test_case6(self):
+        response = client.get("/items_6?search=title_2")
+        assert response.status_code == 404
+        assert response.json() == {"message": "Not Found"}
+
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 @pytest.mark.asyncio
@@ -248,6 +258,11 @@ class TestAsyncSearch:
             @searching(search_fields=["$title"], pass_parameter="pass_kwargs")
             async def items_7(self, **kwargs):
                 return await sync_to_async(list)(Category.objects.all())
+
+            @route.get("/items_8", response={200: List[CategorySchema], 404: dict})
+            @searching(search_fields=["$title"], pass_parameter="pass_kwargs")
+            async def items_8(self, **kwargs):
+                return (404, {"message": "Not Found"})
 
         api_async = NinjaExtraAPI()
         api_async.register_controllers(AsyncSomeAPIController)
@@ -390,3 +405,8 @@ class TestAsyncSearch:
             response = await self.client.get("/items_7?search=_2")
             data = response.json()
             assert data[0]["title"] == "title_2"
+
+        async def test_case8(self):
+            response = await self.client.get("/items_8?search=title_2")
+            assert response.status_code == 404
+            assert response.json() == {"message": "Not Found"}

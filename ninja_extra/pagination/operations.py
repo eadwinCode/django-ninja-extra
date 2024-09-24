@@ -58,6 +58,14 @@ class PaginatorOperation:
                 func_kwargs[self.paginator.pass_parameter] = pagination_params
 
             items = self.view_func(request_or_controller, *args, **func_kwargs)
+
+            if (
+                isinstance(items, tuple)
+                and len(items) == 2
+                and isinstance(items[0], int)
+            ):
+                return items
+
             if hasattr(request_or_controller, "context") and isinstance(
                 request_or_controller.context, RouteContext
             ):
@@ -85,6 +93,14 @@ class AsyncPaginatorOperation(PaginatorOperation):
                 func_kwargs[self.paginator.pass_parameter] = pagination_params
 
             items = await self.view_func(request_or_controller, *args, **func_kwargs)
+
+            if (
+                isinstance(items, tuple)
+                and len(items) == 2
+                and isinstance(items[0], int)
+            ):
+                return items
+
             if hasattr(request_or_controller, "context") and isinstance(
                 request_or_controller.context, RouteContext
             ):
