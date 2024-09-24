@@ -30,7 +30,7 @@ class ModelControllerBuilder:
             "name",
             self._config.model._meta.pk.attname,
         )
-        internal_type = self._config.model._meta.pk.get_internal_type()
+        internal_type = self._config.model._meta.pk.get_internal_type()  # type:ignore[assignment]
         self._pk_type: t.Type = TYPES.get(internal_type, str)
         self._model_pk_name = model_pk
         self._model_name = self._config.model.__name__.replace("Model", "")
