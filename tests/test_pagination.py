@@ -79,6 +79,11 @@ class SomeAPIController:
     def items_6_empty_query_set(self):
         return FakeQuerySet([])
 
+    @route.get("/items_7", response={200: typing.List[int], 404: dict})
+    @paginate()
+    def items_7(self):
+        return (404, {"message": "Not Found"})
+
 
 api = NinjaExtraAPI()
 api.register_controllers(SomeAPIController)
@@ -272,6 +277,11 @@ class TestPagination:
         assert response.get("items") is not None
         assert response["items"] == []
 
+    def test_case7(self):
+        response = client.get("/items_7?page=1")
+        assert response.status_code == 404
+        assert response.json() == {"message": "Not Found"}
+
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
 @pytest.mark.asyncio
@@ -307,6 +317,11 @@ class TestAsyncOperations:
             @paginate(PageNumberPagination, page_size=10)
             async def items_5_without_kwargs(self):
                 return ITEMS
+
+            @route.get("/items_7", response={200: typing.List[int], 404: dict})
+            @paginate()
+            async def items_7(self):
+                return (404, {"message": "Not Found"})
 
         api_async = NinjaExtraAPI()
         api_async.register_controllers(AsyncSomeAPIController)
@@ -383,6 +398,11 @@ class TestAsyncOperations:
             data = response.json()
             assert data.get("items")
             assert data["items"] == ITEMS[10:20]
+
+        async def test_case7(self):
+            response = await self.client.get("/items_7?page=1")
+            assert response.status_code == 404
+            assert response.json() == {"message": "Not Found"}
 
 
 def test_pagination_extra_with_ninja_api():
