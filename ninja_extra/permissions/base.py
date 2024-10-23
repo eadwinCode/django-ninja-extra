@@ -49,7 +49,7 @@ class OperationHolderMixin:
 
 
 class BasePermissionMetaclass(OperationHolderMixin, ABCMeta):
-    pass
+    ...
 
 
 class BasePermission(ABC, metaclass=BasePermissionMetaclass):  # pragma: no cover
@@ -102,32 +102,33 @@ class OperandHolder(OperationHolderMixin, Generic[T]):
         op2_class: Union[Type["BasePermission"], "BasePermission"],
     ) -> None:
         self.operator_class = operator_class
-        self.op1_class = op1_class
-        self.op2_class = op2_class
+        # Instance the Permission class before using it
+        self.op1 = op1_class
+        self.op2 = op2_class
+        self.message = op1_class.message
+        if isinstance(op1_class, (type, OperationHolderMixin)):
+            self.op1 = op1_class()
+
+        if isinstance(op2_class, (type, OperationHolderMixin)):
+            self.op2 = op2_class()
 
     def __call__(self, *args: Tuple[Any], **kwargs: DictStrAny) -> BasePermission:
-        op1 = self.op1_class
-        op2 = self.op2_class
-
-        if isinstance(self.op1_class, (type, OperationHolderMixin)):
-            op1 = self.op1_class()
-
-        if isinstance(self.op2_class, (type, OperationHolderMixin)):
-            op2 = self.op2_class()
-        return self.operator_class(op1, op2)  # type: ignore
+        return self.operator_class(self.op1, self.op2)  # type: ignore
 
 
 class AND(BasePermission):
     def __init__(self, op1: "BasePermission", op2: "BasePermission") -> None:
         self.op1 = op1
         self.op2 = op2
+        self.message = op1.message
 
     def has_permission(
         self, request: HttpRequest, controller: "ControllerBase"
     ) -> bool:
-        return self.op1.has_permission(request, controller) and self.op2.has_permission(
-            request, controller
-        )
+        if self.op1.has_permission(request, controller):
+            self.message = self.op2.message
+            return self.op2.has_permission(request, controller)
+        return False
 
     def has_object_permission(
         self, request: HttpRequest, controller: "ControllerBase", obj: Any
@@ -141,13 +142,15 @@ class OR(BasePermission):
     def __init__(self, op1: "BasePermission", op2: "BasePermission") -> None:
         self.op1 = op1
         self.op2 = op2
+        self.message = op1.message
 
     def has_permission(
         self, request: HttpRequest, controller: "ControllerBase"
     ) -> bool:
-        return self.op1.has_permission(request, controller) or self.op2.has_permission(
-            request, controller
-        )
+        if not self.op1.has_permission(request, controller):
+            self.message = self.op2.message
+            return self.op2.has_permission(request, controller)
+        return True
 
     def has_object_permission(
         self, request: HttpRequest, controller: "ControllerBase", obj: Any
@@ -160,6 +163,7 @@ class OR(BasePermission):
 class NOT(BasePermission):
     def __init__(self, op1: "BasePermission") -> None:
         self.op1 = op1
+        self.message = op1.message
 
     def has_permission(
         self, request: HttpRequest, controller: "ControllerBase"
