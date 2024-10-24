@@ -12,6 +12,7 @@ anonymous_request.user = AnonymousUser()
 
 
 class TestPermissionsCompositions:
+
     @classmethod
     def get_real_user_request(cls):
         _request = Mock()
@@ -42,13 +43,18 @@ class TestPermissionsCompositions:
             request = self.get_real_user_request()
         request.method = method
         assert (
-            permissions.IsAuthenticatedOrReadOnly().has_permission(request, Mock())
-            == result
+                permissions.IsAuthenticatedOrReadOnly().has_permission(request, Mock())
+                == result
         )
 
     def test_and_false(self):
         composed_perm = permissions.IsAuthenticated & permissions.AllowAny
         assert composed_perm().has_permission(anonymous_request, None) is False
+        # AllowAny message is None and IsAuthenticated message isn't None
+        composed_perm = permissions.AllowAny & permissions.IsAdminUser
+        instance_composed_perm = composed_perm()
+        assert instance_composed_perm.has_permission(anonymous_request, None) is False
+        assert instance_composed_perm.message == permissions.IsAdminUser.message
 
     @pytest.mark.django_db
     def test_and_true(self):
@@ -60,6 +66,13 @@ class TestPermissionsCompositions:
         composed_perm = permissions.IsAuthenticated | permissions.AllowAny
         assert composed_perm().has_permission(anonymous_request, None) is True
 
+    def test_or_all_false(self):
+        # Two permissions with the different message
+        composed_perm = permissions.IsAdminUser | permissions.IsAuthenticated
+        instance_composed_perm = composed_perm()
+        assert instance_composed_perm.has_permission(anonymous_request, None) is False
+        assert instance_composed_perm.message == permissions.IsAuthenticated.message
+
     @pytest.mark.django_db
     def test_or_true(self):
         request = self.get_real_user_request()
@@ -70,9 +83,11 @@ class TestPermissionsCompositions:
         composed_perm = ~permissions.IsAuthenticated
         assert composed_perm().has_permission(anonymous_request, None) is True
         assert (
-            composed_perm().has_object_permission(anonymous_request, None, None)
-            is False
+                composed_perm().has_object_permission(anonymous_request, None, None)
+                is False
         )
+        # Message
+        assert composed_perm().message == permissions.IsAuthenticated.message
 
     @pytest.mark.django_db
     def test_not_true(self):
@@ -84,10 +99,10 @@ class TestPermissionsCompositions:
     def test_several_levels_without_negation(self):
         request = self.get_real_user_request()
         composed_perm = (
-            permissions.IsAuthenticated
-            & permissions.IsAuthenticated
-            & permissions.IsAuthenticated
-            & permissions.IsAuthenticated
+                permissions.IsAuthenticated
+                & permissions.IsAuthenticated
+                & permissions.IsAuthenticated
+                & permissions.IsAuthenticated
         )
         assert composed_perm().has_permission(request, None) is True
         assert composed_perm().has_object_permission(request, None, None) is True
@@ -96,10 +111,10 @@ class TestPermissionsCompositions:
     def test_several_levels_and_precedence_with_negation(self):
         request = self.get_real_user_request()
         composed_perm = (
-            permissions.IsAuthenticated
-            & ~permissions.IsAdminUser
-            & permissions.IsAuthenticated
-            & ~(permissions.IsAdminUser & permissions.IsAdminUser)
+                permissions.IsAuthenticated
+                & ~permissions.IsAdminUser
+                & permissions.IsAuthenticated
+                & ~(permissions.IsAdminUser & permissions.IsAdminUser)
         )
         assert composed_perm().has_permission(request, None) is True
 
@@ -107,17 +122,17 @@ class TestPermissionsCompositions:
     def test_several_levels_and_precedence(self):
         request = self.get_real_user_request()
         composed_perm = (
-            permissions.IsAuthenticated & permissions.IsAuthenticated
-            | permissions.IsAuthenticated & permissions.IsAuthenticated
+                permissions.IsAuthenticated & permissions.IsAuthenticated
+                | permissions.IsAuthenticated & permissions.IsAuthenticated
         )
         assert composed_perm().has_permission(request, None) is True
 
     def test_or_lazyness(self):
         with mock.patch.object(
-            permissions.AllowAny, "has_permission", return_value=True
+                permissions.AllowAny, "has_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_permission", return_value=False
+                    permissions.IsAuthenticated, "has_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.AllowAny | permissions.IsAuthenticated
                 hasperm = composed_perm().has_permission(anonymous_request, None)
@@ -126,10 +141,10 @@ class TestPermissionsCompositions:
                 mock_deny.assert_not_called()
 
         with mock.patch.object(
-            permissions.AllowAny, "has_permission", return_value=True
+                permissions.AllowAny, "has_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_permission", return_value=False
+                    permissions.IsAuthenticated, "has_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.IsAuthenticated | permissions.AllowAny
                 hasperm = composed_perm().has_permission(anonymous_request, None)
@@ -139,10 +154,10 @@ class TestPermissionsCompositions:
 
     def test_object_or_lazyness(self):
         with mock.patch.object(
-            permissions.AllowAny, "has_object_permission", return_value=True
+                permissions.AllowAny, "has_object_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_object_permission", return_value=False
+                    permissions.IsAuthenticated, "has_object_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.AllowAny | permissions.IsAuthenticated
                 hasperm = composed_perm().has_object_permission(
@@ -153,10 +168,10 @@ class TestPermissionsCompositions:
                 mock_deny.assert_not_called()
 
         with mock.patch.object(
-            permissions.AllowAny, "has_object_permission", return_value=True
+                permissions.AllowAny, "has_object_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_object_permission", return_value=False
+                    permissions.IsAuthenticated, "has_object_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.IsAuthenticated | permissions.AllowAny
                 hasperm = composed_perm().has_object_permission(
@@ -168,10 +183,10 @@ class TestPermissionsCompositions:
 
     def test_and_lazyness(self):
         with mock.patch.object(
-            permissions.AllowAny, "has_permission", return_value=True
+                permissions.AllowAny, "has_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_permission", return_value=False
+                    permissions.IsAuthenticated, "has_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.AllowAny & permissions.IsAuthenticated
                 hasperm = composed_perm().has_permission(anonymous_request, None)
@@ -180,10 +195,10 @@ class TestPermissionsCompositions:
                 assert mock_deny.call_count == 1
 
         with mock.patch.object(
-            permissions.AllowAny, "has_permission", return_value=True
+                permissions.AllowAny, "has_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_permission", return_value=False
+                    permissions.IsAuthenticated, "has_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.IsAuthenticated & permissions.AllowAny
                 hasperm = composed_perm().has_permission(anonymous_request, None)
@@ -193,10 +208,10 @@ class TestPermissionsCompositions:
 
     def test_object_and_lazyness(self):
         with mock.patch.object(
-            permissions.AllowAny, "has_object_permission", return_value=True
+                permissions.AllowAny, "has_object_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_object_permission", return_value=False
+                    permissions.IsAuthenticated, "has_object_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.AllowAny & permissions.IsAuthenticated
                 hasperm = composed_perm().has_object_permission(
@@ -207,10 +222,10 @@ class TestPermissionsCompositions:
                 assert mock_deny.call_count == 1
 
         with mock.patch.object(
-            permissions.AllowAny, "has_object_permission", return_value=True
+                permissions.AllowAny, "has_object_permission", return_value=True
         ) as mock_allow:
             with mock.patch.object(
-                permissions.IsAuthenticated, "has_object_permission", return_value=False
+                    permissions.IsAuthenticated, "has_object_permission", return_value=False
             ) as mock_deny:
                 composed_perm = permissions.IsAuthenticated & permissions.AllowAny
                 hasperm = composed_perm().has_object_permission(
