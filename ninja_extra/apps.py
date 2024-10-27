@@ -27,6 +27,7 @@ class NinjaExtraConfig(AppConfig):
         if app:  # pragma: no cover
             app.ready()
             self.injector = app.injector
+            self.injector.binder.install(self.ninja_extra_module)
         self.register_injector_modules()
 
     def register_injector_modules(self) -> None:  # pragma: no cover
