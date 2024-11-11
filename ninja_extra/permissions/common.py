@@ -38,6 +38,7 @@ class IsAdminUser(BasePermission):
     """
     Allows access only to admin users.
     """
+
     message: str = "You must be an admin user to access this resource."
 
     def has_permission(
