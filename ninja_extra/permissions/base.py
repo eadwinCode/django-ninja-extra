@@ -48,8 +48,7 @@ class OperationHolderMixin:
         return SingleOperandHolder(NOT, self)
 
 
-class BasePermissionMetaclass(OperationHolderMixin, ABCMeta):
-    ...
+class BasePermissionMetaclass(OperationHolderMixin, ABCMeta): ...
 
 
 class BasePermission(ABC, metaclass=BasePermissionMetaclass):  # pragma: no cover
