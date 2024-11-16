@@ -50,6 +50,7 @@ class RouteFunction(object):
             *args,
             **kwargs,
         )
+        self.run_permission_check(context)
         return self.as_view(request, *args, route_context=context, **kwargs)
 
     def _get_required_api_func_signature(self) -> Tuple:
@@ -222,4 +223,5 @@ class AsyncRouteFunction(RouteFunction):
             *args,
             **kwargs,
         )
+        await self.async_run_check_permissions(context)
         return await self.as_view(request, *args, route_context=context, **kwargs)

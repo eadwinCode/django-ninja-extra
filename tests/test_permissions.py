@@ -263,7 +263,7 @@ class Some2Controller(ControllerBase):
 @pytest.mark.parametrize("route", ["permission/", "index/"])
 def test_permission_controller_instance(route):
     user = User.objects.create_user(
-        username="eadwin",
+        username="eadwin3",
         email="eadwin@example.com",
         password="password",
         is_staff=True,
@@ -283,7 +283,7 @@ def test_permission_controller_instance(route):
 @pytest.mark.asyncio
 async def test_permission_controller_instance_async():
     user = await sync_to_async(User.objects.create_user)(
-        username="eadwin",
+        username="eadwin2",
         email="eadwin@example.com",
         password="password",
         is_staff=True,

@@ -125,7 +125,9 @@ class TestUserRateThrottle:
     def test_get_cache_key_returns_correct_value_for_authenticated_request(self):
         user = User.objects.create(username="test")
         self.request.user = user
-        assert self.throttle.get_cache_key(self.request) == "throttle_user_1"
+        assert self.throttle.get_cache_key(self.request) == "throttle_user_{}".format(
+            user.pk
+        )
 
     def test_get_cache_key_defaults_to_none(self):
         cache_key = self.throttle.get_cache_key(self.request)
@@ -165,7 +167,9 @@ class TestDynamicRateThrottle:
             throttle = DynamicRateThrottle(scope="some_scope")
             user = User.objects.create(username="test")
             self.request.user = user
-            assert throttle.get_cache_key(self.request) == "throttle_some_scope_1"
+            assert throttle.get_cache_key(
+                self.request
+            ) == "throttle_some_scope_{}".format(user.pk)
 
     def test_get_cache_key_defaults_to_none(self, monkeypatch):
         with monkeypatch.context() as m:
