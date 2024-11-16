@@ -351,7 +351,7 @@ class TestAPIControllerRoutePermission:
     def get_real_user_request(cls):
         _request = Mock()
         user = User.objects.create_user(
-            username="eadwin",
+            username="eadwin1",
             email="eadwin@example.com",
             password="password",
             is_staff=True,

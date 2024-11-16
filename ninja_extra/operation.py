@@ -48,10 +48,12 @@ from .controllers.route.context import RouteContext, get_route_execution_context
 from .details import ViewSignature
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .controllers.route.route_functions import RouteFunction
+    from .controllers.route.route_functions import AsyncRouteFunction, RouteFunction
 
 
 class Operation(NinjaOperation):
+    view_func: Callable
+
     def __init__(
         self,
         path: str,
@@ -88,6 +90,16 @@ class Operation(NinjaOperation):
                         f"N:B - {get_function_name(callback)} can only be used on Asynchronous view functions"
                     )
 
+    def _get_route_function(
+        self,
+    ) -> Optional[Union["RouteFunction", "AsyncRouteFunction"]]:
+        if hasattr(self.view_func, "get_route_function"):
+            return cast(
+                Union["RouteFunction", "AsyncRouteFunction"],
+                self.view_func.get_route_function(),
+            )
+        return None
+
     def _log_action(
         self,
         logger: Callable[..., Any],
@@ -102,8 +114,8 @@ class Operation(NinjaOperation):
                 f'{self.view_func.__name__} {request.path}" '
                 f"{duration if duration else ''}"
             )
-            if hasattr(self.view_func, "get_route_function"):
-                route_function: "RouteFunction" = self.view_func.get_route_function()
+            route_function = self._get_route_function()
+            if route_function:
                 api_controller = route_function.get_api_controller()
 
                 msg = (
@@ -185,6 +197,10 @@ class Operation(NinjaOperation):
             with self._prep_run(
                 request, temporal_response=temporal_response, **kw
             ) as ctx:
+                route_function = self._get_route_function()
+                if route_function:
+                    route_function.run_permission_check(ctx)
+
                 error = self._run_checks(request)
                 if error:
                     return error
@@ -309,6 +325,10 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             async with self._prep_run(
                 request, temporal_response=temporal_response, **kw
             ) as ctx:
+                route_function = self._get_route_function()
+                if route_function:
+                    await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
+
                 error = await self._run_checks(request)
                 if error:
                     return error
