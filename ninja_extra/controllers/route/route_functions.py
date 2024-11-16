@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, cast
 
 from django.http import HttpRequest, HttpResponse
 
-from ...dependency_resolver import get_injector, service_resolver
+from ninja_extra.dependency_resolver import get_injector, service_resolver
+
 from .context import RouteContext, get_route_execution_context
 
 if TYPE_CHECKING:  # pragma: no cover
+    from ninja_extra.controllers.base import APIController, ControllerBase
+    from ninja_extra.controllers.route import Route
     from ninja_extra.operation import Operation
-
-    from ...controllers.base import APIController, ControllerBase
-    from ...controllers.route import Route
 
 
 class RouteFunctionContext:
@@ -74,6 +74,13 @@ class RouteFunction(object):
         context_func.__signature__ = sig_replaced  # type: ignore
         return context_func
 
+    def run_permission_check(self, route_context: RouteContext) -> None:
+        _route_context = route_context or cast(
+            RouteContext, service_resolver(RouteContext)
+        )
+        with self._prep_controller_route_execution(_route_context) as ctx:
+            ctx.controller_instance.check_permissions()
+
     def get_view_function(self) -> Callable:
         def as_view(
             request: HttpRequest,
@@ -85,23 +92,30 @@ class RouteFunction(object):
                 RouteContext, service_resolver(RouteContext)
             )
             with self._prep_controller_route_execution(_route_context, **kwargs) as ctx:
-                ctx.controller_instance.check_permissions()
+                # ctx.controller_instance.check_permissions()
                 result = self.route.view_func(
                     ctx.controller_instance, *args, **ctx.view_func_kwargs
                 )
-            return self._process_view_function_result(result)
+            return result
 
         as_view.get_route_function = lambda: self  # type:ignore
         return as_view
 
     def _process_view_function_result(self, result: Any) -> Any:
         """
-        This process any an returned value from view_func
-        and creates an api response if result is ControllerResponseSchema
-        """
+        This process any a returned value from view_func
+        and creates an api response if a result is ControllerResponseSchema
 
-        # if result and isinstance(result, ControllerResponse):
-        #     return result.status_code, result.convert_to_schema()
+        deprecated:: 0.21.5
+           This method is deprecated and will be removed in a future version.
+           The result processing should be handled by the response handlers.
+        """
+        warnings.warn(
+            "_process_view_function_result() is deprecated and will be removed in a future version. "
+            "The result processing should be handled by the response handlers.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return result
 
     def _get_controller_instance(self) -> "ControllerBase":
@@ -163,6 +177,11 @@ class RouteFunction(object):
 
 
 class AsyncRouteFunction(RouteFunction):
+    async def async_run_check_permissions(self, route_context: RouteContext) -> None:
+        from asgiref.sync import sync_to_async
+
+        await sync_to_async(self.run_permission_check)(route_context)
+
     def get_view_function(self) -> Callable:
         async def as_view(
             request: HttpRequest,
@@ -170,17 +189,15 @@ class AsyncRouteFunction(RouteFunction):
             *args: Any,
             **kwargs: Any,
         ) -> Any:
-            from asgiref.sync import sync_to_async
-
             _route_context = route_context or cast(
                 RouteContext, service_resolver(RouteContext)
             )
             with self._prep_controller_route_execution(_route_context, **kwargs) as ctx:
-                await sync_to_async(ctx.controller_instance.check_permissions)()
+                # await sync_to_async(ctx.controller_instance.check_permissions)()
                 result = await self.route.view_func(
                     ctx.controller_instance, *args, **ctx.view_func_kwargs
                 )
-            return self._process_view_function_result(result)
+            return result
 
         as_view.get_route_function = lambda: self  # type:ignore
         return as_view

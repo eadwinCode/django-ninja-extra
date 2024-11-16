@@ -2,10 +2,11 @@ from unittest import mock
 from unittest.mock import Mock
 
 import pytest
+from asgiref.sync import sync_to_async
 from django.contrib.auth.models import AnonymousUser, User
 
 from ninja_extra import ControllerBase, api_controller, http_get, permissions
-from ninja_extra.testing import TestClient
+from ninja_extra.testing import TestAsyncClient, TestClient
 
 anonymous_request = Mock()
 anonymous_request.user = AnonymousUser()
@@ -250,6 +251,13 @@ class Some2Controller(ControllerBase):
     def permission_accept_type_and_instance(self):
         return {"success": True}
 
+    @http_get(
+        "permission/async/",
+        permissions=[permissions.IsAdminUser() & permissions.IsAuthenticatedOrReadOnly],
+    )
+    async def permission_accept_type_and_instance_async(self):
+        return {"success": True}
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("route", ["permission/", "index/"])
@@ -267,5 +275,25 @@ def test_permission_controller_instance(route):
     assert res.status_code == 403
 
     res = client.get(route, user=user)
+    assert res.status_code == 200
+    assert res.json() == {"success": True}
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_permission_controller_instance_async():
+    user = await sync_to_async(User.objects.create_user)(
+        username="eadwin",
+        email="eadwin@example.com",
+        password="password",
+        is_staff=True,
+        is_superuser=True,
+    )
+
+    client = TestAsyncClient(Some2Controller)
+    res = await client.get("/permission/async/", user=AnonymousUser())
+    assert res.status_code == 403
+
+    res = await client.get("/permission/async/", user=user)
     assert res.status_code == 200
     assert res.json() == {"success": True}
