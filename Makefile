@@ -16,8 +16,7 @@ install:clean ## Install dependencies
 	pip install -r requirements.txt
 	flit install --symlink
 
-install-full: ## Install dependencies
-	make install
+install-full:install ## Install dependencies
 	pre-commit install -f
 
 lint:fmt ## Run code linters
