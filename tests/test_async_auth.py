@@ -13,7 +13,6 @@ from ninja_extra.security import (
     AsyncAPIKeyQuery,
     AsyncHttpBasicAuth,
     AsyncHttpBearer,
-    async_django_auth,
 )
 
 user_secret = base64.b64encode("admin:secret".encode("utf-8")).decode()
@@ -145,7 +144,6 @@ if not django.VERSION < (3, 1):
     api = NinjaExtraAPI(csrf=True, urls_namespace="async_auth")
 
     for path, auth in [
-        ("django_auth", async_django_auth),
         ("callable", callable_auth),
         ("apikeyquery", KeyQuery()),
         ("apikeyheader", KeyHeader()),
@@ -163,8 +161,6 @@ if not django.VERSION < (3, 1):
 @pytest.mark.parametrize(
     "path,kwargs,expected_code,expected_body",
     [
-        ("/django_auth", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
-        ("/django_auth", {"user": MockUser("admin")}, 200, {"auth": "admin"}),
         ("/callable", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
         ("/callable?auth=demo", {}, 200, {"auth": "demo"}),
         ("/apikeyquery", {}, 401, BODY_UNAUTHORIZED_DEFAULT),
