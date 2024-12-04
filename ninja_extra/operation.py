@@ -197,13 +197,13 @@ class Operation(NinjaOperation):
             with self._prep_run(
                 request, temporal_response=temporal_response, **kw
             ) as ctx:
-                route_function = self._get_route_function()
-                if route_function:
-                    route_function.run_permission_check(ctx)
-
                 error = self._run_checks(request)
                 if error:
                     return error
+
+                route_function = self._get_route_function()
+                if route_function:
+                    route_function.run_permission_check(ctx)
 
                 values = self._get_values(request, kw, temporal_response)
                 ctx.kwargs.update(values)
@@ -325,13 +325,13 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             async with self._prep_run(
                 request, temporal_response=temporal_response, **kw
             ) as ctx:
-                route_function = self._get_route_function()
-                if route_function:
-                    await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
-
                 error = await self._run_checks(request)
                 if error:
                     return error
+
+                route_function = self._get_route_function()
+                if route_function:
+                    await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
 
                 values = await self._get_values(request, kw, temporal_response)  # type: ignore
                 ctx.kwargs.update(values)
