@@ -1,7 +1,9 @@
+import uuid
+
 import django
 import pytest
 
-from ninja_extra import api_controller, route
+from ninja_extra import api_controller, http_delete, http_get, route, status
 from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
 from ninja_extra.helper import get_route_function
 from ninja_extra.operation import AsyncOperation, Operation
@@ -113,3 +115,29 @@ class TestAsyncOperations:
             client = TestAsyncClient(self.SomeTestController)
             with pytest.raises(CustomException):
                 await client.get("/example_exception")
+
+
+def test_controller_operation_order():
+    @api_controller("/my/api/users", tags=["User"])
+    class UserAPIController:
+        @http_get("/me")
+        def get_current_user(self, request):
+            return {"debug": "ok", "message": "Current user"}
+
+        @http_get("/{user_id}")
+        def get_user(self, request, user_id: uuid.UUID):
+            return {"debug": "ok", "message": "User"}
+
+        @http_delete("/{user_id}", response={status.HTTP_204_NO_CONTENT: None})
+        def delete_user_from_clinic(self, request, user_id: uuid.UUID):
+            return {"debug": "ok", "message": "User deleted"}
+
+    client = TestClient(UserAPIController)
+    response = client.get("/me")
+    assert response.json() == {"debug": "ok", "message": "Current user"}
+
+    response = client.get(f"/{uuid.uuid4()}")
+    assert response.json() == {"debug": "ok", "message": "User"}
+
+    response = client.delete(f"/{uuid.uuid4()}")
+    assert response.content == b""

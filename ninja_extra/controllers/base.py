@@ -1,6 +1,7 @@
 import inspect
 import re
 import uuid
+from abc import ABC
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -62,9 +63,24 @@ class MissingAPIControllerDecoratorException(Exception):
 
 
 def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
-    for _, method in inspect.getmembers(cls, predicate=inspect.isfunction):
-        if hasattr(method, ROUTE_FUNCTION):
-            yield getattr(method, ROUTE_FUNCTION)
+    """
+    Get all route functions from a controller class.
+    This function will recursively search for route functions in the base classes of the controller class
+    in order that they are defined.
+
+    Args:
+        cls (Type): The controller class.
+
+    Returns:
+        Iterable[RouteFunction]: An iterable of route functions.
+    """
+
+    bases = inspect.getmro(cls)
+    for base_cls in reversed(bases):
+        if base_cls not in [ControllerBase, ABC, object]:
+            for method in base_cls.__dict__.values():
+                if hasattr(method, ROUTE_FUNCTION):
+                    yield getattr(method, ROUTE_FUNCTION)
 
 
 def get_all_controller_route_function(
