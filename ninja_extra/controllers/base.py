@@ -39,6 +39,8 @@ from ninja_extra.operation import Operation, PathView
 from ninja_extra.permissions import AllowAny, BasePermission
 from ninja_extra.permissions.base import OperationHolderMixin
 from ninja_extra.shortcuts import (
+    aget_object_or_exception,
+    aget_object_or_none,
     fail_silently,
     get_object_or_exception,
     get_object_or_none,
@@ -173,10 +175,31 @@ class ControllerBase:
         self.check_object_permissions(obj)
         return obj
 
+    async def aget_object_or_exception(
+        self,
+        klass: Union[Type[Model], QuerySet],
+        error_message: Optional[str] = None,
+        exception: Type[APIException] = NotFound,
+        **kwargs: Any,
+    ) -> Any:
+        obj = await aget_object_or_exception(
+            klass=klass, error_message=error_message, exception=exception, **kwargs
+        )
+        self.check_object_permissions(obj)
+        return obj
+
     def get_object_or_none(
         self, klass: Union[Type[Model], QuerySet], **kwargs: Any
     ) -> Optional[Any]:
         obj = get_object_or_none(klass=klass, **kwargs)
+        if obj:
+            self.check_object_permissions(obj)
+        return obj
+
+    async def aget_object_or_none(
+        self, klass: Union[Type[Model], QuerySet], **kwargs: Any
+    ) -> Optional[Any]:
+        obj = await aget_object_or_none(klass=klass, **kwargs)
         if obj:
             self.check_object_permissions(obj)
         return obj

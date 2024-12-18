@@ -185,6 +185,34 @@ class TestAPIController:
                 controller_object.get_object_or_exception(Group, id=group_instance.id)
                 assert isinstance(ex, exceptions.PermissionDenied)
 
+    @pytest.mark.asyncio
+    @pytest.mark.django_db
+    async def test_controller_base_aget_object_or_exception_works(self):
+        group_instance = await Group.objects.acreate(name="_async_groupowner")
+
+        controller_object = SomeController()
+        context = RouteContext(request=Mock(), permission_classes=[AllowAny])
+        controller_object.context = context
+        with patch.object(
+            AllowAny, "has_object_permission", return_value=True
+        ) as c_cop:
+            group = await controller_object.aget_object_or_exception(
+                Group, id=group_instance.id
+            )
+            c_cop.assert_called()
+            assert group == group_instance
+
+        with pytest.raises(Exception) as ex:
+            await controller_object.aget_object_or_exception(Group, id=1000)
+            assert isinstance(ex, exceptions.NotFound)
+
+        with pytest.raises(Exception) as ex:
+            with patch.object(AllowAny, "has_object_permission", return_value=False):
+                await controller_object.aget_object_or_exception(
+                    Group, id=group_instance.id
+                )
+                assert isinstance(ex, exceptions.PermissionDenied)
+
     @pytest.mark.django_db
     def test_controller_base_get_object_or_none_works(self):
         group_instance = Group.objects.create(name="_groupowner2")
@@ -204,6 +232,30 @@ class TestAPIController:
         with pytest.raises(Exception) as ex:
             with patch.object(AllowAny, "has_object_permission", return_value=False):
                 controller_object.get_object_or_none(Group, id=group_instance.id)
+                assert isinstance(ex, exceptions.PermissionDenied)
+
+    @pytest.mark.asyncio
+    @pytest.mark.django_db
+    async def test_controller_base_aget_object_or_none_works(self):
+        group_instance = await Group.objects.acreate(name="_async_groupowner2")
+
+        controller_object = SomeController()
+        context = RouteContext(request=Mock(), permission_classes=[AllowAny])
+        controller_object.context = context
+        with patch.object(
+            AllowAny, "has_object_permission", return_value=True
+        ) as c_cop:
+            group = await controller_object.aget_object_or_none(
+                Group, id=group_instance.id
+            )
+            c_cop.assert_called()
+            assert group == group_instance
+
+        assert await controller_object.aget_object_or_none(Group, id=1000) is None
+
+        with pytest.raises(Exception) as ex:
+            with patch.object(AllowAny, "has_object_permission", return_value=False):
+                await controller_object.aget_object_or_none(Group, id=group_instance.id)
                 assert isinstance(ex, exceptions.PermissionDenied)
 
 

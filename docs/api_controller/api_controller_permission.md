@@ -18,7 +18,7 @@ During the handling of a request, the `has_permission` method is automatically i
 in the permission list of the route function. However, `has_object_permission` is not triggered since 
 it requires an object for permission validation. As a result of that, `has_object_permission` method for permissions are
 invoked when attempting to retrieve an object using the `get_object_or_exception` 
-or `get_object_or_none` methods within the controller.
+or `get_object_or_none` methods within the controller. Async versions of these methods are supported with `aget_object_or_exception` and `get_object_or_none`.
 
 ## **Custom permissions**
 
