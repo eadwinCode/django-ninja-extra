@@ -185,6 +185,7 @@ class TestAPIController:
                 controller_object.get_object_or_exception(Group, id=group_instance.id)
                 assert isinstance(ex, exceptions.PermissionDenied)
 
+    @pytest.mark.skipif(django.VERSION < (4, 2), reason="requires django 4.2 or higher")
     @pytest.mark.asyncio
     @pytest.mark.django_db
     async def test_controller_base_aget_object_or_exception_works(self):
@@ -234,6 +235,7 @@ class TestAPIController:
                 controller_object.get_object_or_none(Group, id=group_instance.id)
                 assert isinstance(ex, exceptions.PermissionDenied)
 
+    @pytest.mark.skipif(django.VERSION < (4, 2), reason="requires django 4.2 or higher")
     @pytest.mark.asyncio
     @pytest.mark.django_db
     async def test_controller_base_aget_object_or_none_works(self):
