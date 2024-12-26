@@ -52,6 +52,27 @@ def get_object_or_exception(
         raise exception(detail=message) from ex
 
 
+@no_type_check
+async def aget_object_or_exception(
+    klass: Union[Type[Model], QuerySet],
+    error_message: str = None,
+    exception: Type[APIException] = NotFound,
+    **kwargs: Any,
+) -> Any:
+    queryset = _get_queryset(klass)
+    _validate_queryset(klass, queryset)
+    try:
+        return await queryset.aget(**kwargs)
+    except queryset.model.DoesNotExist as ex:
+        if error_message:
+            message = error_message
+        else:
+            message = "{} with {} was not found".format(
+                queryset.model._meta.object_name, _format_dict(kwargs)
+            )
+        raise exception(detail=message) from ex
+
+
 def _format_dict(table: DictStrAny) -> str:
     table_str = ""
     for k, v in table.items():
@@ -67,6 +88,18 @@ def get_object_or_none(
     _validate_queryset(klass, queryset)
     try:
         return queryset.get(**kwargs)
+    except (queryset.model.DoesNotExist, KeyError):
+        return None
+
+
+@no_type_check
+async def aget_object_or_none(
+    klass: Union[Type[Model], QuerySet], **kwargs: Any
+) -> Optional[Any]:
+    queryset = _get_queryset(klass)
+    _validate_queryset(klass, queryset)
+    try:
+        return await queryset.aget(**kwargs)
     except (queryset.model.DoesNotExist, KeyError):
         return None
 
