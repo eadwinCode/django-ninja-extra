@@ -1,11 +1,13 @@
 import typing as t
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model
 from ninja.pagination import PaginationBase
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field, field_validator
 
 try:
+    from ninja_schema import __version__ as ninja_schema_version
     from ninja_schema.errors import ConfigError
     from ninja_schema.orm.factory import SchemaFactory
     from ninja_schema.orm.model_schema import (
@@ -14,13 +16,22 @@ try:
     from ninja_schema.orm.model_schema import (
         ModelSchemaConfigAdapter,
     )
+
+    NINJA_SCHEMA_VERSION = tuple(map(int, ninja_schema_version.split(".")))
 except Exception:  # pragma: no cover
     ConfigError = NinjaSchemaModelSchemaConfig = ModelSchemaConfigAdapter = (
         SchemaFactory
     ) = None
+    NINJA_SCHEMA_VERSION = (0, 0, 0)
 
 
 from ninja_extra.pagination import PageNumberPaginationExtra, PaginatedResponseSchema
+
+
+def _is_ninja_schema_version_supported() -> bool:
+    if NINJA_SCHEMA_VERSION[1] >= 14 and NINJA_SCHEMA_VERSION[2] >= 1:
+        return True
+    raise ImproperlyConfigured("ninja-schema version 0.14.1 or higher is required")
 
 
 class ModelPagination(PydanticModel):
@@ -54,9 +65,10 @@ class ModelSchemaConfig(PydanticModel):
     exclude: t.Set[str] = Field(set())
     optional: t.Optional[t.Union[str, t.Set[str]]] = Field(default=None)
     depth: int = 0
-    #
+
     read_only_fields: t.Optional[t.List[str]] = Field(default=None)
     write_only_fields: t.Optional[t.Union[t.List[str]]] = Field(default=None)
+    extra_config_dict: t.Optional[t.Dict[str, t.Any]] = Field(default=None)
 
 
 class ModelConfig(PydanticModel):
@@ -146,6 +158,9 @@ class ModelConfig(PydanticModel):
             exclude_fields = set(self.schema_config.exclude)
             working_fields = working_fields - exclude_fields
 
+        if self.schema_config.extra_config_dict:
+            _is_ninja_schema_version_supported()
+
         if not self.create_schema and "create" in self.allowed_routes:
             create_schema_fields = self._get_create_schema_fields(
                 working_fields, model_pk
@@ -156,6 +171,7 @@ class ModelConfig(PydanticModel):
                 fields=list(create_schema_fields),
                 skip_registry=True,
                 depth=self.schema_config.depth,
+                **(self.schema_config.extra_config_dict or {}),
             )
 
         if not self.update_schema and "update" in self.allowed_routes:
@@ -166,7 +182,9 @@ class ModelConfig(PydanticModel):
                     working_fields, model_pk
                 )
                 self.update_schema = SchemaFactory.create_schema(
-                    self.model, fields=list(create_schema_fields)
+                    self.model,
+                    fields=list(create_schema_fields),
+                    **(self.schema_config.extra_config_dict or {}),
                 )
 
         if not self.patch_schema and "patch" in self.allowed_routes:
@@ -180,6 +198,7 @@ class ModelConfig(PydanticModel):
                 optional_fields=list(create_schema_fields),
                 skip_registry=True,
                 depth=self.schema_config.depth,
+                **(self.schema_config.extra_config_dict or {}),
             )
 
         if not self.retrieve_schema:
@@ -192,6 +211,7 @@ class ModelConfig(PydanticModel):
                 fields=list(retrieve_schema_fields),
                 skip_registry=True,
                 depth=self.schema_config.depth,
+                **(self.schema_config.extra_config_dict or {}),
             )
 
     def _get_create_schema_fields(self, working_fields: set, model_pk: str) -> set:
