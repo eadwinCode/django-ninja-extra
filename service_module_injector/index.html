@@ -1,0 +1,1456 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Django Ninja Extra - Adds more power to Django Ninja RESTful api library">
+      
+      
+      
+        <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/service_module_injector/">
+      
+      
+        <link rel="prev" href="../settings/">
+      
+      
+        <link rel="next" href="../contribution/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
+    
+    
+      
+        <title>Dependency Injection - Django Ninja Extra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deeppurple" data-md-color-accent="deeppurple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dependency-injection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Django Ninja Extra" class="md-header__button md-logo" aria-label="Django Ninja Extra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Django Ninja Extra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dependency Injection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deeppurple" data-md-color-accent="deeppurple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eadwinCode/django-ninja-extra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    eadwinCode/django-ninja
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Django Ninja Extra" class="md-nav__button md-logo" aria-label="Django Ninja Extra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Django Ninja Extra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eadwinCode/django-ninja-extra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    eadwinCode/django-ninja
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    APIController
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            APIController
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_controller/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_controller/api_controller_route/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Controller Routes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_controller/api_controller_permission/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Controller Permissions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_controller/model_controller/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Controller
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Usage
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Usage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quick Tutorial
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/authentication/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Authentication
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/path/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Path Parameter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/query/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Query Request
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/body_request/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Body Request
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/form/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Form Request
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/schema/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Schema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/pagination/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pagination
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Filtering
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            Filtering
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/ordering/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ordering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/searching/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Searching
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/custom_exception/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Error Handling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/versioning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Versioning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/throttling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Throttling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/testing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Testing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../route_context/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RouteContext
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Settings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Dependency Injection
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Dependency Injection
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Service
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a module
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service Scope
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#singleton-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      singleton scope
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transient-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      transient scope
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scoped" class="md-nav__link">
+    <span class="md-ellipsis">
+      scoped
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-service-to-controllers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding Service to Controllers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Module Registration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Module Registration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registering-based-on-ninja-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      Registering based on Ninja Extra
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-service_resolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using service_resolver
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribution/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contribution
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Service
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-a-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a module
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Service Scope
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#singleton-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      singleton scope
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transient-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      transient scope
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scoped" class="md-nav__link">
+    <span class="md-ellipsis">
+      scoped
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-service-to-controllers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding Service to Controllers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#module-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Module Registration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Module Registration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registering-based-on-ninja-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      Registering based on Ninja Extra
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-service_resolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using service_resolver
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="dependency-injection">Dependency Injection</h1>
+<p>One of the core features of <strong>Django Ninja Extra</strong> APIController is its support dependency injection using <a href="https://injector.readthedocs.io/en/latest/"><strong>Injector</strong> </a></p>
+<p>For example, if you have a service called AuthService and you want to use it in your <code>UsersController</code> class, 
+you can simply add it as a parameter in the constructor of the class and annotate it with its type.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">UsersController</span><span class="p">(</span><span class="n">ControllerBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_service</span><span class="p">:</span> <span class="n">AuthService</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth_service</span> <span class="o">=</span> <span class="n">auth_service</span>
+</code></pre></div>
+<p>Then in your application config, you can register this service and its scope. 
+By default, services are singleton scoped unless specified.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="n">binder</span><span class="p">:</span> <span class="n">Binder</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Binder</span><span class="p">:</span>
+    <span class="n">binder</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">AuthService</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">AuthServiceImpl</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">singleton</span><span class="p">)</span>
+</code></pre></div>
+<p>You can also specify the scope of the service. 
+This is useful when you want to use different instances of the same service for different requests.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="n">binder</span><span class="p">:</span> <span class="n">Binder</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Binder</span><span class="p">:</span>
+    <span class="n">binder</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">AuthService</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">AuthServiceImpl</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">noscope</span><span class="p">)</span>
+</code></pre></div>
+<p>In this way, you can easily inject services into your controllers and use them throughout your application. 
+This makes it easy to test your controllers as well as to change the implementation of a service without 
+affecting the rest of the application.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Django-Ninja-Extra supports <a href="https://github.com/blubber/django_injector"><strong>django_injector</strong></a>. There is no extra configuration needed.</p>
+</div>
+<h2 id="creating-a-service">Creating a Service</h2>
+<p>A service refers to a self-contained module or piece of functionality that can be reused across different parts of an application. 
+Services are typically used to encapsulate business logic or to provide access to shared resources, such as databases or external APIs.
+Services are often implemented as classes, and they can be accessed through an object-oriented interface. 
+Services can be used to perform actions, to interact with external systems, and to perform calculations. 
+They usually have some public methods and properties, which allows other objects to interact with them. 
+Services are usually used to separate the application logic from the infrastructure, this way the application logic can be reused, tested and maintained independently.</p>
+<p>Let's create a simple S3 bucket service, create a <code>service.py</code> in your project and add the cold below
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja</span> <span class="kn">import</span> <span class="n">File</span>
+<span class="kn">from</span> <span class="nn">ninja.files</span> <span class="kn">import</span> <span class="n">UploadedFile</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_post</span>
+
+<span class="k">class</span> <span class="nc">BucketFileUploadService</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">upload_file_to_s3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">acl</span><span class="o">=</span><span class="s2">&quot;public-read&quot;</span><span class="p">,</span> <span class="n">file_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">upload_existing_file_to_s3</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">file_key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">acl</span><span class="o">=</span><span class="s2">&quot;public-read&quot;</span><span class="p">,</span> <span class="n">delete_file_afterwards</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">clean_up_root_limit</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="k">pass</span>
+
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s1">&#39;/user_profile&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">UserProfileController</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">upload_service</span><span class="p">:</span> <span class="n">BucketFileUploadService</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upload_service</span> <span class="o">=</span> <span class="n">upload_service</span>
+
+    <span class="nd">@http_post</span><span class="p">(</span><span class="s1">&#39;/upload&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">upload_profile_pic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">UploadedFile</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="o">...</span><span class="p">)):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upload_service</span><span class="o">.</span><span class="n">upload_file_to_s3</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="s1">&#39;uploaded successfully&#39;</span><span class="p">}</span>
+
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Injector Test&#39;</span><span class="p">)</span>
+<span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span><span class="n">UserProfileController</span><span class="p">)</span>
+</code></pre></div></p>
+<h3 id="create-a-module">Create a module</h3>
+<p>In Python Injector, a module is a class or a function that is used to configure the dependency injection container. 
+A module is responsible for binding services to their implementations and for configuring the scope of services.</p>
+<p>A module can define a <code>configure(binder: Binder)</code> function that is used to configure the dependency injection container. 
+The <code>binder</code> argument is an instance of the Binder class that is used to bind services to their implementations.</p>
+<p>A module can also define one or more provider functions, which are used to create instances of services. 
+These functions can be decorated with <code>@inject</code> to specify the dependencies that they need to be resolved, 
+and they can be decorated with <code>@provider</code> to indicate that they should be used to create instances of services.</p>
+<p>For example:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">injector</span> <span class="kn">import</span> <span class="n">Binder</span><span class="p">,</span> <span class="n">singleton</span><span class="p">,</span> <span class="n">inject</span><span class="p">,</span> <span class="n">provider</span>
+
+<span class="k">class</span> <span class="nc">MyModule</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binder</span><span class="p">:</span> <span class="n">Binder</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Binder</span><span class="p">:</span>
+        <span class="n">binder</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">AuthService</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">AuthServiceImpl</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">singleton</span><span class="p">)</span>
+
+    <span class="nd">@provider</span>
+    <span class="nd">@inject</span>
+    <span class="k">def</span> <span class="nf">provide_user_service</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_service</span><span class="p">:</span> <span class="n">AuthService</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UserService</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">UserService</span><span class="p">(</span><span class="n">auth_service</span><span class="p">)</span>
+</code></pre></div>
+In the example above, <code>MyModule</code> class has <code>configure</code> method which is used to bind the <code>AuthService</code> and set the scope 
+as <code>singleton</code> and <code>provide_user_service</code> which is decorated with <code>@provider</code> and <code>@inject</code> to provide 
+<code>UserService</code> and the <code>AuthService</code> is injected to it as a dependency.</p>
+<p>By registering a module in Ninja Extra settings, all the services, providers and configurations defined in the module 
+will be added to the Injector, and these services can be resolved and used throughout the application.</p>
+<p>Lets creates a module for the <code>BucketFileUpload</code> service we created earlier. Create a <code>module.py</code> in your project and add the code below.</p>
+<p><div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">Settings</span>
+<span class="kn">from</span> <span class="nn">injector</span> <span class="kn">import</span> <span class="n">inject</span><span class="p">,</span> <span class="n">Module</span><span class="p">,</span> <span class="n">Binder</span><span class="p">,</span> <span class="n">singleton</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">InMemoryBucketFileUpload</span><span class="p">(</span><span class="n">BucketFileUpload</span><span class="p">):</span>
+    <span class="nd">@inject</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">:</span> <span class="n">Settings</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== Using InMemoryBucketFileUpload =======&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">Settings</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">upload_file_to_s3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">acl</span><span class="o">=</span><span class="s2">&quot;public-read&quot;</span><span class="p">,</span> <span class="n">file_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;InMemoryBucketFileUpload ---- &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;upload_file_to_s3(file=</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">, bucket_name</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">, acl=</span><span class="si">{</span><span class="n">acl</span><span class="si">}</span><span class="s2">, file_key=</span><span class="si">{</span><span class="n">file_key</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_key</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">UPLOAD_FOLDER</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="n">file_key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">upload_existing_file_to_s3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">file_key</span><span class="p">,</span> <span class="n">bucket_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">acl</span><span class="o">=</span><span class="s2">&quot;public-read&quot;</span><span class="p">,</span>
+                                   <span class="n">delete_file_afterwards</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean_up_root_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;InMemoryBucketFileUpload ---- upload_existing_file_to_s3(&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;filepath=</span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">, file_key=</span><span class="si">{</span><span class="n">file_key</span><span class="si">}</span><span class="s2">, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;bucket_name=</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">, acl=</span><span class="si">{</span><span class="n">acl</span><span class="si">}</span><span class="s2">, delete_file_afterwards=</span><span class="si">{</span><span class="n">delete_file_afterwards</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">filepath</span>
+
+
+<span class="k">class</span> <span class="nc">FileServiceModule</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binder</span><span class="p">:</span> <span class="n">Binder</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">binder</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">BucketFileUpload</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">InMemoryBucketFileUpload</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">singleton</span><span class="p">)</span>
+</code></pre></div>
+We have created a <code>FileServiceModule</code> that binds <code>BucketFileUpload</code> to <code>InMemoryBucketFileUpload</code>. 
+In our application, when <code>BucketFileUpload</code> is resolved we will get an instance of <code>InMemoryBucketFileUpload</code> provided for us by the injector.
+We also used <code>inject</code> decorator from <code>injector</code> to inject django settings to <code>InMemoryBucketFileUpload</code> service.</p>
+<p>The <code>InMemoryBucketFileUpload</code> concrete class is a simple class for development. In production time, you meant want to write a better service to saves file to your AWS S3 bucket.</p>
+<h2 id="service-scope">Service Scope</h2>
+<p>A scope defines the lifespan of a service created. There are three major scope when working with dependency injection in a web framework</p>
+<h3 id="singleton-scope"><code>singleton</code> scope</h3>
+<p>A singleton service is created only once and the same instance is reused for the entire lifetime of the application. 
+This is the default scope when no scope is specified.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">injector</span> <span class="kn">import</span> <span class="n">Module</span><span class="p">,</span> <span class="n">Binder</span><span class="p">,</span> <span class="n">singleton</span>
+
+<span class="k">class</span> <span class="nc">FileServiceModule</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binder</span><span class="p">:</span> <span class="n">Binder</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">binder</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">BucketFileUpload</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">InMemoryBucketFileUpload</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">singleton</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="transient-scope"><code>transient</code> scope</h3>
+<p>A transient service is created each time it's requested. 
+A new instance is created for each request. 
+This is useful for services that do not maintain state or services that should not be shared across multiple requests.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">injector</span> <span class="kn">import</span> <span class="n">Module</span><span class="p">,</span> <span class="n">Binder</span><span class="p">,</span> <span class="n">noscope</span>
+
+<span class="k">class</span> <span class="nc">FileServiceModule</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binder</span><span class="p">:</span> <span class="n">Binder</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">binder</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">BucketFileUpload</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">InMemoryBucketFileUpload</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">noscope</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="scoped"><code>scoped</code></h3>
+<p>A scoped service is created once per request. A new instance is created for each incoming request and is shared among 
+all components that depend on it within the same request. This is useful for services that maintain request-specific state.</p>
+<p>Currently, Ninja extra does not support <code>scoped</code> scope service.</p>
+<p>It's important to choose the appropriate scope when registering services with the dependency injection container. 
+<code>Singleton</code> services are suitable for services that maintain application-wide state, 
+<code>transient</code> services are suitable for services that do not maintain state, and 
+<code>scoped</code> services are suitable for services that maintain request-specific state.</p>
+<h2 id="adding-service-to-controllers">Adding Service to Controllers</h2>
+<p>Ninja Extra controllers constructor (<code>__init__</code>) are decorated with <code>inject</code> function from <code>injector</code> library. 
+This makes it possible define parameter in a parameter in the constructor with a type annotation and the annotated type gets injected during object instantiation.</p>
+<p>We have created a <code>BucketFileUpload</code> contract and some concrete implementations, lets add it to a controller.</p>
+<p>Lets create a <code>controller.py</code> with the code below</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja</span> <span class="kn">import</span> <span class="n">File</span>
+<span class="kn">from</span> <span class="nn">ninja.files</span> <span class="kn">import</span> <span class="n">UploadedFile</span>
+<span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">NinjaExtraAPI</span><span class="p">,</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_post</span>
+<span class="kn">from</span> <span class="nn">.modules</span> <span class="kn">import</span> <span class="n">BucketFileUpload</span><span class="p">,</span> <span class="n">InMemoryBucketFileUpload</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s1">&#39;/user_profile&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">UserProfileController</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">upload_service</span><span class="p">:</span> <span class="n">BucketFileUpload</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upload_service</span> <span class="o">=</span> <span class="n">upload_service</span>
+
+    <span class="nd">@http_post</span><span class="p">(</span><span class="s1">&#39;/upload&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">upload_profile_pic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">UploadedFile</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="o">...</span><span class="p">)):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upload_service</span><span class="o">.</span><span class="n">upload_file_to_s3</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_service</span><span class="p">,</span> <span class="n">InMemoryBucketFileUpload</span><span class="p">)</span> <span class="c1"># True</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="s1">&#39;uploaded successfully&#39;</span><span class="p">}</span>
+
+
+<span class="n">api</span> <span class="o">=</span> <span class="n">NinjaExtraAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Injector Test&#39;</span><span class="p">)</span>
+<span class="n">api</span><span class="o">.</span><span class="n">register_controllers</span><span class="p">(</span><span class="n">UserProfileController</span><span class="p">)</span>
+</code></pre></div>
+<p>Now, we have defined an <code>BucketFileUpload</code> service dependence to our <code>UserProfileController</code>. 
+We need to register <code>FileServiceModule</code> to settings to avoid getting <code>UnsatisedRequirement</code> exception from injector when Ninja extra tries to create the object.</p>
+<h2 id="module-registration"><strong>Module Registration</strong></h2>
+<p>There are different ways of registering injector Modules in a Django app. </p>
+<ul>
+<li><strong>django_injector</strong>: if you are using django_inject, it has documentation on how to register a module.</li>
+<li><strong>ninja_extra</strong>: you can provide module string path in <code>INJECTOR_MODULES</code> in <code>NINJA_EXTRA</code> field as shown below:</li>
+</ul>
+<h3 id="registering-based-on-ninja-extra">Registering based on Ninja Extra</h3>
+<p>We register modules to <code>INJECTOR_MODULES</code> key in Ninja Extra settings in django settings.py</p>
+<div class="highlight"><pre><span></span><code><span class="n">NINJA_EXTRA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;INJECTOR_MODULES&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;myproject.app1.modules.SomeModule&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;myproject.app2.modules.SomeAppModule&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Let's register <code>FileServiceModule</code> module to the <code>NinjaExtra</code> settings,</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># settings.py</span>
+<span class="o">...</span>
+<span class="n">MIDDLEWARE</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;django.middleware.security.SecurityMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.contrib.sessions.middleware.SessionMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.middleware.common.CommonMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.middleware.csrf.CsrfViewMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.contrib.auth.middleware.AuthenticationMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.contrib.messages.middleware.MessageMiddleware&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;django.middleware.clickjacking.XFrameOptionsMiddleware&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">NinjaExtra</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;INJECTOR_MODULES&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;myproject.modules.FileServiceModule&#39;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+<span class="o">...</span>
+</code></pre></div>
+<p>That's it. We have completely wired <code>BucketFileUpload</code> service to <code>UserProfileController</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You are not only allowed to override your APIController constructor with <strong>parameter</strong> that don't have <strong>annotations</strong>
+Read more <a href="https://injector.readthedocs.io/en/latest/"><strong>Python Injector</strong> </a></p>
+</div>
+<h2 id="using-service_resolver">Using <code>service_resolver</code></h2>
+<p>The <code>service_resolver</code> is a utility class that help resolves types registered in the <code>injector</code> instance. I could be in handle when we need a service resolved outside controllers.</p>
+<p>For example:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">service_resolver</span>
+<span class="kn">from</span> <span class="nn">.service</span> <span class="kn">import</span> <span class="n">BucketFileUpload</span>
+
+
+<span class="n">bucket_service</span> <span class="o">=</span> <span class="n">service_resolver</span><span class="p">(</span><span class="n">BucketFileUpload</span><span class="p">)</span>
+<span class="n">bucket_service</span><span class="o">.</span><span class="n">upload_file_to_s3</span><span class="p">(</span><span class="s1">&#39;/path/to/file&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+<p>We can also resolve more than one service at a time and a tuple result will be returned.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">ninja_extra</span> <span class="kn">import</span> <span class="n">service_resolver</span>
+<span class="kn">from</span> <span class="nn">.service</span> <span class="kn">import</span> <span class="n">BucketFileUpload</span>
+
+
+<span class="n">bucket_service</span><span class="p">,</span> <span class="n">service_a</span><span class="p">,</span> <span class="n">service_b</span> <span class="o">=</span> <span class="n">service_resolver</span><span class="p">(</span><span class="n">BucketFileUpload</span><span class="p">,</span> <span class="n">AnotherServiceA</span><span class="p">,</span> <span class="n">AnotherServiceB</span><span class="p">)</span>
+<span class="n">bucket_service</span><span class="o">.</span><span class="n">upload_file_to_s3</span><span class="p">(</span><span class="s1">&#39;/path/to/file&#39;</span><span class="p">)</span>
+
+<span class="n">service_a</span><span class="o">.</span><span class="n">do_something</span><span class="p">()</span>
+<span class="n">service_b</span><span class="o">.</span><span class="n">do_something</span><span class="p">()</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.88dd0f4e.min.js"></script>
+      
+    
+  </body>
+</html>
