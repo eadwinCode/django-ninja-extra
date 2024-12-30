@@ -42,6 +42,7 @@ def test_default_model_config():
         "depth": 0,
         "read_only_fields": None,
         "write_only_fields": None,
+        "extra_config_dict": None,
     }
     assert model_config.create_route_info == {}
     assert model_config.find_one_route_info == {}
@@ -55,7 +56,10 @@ def test_include_gen_schema():
     model_config = ModelConfig(
         model=Event,
         allowed_routes=["list", "find_one"],
-        schema_config=ModelSchemaConfig(include=["title", "start_date", "end_date"]),
+        schema_config=ModelSchemaConfig(
+            include=["title", "start_date", "end_date"],
+            extra_config_dict={"title": "EventCustomTitle"},
+        ),
     )
     assert model_config.create_schema is None
     assert model_config.patch_schema is None
@@ -83,7 +87,7 @@ def test_include_gen_schema():
             },
         },
         "required": ["id", "title", "start_date", "end_date"],
-        "title": "EventSchema",
+        "title": "EventCustomTitle",
         "type": "object",
     }
 

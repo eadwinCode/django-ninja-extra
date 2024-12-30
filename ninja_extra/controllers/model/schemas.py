@@ -54,9 +54,10 @@ class ModelSchemaConfig(PydanticModel):
     exclude: t.Set[str] = Field(set())
     optional: t.Optional[t.Union[str, t.Set[str]]] = Field(default=None)
     depth: int = 0
-    #
+
     read_only_fields: t.Optional[t.List[str]] = Field(default=None)
     write_only_fields: t.Optional[t.Union[t.List[str]]] = Field(default=None)
+    extra_config_dict: t.Optional[t.Dict[str, t.Any]] = Field(default=None)
 
 
 class ModelConfig(PydanticModel):
@@ -156,6 +157,7 @@ class ModelConfig(PydanticModel):
                 fields=list(create_schema_fields),
                 skip_registry=True,
                 depth=self.schema_config.depth,
+                **(self.schema_config.extra_config_dict or {}),
             )
 
         if not self.update_schema and "update" in self.allowed_routes:
@@ -166,7 +168,9 @@ class ModelConfig(PydanticModel):
                     working_fields, model_pk
                 )
                 self.update_schema = SchemaFactory.create_schema(
-                    self.model, fields=list(create_schema_fields)
+                    self.model,
+                    fields=list(create_schema_fields),
+                    **(self.schema_config.extra_config_dict or {}),
                 )
 
         if not self.patch_schema and "patch" in self.allowed_routes:
@@ -180,6 +184,7 @@ class ModelConfig(PydanticModel):
                 optional_fields=list(create_schema_fields),
                 skip_registry=True,
                 depth=self.schema_config.depth,
+                **(self.schema_config.extra_config_dict or {}),
             )
 
         if not self.retrieve_schema:
@@ -192,6 +197,7 @@ class ModelConfig(PydanticModel):
                 fields=list(retrieve_schema_fields),
                 skip_registry=True,
                 depth=self.schema_config.depth,
+                **(self.schema_config.extra_config_dict or {}),
             )
 
     def _get_create_schema_fields(self, working_fields: set, model_pk: str) -> set:
