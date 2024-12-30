@@ -1,11 +1,13 @@
 import typing as t
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model
 from ninja.pagination import PaginationBase
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field, field_validator
 
 try:
+    from ninja_schema import __version__ as ninja_schema_version
     from ninja_schema.errors import ConfigError
     from ninja_schema.orm.factory import SchemaFactory
     from ninja_schema.orm.model_schema import (
@@ -14,13 +16,22 @@ try:
     from ninja_schema.orm.model_schema import (
         ModelSchemaConfigAdapter,
     )
+
+    NINJA_SCHEMA_VERSION = tuple(map(int, ninja_schema_version.split(".")))
 except Exception:  # pragma: no cover
     ConfigError = NinjaSchemaModelSchemaConfig = ModelSchemaConfigAdapter = (
         SchemaFactory
     ) = None
+    NINJA_SCHEMA_VERSION = (0, 0, 0)
 
 
 from ninja_extra.pagination import PageNumberPaginationExtra, PaginatedResponseSchema
+
+
+def _is_ninja_schema_version_supported() -> bool:
+    if NINJA_SCHEMA_VERSION[1] >= 14 and NINJA_SCHEMA_VERSION[2] >= 1:
+        return True
+    raise ImproperlyConfigured("ninja-schema version 0.14.1 or higher is required")
 
 
 class ModelPagination(PydanticModel):
@@ -146,6 +157,9 @@ class ModelConfig(PydanticModel):
         elif self.schema_config.exclude:
             exclude_fields = set(self.schema_config.exclude)
             working_fields = working_fields - exclude_fields
+
+        if self.schema_config.extra_config_dict:
+            _is_ninja_schema_version_supported()
 
         if not self.create_schema and "create" in self.allowed_routes:
             create_schema_fields = self._get_create_schema_fields(
