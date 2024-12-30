@@ -42,7 +42,14 @@ from .models import Event
 class EventModelController(ModelControllerBase):
     model_config = ModelConfig(
         model=Event,
-        schema_config=ModelSchemaConfig(read_only_fields=["id", "category"]),
+        schema_config=ModelSchemaConfig(
+            read_only_fields=["id", "category"],
+            # if you want to extra configuration to the generated schemas
+            # extra_config_dict={
+            #     'title': 'EventCustomTitle',
+            #      'populate_by_name': True
+            # } 
+        ),
     )
     
 api = NinjaExtraAPI()
@@ -79,6 +86,7 @@ The `ModelConfig` is a Pydantic schema designed for validating and configuring t
     - `depth`: The depth for nesting schema generation.
     - `read_only_fields`: A list of fields to be excluded when generating input schemas for create, update, and patch operations.
     - `write_only_fields`: A list of fields to be excluded when generating output schemas for find_one and list operations.
+    - `extra_config_dict`: A dictionary of extra configuration to be added to the generated schemas. Options must be valid Pydantic configuration options.
   - **pagination**: A requisite for the model `list/GET` operation to prevent sending `100_000` items at once in a request. The pagination configuration mandates a `ModelPagination` Pydantic schema object for setup. Options encompass:
       - `klass`: The pagination class of type `PaginationBase`. The default is `PageNumberPaginationExtra`.
       - `paginator_kwargs`: A dictionary value for `PaginationBase` initialization. The default is None.
@@ -305,8 +313,10 @@ class EventModelController(ModelControllerBase):
         custom_handler=lambda self, data, **kw: self.handle_add_event_to_new_category(data, **kw)
     )
 
-    def handle_add_event_to_new_category(self, data: CreateCategorySchema, **kw: Any) -> Category:
-        event = self.service.get_one(pk=kw['event_id'])
+    def handle_add_event_to_new_category(
+        self, data: CreateCategorySchema, event_id: int, **kw: Any
+    ) -> Category:
+        event = self.service.get_one(pk=event_id)
         category = Category.objects.create(title=data.title)
         event.category = category
         event.save()
@@ -361,8 +371,10 @@ class EventModelController(ModelControllerBase):
         custom_handler=lambda self, data, **kw: self.handle_add_event_to_new_category(data, **kw)
     )
 
-    async def handle_add_event_to_new_category(self, data: CreateCategorySchema, **kw: Any) -> Category:
-        event = await self.service.get_one_async(pk=kw['event_id'])
+    async def handle_add_event_to_new_category(
+        self, data: CreateCategorySchema, event_id: int, **kw: Any
+    ) -> Category:
+        event = await self.service.get_one_async(pk=event_id)
         category = Category.objects.create(title=data.title)
         event.category = category
         event.save()
