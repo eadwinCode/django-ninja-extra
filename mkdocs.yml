@@ -60,7 +60,9 @@ nav:
   - Testing: tutorial/testing.md
 - RouteContext: route_context.md
 - Settings: settings.md
-- Dependency Injection: service_module_injector.md
+- Dependency Injection:
+  - Getting Started: dependency-injection/index.md
+  - Testing with Dependency Injection: dependency-injection/testing.md
 - Contribution: contribution.md
 
 markdown_extensions:
