@@ -1,139 +1,161 @@
-**Django Ninja Extra** provides the RouteContext object, which is available throughout the request lifecycle. 
-This object holds essential properties for the route handler that will handle the request. 
-These properties include the Django `HttpRequest` object, a list of permission classes for the route handler, 
-a temporary response object used by Django-Ninja to construct the final response, 
-and kwargs and args required for calling the route function. 
+# Route Context
 
-It's important to note that these properties are not set at the beginning of the request, 
-but rather become available as the request progresses through different stages, 
-and before it reaches the route function execution.
-
+The `RouteContext` object is a powerful feature in Django Ninja Extra that provides access to important request-related information throughout the request lifecycle. It acts as a central store for request data and is available within controller methods.
 
 ```python
-from pydantic import BaseModel as PydanticModel, Field
+from typing import Any, List, Union
+from django.http import HttpRequest, HttpResponse
+from ninja.types import DictStrAny
+from pydantic import BaseModel, Field
 
-class RouteContext(PydanticModel):
-    """
-    APIController Context which will be available to the class instance when handling request
-    """
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    permission_classes: PermissionType = Field([])
-    request: Union[Any, HttpRequest, None] = None
-    response: Union[Any, HttpResponse, None] = None
-    args: List[Any] = Field([])
-    kwargs: DictStrAny = Field({})
+class RouteContext(BaseModel):
+    permission_classes: List[Any] = Field([])  # Permission classes for the route
+    request: Union[HttpRequest, None] = None   # Django HttpRequest object
+    response: Union[HttpResponse, None] = None # Response object being built
+    args: List[Any] = Field([])               # Positional arguments
+    kwargs: DictStrAny = Field({})            # Keyword arguments
 ```
 
-## How to Access `RouteContext`
+## **Accessing RouteContext**
 
-In Django Ninja Extra, the `RouteContext` object can be accessed within the **controller class** by using the `self.context` property. 
-This property is available at the instance level of the controller class, making it easy to access the properties and methods of the `RouteContext` object.
+Within a controller class, you can access the `RouteContext` through `self.context`. Here's a complete example:
 
-For example.
 ```python
 from ninja_extra import ControllerBase, api_controller, route
-from django.db import transaction
 from ninja_extra.permissions import IsAuthenticated
 from ninja_jwt.authentication import JWTAuth
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
-
-
-@api_controller("/books", auth=JWTAuth(), permissions=[IsAuthenticated])
-class StoryBookSubscribeController(ControllerBase):
-    @route.get(
-        "/context",
-        url_name="subscribe",
-    )
-    @transaction.atomic
-    def subscribe(self):
-        user = self.context.request.user
-        return {'message': 'Authenticated User From context', 'email': user.email}
+@api_controller("/api", auth=JWTAuth(), permissions=[IsAuthenticated])
+class UserController(ControllerBase):
     
-    @route.post(
-        "/context",
-        url_name="subscribe",
-    )
-    @transaction.atomic
-    def subscribe_with_response_change(self):
-        res = self.context.response
-        res.headers.setdefault('x-custom-header', 'welcome to custom header in response')
-        return {'message': 'Authenticated User From context and Response header modified', 'email': self.context.request.user.email}
+    @route.get("/me")
+    def get_user_info(self):
+        # Access the authenticated user from request
+        user = self.context.request.user
+        return {
+            "email": user.email,
+            "username": user.username
+        }
+    
+    @route.post("/update-profile")
+    def update_profile(self):
+        # Access and modify the response headers
+        self.context.response.headers["X-Profile-Updated"] = "true"
+        return {"status": "profile updated"}
 
+    @route.get("/context-demo")
+    def demo_context(self):
+        # Access various context properties
+        return {
+            "request_method": self.context.request.method,
+            "route_kwargs": self.context.kwargs,
+            "permissions": [p.__class__.__name__ for p in self.context.permission_classes]
+        }
 ```
 
-In the example, we can access the authenticated `user` object from the request object in the `self.context` property, which is available in the controller class. 
-This allows us to easily access the authenticated user's information
+## **Working with Response Headers**
 
-### Modifying Response Header with RouteContext
+The `RouteContext` provides access to the response object, allowing you to modify headers, cookies, and other response properties:
 
-The `RouteContext` object provides you with the necessary properties and methods to manipulate the response data before it is returned to the client.
-With the RouteContext object, you can easily modify header, status, or cookie data for the response returned for a specific request
-
-For example, lets add extra `header` info our new endpoint, `subscribe_with_response_change` as shown below.
 ```python
-from ninja_extra import ControllerBase, api_controller, route
-from django.db import transaction
-from ninja_extra.permissions import IsAuthenticated
-from ninja_jwt.authentication import JWTAuth
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
-
-@api_controller("/books", auth=JWTAuth(), permissions=[IsAuthenticated])
-class StoryBookSubscribeController(ControllerBase):
-    @route.post(
-        "/context-response",
-        url_name="response",
-    )
-    @transaction.atomic
-    def subscribe_with_response_change(self):
-        res = self.context.response
-        res.headers['x-custom-header'] = 'welcome to custom header in response'
-        return {'message': 'Authenticated User From context and Response header modified', 'email': self.context.request.user.email}
-
+@api_controller("/api")
+class HeaderController(ControllerBase):
+    
+    @route.get("/custom-headers")
+    def add_custom_headers(self):
+        # Add custom headers to the response
+        response = self.context.response
+        response.headers["X-Custom-Header"] = "custom value"
+        response.headers["X-API-Version"] = "1.0"
+        
+        return {"message": "Response includes custom headers"}
 ```
 
-## Using `RouteContext` in Schema
+## **Using RouteContext in Schema Validation**
 
-There may be situations where you need to access the request object during schema validation. 
-Django Ninja Extra makes this easy by providing a way to resolve the `RouteContext` object during the request, 
-which can then be used to access the request object and any other necessary properties. 
-This allows you to use the context of the request within the validation process, making it more flexible and powerful.
-
-For example:
+You can access the `RouteContext` during schema validation using the `service_resolver`. This is useful when you need request information during validation:
 
 ```python
-from typing import Optional
-from django.urls import reverse
 from ninja_extra import service_resolver
 from ninja_extra.controllers import RouteContext
 from ninja import ModelSchema
-from pydantic import AnyHttpUrl, validator
+from pydantic import validator
+from django.urls import reverse
 
-
-class StoreBookSchema(ModelSchema):
-    borrowed_by: Optional[UserRetrieveSchema]
-    store: AnyHttpUrl
-    book: BookSchema
-
+class UserProfileSchema(ModelSchema):
+    avatar_url: str
+    
     class Config:
-        model = StoreBook
-        model_fields = ['borrowed_by', 'store', 'book']
+        model = UserProfile
+        model_fields = ["avatar_url", "bio"]
 
-    @validator("store", pre=True, check_fields=False)
-    def store_validate(cls, value_data):
+    @validator("avatar_url")
+    def make_absolute_url(cls, value):
+        # Get RouteContext to access request
         context: RouteContext = service_resolver(RouteContext)
-        value = reverse("store:detail", kwargs=dict(store_id=value_data.id))
-        return context.request.build_absolute_uri(value)
+        
+        # Convert relative URL to absolute using request
+        if value and not value.startswith(('http://', 'https://')):
+            return context.request.build_absolute_uri(value)
+        return value
 ```
 
-In the example above, we used the `service_resolver`, a dependency injection utility function, to resolve the `RouteContext` object. 
-This gave us access to the request object, which we used to construct a full URL for our store details. 
-By using the `service_resolver` to access the RouteContext, we can easily access the request object, 
-and use it to gather any necessary information during the validation process.
+## **Permissions and Authentication**
+
+The `RouteContext` stores permission classes that apply to the current route. This is particularly useful when implementing custom permission logic:
+
+```python
+from ninja_extra import api_controller, route
+from ninja_extra.permissions import BasePermission
+
+class HasAPIKey(BasePermission):
+    def has_permission(self, request, controller):
+        return request.headers.get('X-API-Key') == 'valid-key'
+
+@api_controller("/api", permissions=[HasAPIKey])
+class SecureController(ControllerBase):
+    
+    @route.get("/secure")
+    def secure_endpoint(self):
+        # Access current permissions
+        applied_permissions = self.context.permission_classes
+        
+        return {
+            "message": "Access granted",
+            "permissions": [p.__class__.__name__ for p in applied_permissions]
+        }
+```
+
+## **Common Patterns**
+
+### Accessing Request User
+Using the `request` property, you can access the authenticated user from the request object.
+```python
+@route.get("/profile")
+def get_profile(self):
+    user = self.context.request.user
+    return {"username": user.username}
+```
+
+### Adding Response Headers
+With the `response` property, you can add custom headers to the response.
+
+```python
+@route.get("/download")
+def download_file(self):
+    self.context.response.headers["Content-Disposition"] = "attachment; filename=doc.pdf"
+    return {"file_url": "path/to/file"}
+```
+
+### Using Route Arguments
+The `kwargs` property contains the keyword arguments passed to the route function.
+
+```python
+@route.get("/items/{item_id}")
+def get_item(self, item_id: int):
+    # Access route parameters
+    print(self.context.kwargs)  # {'item_id': 123}
+    return {"item_id": item_id}
+```
+
+The `RouteContext` provides a clean way to access request data and modify responses within your controller methods. By understanding and properly utilizing `RouteContext`, you can write more maintainable and feature-rich APIs.
