@@ -120,12 +120,28 @@ class RouteFunction(object):
         return result
 
     def _get_controller_instance(self) -> "ControllerBase":
+        from ninja_extra.controllers.base import ModelControllerBase
+
         injector = get_injector()
         _api_controller = self.get_api_controller()
+        additional_kwargs = {}
 
-        controller_instance: "ControllerBase" = injector.create_object(
-            _api_controller.controller_class
+        if issubclass(_api_controller.controller_class, ModelControllerBase):
+            controller_klass = cast(
+                ModelControllerBase, _api_controller.controller_class
+            )
+            # make sure model_config is not None
+            if controller_klass.model_config is not None:
+                service = injector.create_object(
+                    controller_klass.service_type,
+                    additional_kwargs={"model": controller_klass.model_config.model},
+                )
+                additional_kwargs.update({"service": service})
+
+        controller_instance = injector.create_object(
+            _api_controller.controller_class, additional_kwargs=additional_kwargs
         )
+
         return controller_instance
 
     def get_route_execution_context(
