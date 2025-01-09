@@ -37,7 +37,11 @@ nav:
   - Index: api_controller/index.md
   - Controller Routes: api_controller/api_controller_route.md
   - Controller Permissions: api_controller/api_controller_permission.md
-  - Model Controller: api_controller/model_controller.md
+  - Model Controller:
+    - Getting Started: api_controller/model_controller/01_getting_started.md
+    - Model Configuration: api_controller/model_controller/02_model_configuration.md
+    - Model Service: api_controller/model_controller/03_model_service.md
+    - Parameters: api_controller/model_controller/04_parameters.md
 - Usage:
   - Quick Tutorial: tutorial/index.md
   - Authentication: tutorial/authentication.md

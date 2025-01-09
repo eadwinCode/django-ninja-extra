@@ -45,7 +45,11 @@ def test_api_auto_discover_controller():
     ) as mock_register_controllers:
         ninja_extra_api.auto_discover_controllers()
     assert mock_register_controllers.call_count == 2
-    assert "<class 'abc.EventController'>" in ControllerRegistry.get_controllers()
+
+    assert (
+        "<class 'ninja_extra.controllers.base.EventController'>"
+        in ControllerRegistry.get_controllers()
+    )
 
     @api_controller
     class SomeAPI2Controller:

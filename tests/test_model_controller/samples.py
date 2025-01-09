@@ -7,7 +7,6 @@ from ninja_extra import (
     ModelEndpointFactory,
     ModelPagination,
     ModelSchemaConfig,
-    ModelService,
     api_controller,
 )
 from ninja_extra.schemas import NinjaPaginationResponseSchema
@@ -74,14 +73,16 @@ class EventModelControllerRetrieveAndList(ModelControllerBase):
 
 
 @api_controller("/event-custom")
-class EventController(ModelService):
-    def __init__(self):
-        ModelService.__init__(self, model=Event)
+class EventController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        allowed_routes=[],
+    )
 
     create_event = ModelEndpointFactory.create(
         schema_in=CreateEventSchema,
         schema_out=EventSchema,
-        custom_handler=lambda self, schema, **kw: self.create(schema, **kw),
+        custom_handler=lambda self, schema, **kw: self.service.create(schema, **kw),
     )
 
     update_event = ModelEndpointFactory.update(
@@ -90,7 +91,7 @@ class EventController(ModelService):
         schema_in=CreateEventSchema,
         schema_out=EventSchema,
         object_getter=lambda self, pk, **kw: Event.objects.filter(id=pk).first(),
-        custom_handler=lambda self, **kw: self.update(**kw),
+        custom_handler=lambda self, **kw: self.service.update(**kw),
     )
 
     patch_event = ModelEndpointFactory.patch(
@@ -99,7 +100,7 @@ class EventController(ModelService):
         schema_in=CreateEventSchema,
         schema_out=EventSchema,
         object_getter=lambda self, pk, **kw: Event.objects.filter(id=pk).first(),
-        custom_handler=lambda self, **kw: self.patch(**kw),
+        custom_handler=lambda self, **kw: self.service.patch(**kw),
     )
 
     retrieve_event = ModelEndpointFactory.find_one(
@@ -121,5 +122,5 @@ class EventController(ModelService):
         path="/{int:event_id}",
         lookup_param="event_id",
         object_getter=lambda self, pk, **kw: Event.objects.filter(id=pk).first(),
-        custom_handler=lambda self, **kw: self.delete(**kw),
+        custom_handler=lambda self, **kw: self.service.delete(**kw),
     )

@@ -104,7 +104,7 @@ class ModelConfig(PydanticModel):
     list_route_info: t.Dict = {}  # extra @get('/') information
     delete_route_info: t.Dict = {}  # extra @delete() information
 
-    @field_validator("allowed_routes")
+    @field_validator("allowed_routes", mode="before")
     def validate_allow_routes(cls, value: t.List[t.Any]) -> t.Any:
         defaults = ["create", "find_one", "update", "patch", "delete", "list"]
         for item in value:

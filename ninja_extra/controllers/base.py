@@ -1,6 +1,7 @@
 import inspect
 import re
 import uuid
+import warnings
 from abc import ABC
 from typing import (
     TYPE_CHECKING,
@@ -279,7 +280,11 @@ class ModelControllerBase(ControllerBase):
     ```
     """
 
-    service: ModelService
+    service_type: Type[ModelService] = ModelService
+
+    def __init__(self, service: ModelService):
+        self.service = service
+
     model_config: Optional[ModelConfig] = None
 
 
@@ -419,13 +424,23 @@ class APIController:
 
         if issubclass(cls, ModelControllerBase):
             if cls.model_config:
+                assert (
+                    cls.service_type is not None
+                ), "service_type is required for ModelControllerBase"
                 # if model_config is not provided, treat controller class as normal
                 builder = ModelControllerBuilder(cls, self)
                 builder.register_model_routes()
                 # We create a global service for handle CRUD Operations at class level
                 # giving room for it to be changed at instance level through Dependency injection
-                if not hasattr(cls, "service"):
-                    cls.service = ModelService(cls.model_config.model)
+                if hasattr(cls, "service"):
+                    warnings.warn(
+                        "ModelControllerBase.service is deprecated. "
+                        "Use ModelControllerBase.service_type instead.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
+                # if not hasattr(cls, "service"):
+                #     cls.service = ModelService(cls.model_config.model)
 
         compute_api_route_function(cls, self)
 

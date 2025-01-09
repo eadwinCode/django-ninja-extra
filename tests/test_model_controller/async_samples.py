@@ -7,7 +7,6 @@ from ninja_extra import (
     ModelControllerBase,
     ModelPagination,
     ModelSchemaConfig,
-    ModelService,
     api_controller,
 )
 from ninja_extra.schemas import NinjaPaginationResponseSchema
@@ -67,14 +66,18 @@ class AsyncEventModelControllerRetrieveAndList(ModelControllerBase):
 
 
 @api_controller("/event-custom")
-class AsyncEventController(ModelService):
-    def __init__(self):
-        ModelService.__init__(self, model=Event)
+class AsyncEventController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        allowed_routes=[],
+    )
 
     create_event = ModelAsyncEndpointFactory.create(
         schema_in=CreateEventSchema,
         schema_out=EventSchema,
-        custom_handler=lambda self, schema, **kw: self.create_async(schema, **kw),
+        custom_handler=lambda self, schema, **kw: self.service.create_async(
+            schema, **kw
+        ),
     )
 
     update_event = ModelAsyncEndpointFactory.update(
@@ -82,8 +85,8 @@ class AsyncEventController(ModelService):
         lookup_param="event_id",
         schema_in=CreateEventSchema,
         schema_out=EventSchema,
-        object_getter=lambda self, pk, **kw: self.get_one_async(pk),
-        custom_handler=lambda self, **kw: self.update_async(**kw),
+        object_getter=lambda self, pk, **kw: self.service.get_one_async(pk),
+        custom_handler=lambda self, **kw: self.service.update_async(**kw),
     )
 
     patch_event = ModelAsyncEndpointFactory.patch(
@@ -91,15 +94,15 @@ class AsyncEventController(ModelService):
         lookup_param="event_id",
         schema_in=CreateEventSchema,
         schema_out=EventSchema,
-        object_getter=lambda self, pk, **kw: self.get_one_async(pk),
-        custom_handler=lambda self, **kw: self.patch_async(**kw),
+        object_getter=lambda self, pk, **kw: self.service.get_one_async(pk),
+        custom_handler=lambda self, **kw: self.service.patch_async(**kw),
     )
 
     retrieve_event = ModelAsyncEndpointFactory.find_one(
         path="/{int:event_id}",
         lookup_param="event_id",
         schema_out=EventSchema,
-        object_getter=lambda self, pk, **kw: self.get_one_async(pk),
+        object_getter=lambda self, pk, **kw: self.service.get_one_async(pk),
     )
 
     list_events = ModelAsyncEndpointFactory.list(
@@ -119,6 +122,6 @@ class AsyncEventController(ModelService):
     delete_event = ModelAsyncEndpointFactory.delete(
         path="/{int:event_id}",
         lookup_param="event_id",
-        object_getter=lambda self, pk, **kw: self.get_one_async(pk),
-        custom_handler=lambda self, **kw: self.delete_async(**kw),
+        object_getter=lambda self, pk, **kw: self.service.get_one_async(pk),
+        custom_handler=lambda self, **kw: self.service.delete_async(**kw),
     )
