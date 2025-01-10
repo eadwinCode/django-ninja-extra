@@ -165,7 +165,15 @@ class TestAPIController:
         group_instance = Group.objects.create(name="_groupowner")
 
         controller_object = SomeController()
-        context = RouteContext(request=Mock(), permission_classes=[AllowAny])
+        context = RouteContext(
+            request=Mock(),
+            permission_classes=[AllowAny],
+            response=None,
+            args=[],
+            kwargs={},
+            api=None,
+            view_signature=None,
+        )
         controller_object.context = context
         with patch.object(
             AllowAny, "has_object_permission", return_value=True

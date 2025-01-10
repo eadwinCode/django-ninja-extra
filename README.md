@@ -18,6 +18,7 @@ Django Ninja Extra is a powerful extension for [Django Ninja](https://django-nin
 - 📝 **Type Safety**: Comprehensive type hints for better development experience
 - 🎯 **Django Integration**: Seamless integration with Django's ecosystem
 - 📚 **OpenAPI Support**: Automatic API documentation with Swagger/ReDoc
+- 🔒 **API Throttling**: Rate limiting for your API
 
 ### Extra Features
 - 🏗️ **Class-Based Controllers**: 

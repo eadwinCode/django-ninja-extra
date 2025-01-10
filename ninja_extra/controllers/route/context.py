@@ -1,33 +1,104 @@
-from typing import Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
+import pydantic
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.http.request import HttpRequest
+from ninja.errors import ValidationError
 from ninja.types import DictStrAny
-from pydantic import BaseModel as PydanticModel
-from pydantic import Field
 
+from ninja_extra.details import ViewSignature
 from ninja_extra.types import PermissionType
 
+if TYPE_CHECKING:
+    from ninja_extra.main import NinjaExtraAPI
 
-class RouteContext(PydanticModel):
+
+class RouteContext:
     """
     APIController Context which will be available to the class instance when handling request
     """
 
-    class Config:
-        arbitrary_types_allowed = True
+    permission_classes: PermissionType
+    request: Union[Any, HttpRequest, None]
+    response: Union[Any, HttpResponse, None]
+    args: List[Any]
+    kwargs: DictStrAny
 
-    permission_classes: PermissionType = Field([])
-    request: Union[Any, HttpRequest, None] = None
-    response: Union[Any, HttpResponse, None] = None
-    args: List[Any] = Field([])
-    kwargs: DictStrAny = Field({})
+    def __init__(
+        self,
+        request: HttpRequest,
+        args: Optional[List[Any]] = None,
+        permission_classes: Optional[PermissionType] = None,
+        kwargs: Optional[DictStrAny] = None,
+        response: Optional[HttpResponse] = None,
+        api: Optional["NinjaExtraAPI"] = None,
+        view_signature: Optional[ViewSignature] = None,
+    ):
+        self.request = request
+        self.response = response
+        self.args: List[Any] = args or []
+        self.kwargs: DictStrAny = kwargs or {}
+        self.permission_classes: PermissionType = permission_classes or []
+        self.api = api
+        self.view_signature = view_signature
+        self._has_computed_route_parameters = False
+
+    @property
+    def has_computed_route_parameters(self) -> bool:
+        return self._has_computed_route_parameters
+
+    def compute_route_parameters(
+        self,
+    ) -> None:
+        if self.view_signature is None or self.api is None:
+            raise ImproperlyConfigured(
+                "view_signature and api are required. "
+                "Or you are taking an approach that is not supported "
+                "RouteContext to compute route parameters."
+            )
+
+        if self._has_computed_route_parameters:
+            return
+
+        values, errors = {}, []
+        for model in self.view_signature.models:
+            try:
+                data = model.resolve(self.request, self.api, self.kwargs)
+                values.update(data)
+            except pydantic.ValidationError as e:
+                items = []
+                for i in e.errors(include_url=False):
+                    i["loc"] = (
+                        model.__ninja_param_source__,
+                    ) + model.__ninja_flatten_map_reverse__.get(i["loc"], i["loc"])
+                    # removing pydantic hints
+                    del i["input"]  # type: ignore
+                    if (
+                        "ctx" in i
+                        and "error" in i["ctx"]
+                        and isinstance(i["ctx"]["error"], Exception)
+                    ):
+                        i["ctx"]["error"] = str(i["ctx"]["error"])
+                    items.append(dict(i))
+                errors.extend(items)
+
+        if errors:
+            raise ValidationError(errors)
+
+        if self.view_signature.response_arg:
+            values[self.view_signature.response_arg] = self.response
+
+        self.kwargs.update(values)
+        self._has_computed_route_parameters = True
 
 
 def get_route_execution_context(
     request: HttpRequest,
     temporal_response: Optional[HttpResponse] = None,
     permission_classes: Optional[PermissionType] = None,
+    api: Optional["NinjaExtraAPI"] = None,
+    view_signature: Optional[ViewSignature] = None,
     *args: Any,
     **kwargs: Any,
 ) -> RouteContext:
@@ -39,6 +110,8 @@ def get_route_execution_context(
         "kwargs": kwargs,
         "response": temporal_response,
         "args": args,
+        "api": api,
+        "view_signature": view_signature,
     }
     context = RouteContext(**init_kwargs)  # type:ignore[arg-type]
     return context

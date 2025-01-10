@@ -193,9 +193,12 @@ class Operation(NinjaOperation):
 
     def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:
         try:
-            temporal_response = self.api.create_temporal_response(request)
             with self._prep_run(
-                request, temporal_response=temporal_response, **kw
+                request,
+                temporal_response=self.api.create_temporal_response(request),
+                api=self.api,
+                view_signature=self.signature,
+                **kw,
             ) as ctx:
                 error = self._run_checks(request)
                 if error:
@@ -205,12 +208,15 @@ class Operation(NinjaOperation):
                 if route_function:
                     route_function.run_permission_check(ctx)
 
-                values = self._get_values(request, kw, temporal_response)
-                ctx.kwargs.update(values)
-                result = self.view_func(request, **values)
+                if not ctx.has_computed_route_parameters:
+                    ctx.compute_route_parameters()
+
+                result = self.view_func(request, **ctx.kwargs)
+                assert ctx.response is not None
                 _processed_results = self._result_to_response(
-                    request, result, temporal_response
+                    request, result, ctx.response
                 )
+
                 return _processed_results
         except Exception as e:
             if isinstance(e, TypeError) and "required positional argument" in str(
@@ -321,9 +327,12 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
         try:
-            temporal_response = self.api.create_temporal_response(request)
             async with self._prep_run(
-                request, temporal_response=temporal_response, **kw
+                request,
+                temporal_response=self.api.create_temporal_response(request),
+                api=self.api,
+                view_signature=self.signature,
+                **kw,
             ) as ctx:
                 error = await self._run_checks(request)
                 if error:
@@ -333,12 +342,15 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 if route_function:
                     await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
 
-                values = await self._get_values(request, kw, temporal_response)  # type: ignore
-                ctx.kwargs.update(values)
-                result = await self.view_func(request, **values)
+                if not ctx.has_computed_route_parameters:
+                    ctx.compute_route_parameters()
+
+                result = await self.view_func(request, **ctx.kwargs)
+                assert ctx.response is not None
                 _processed_results = await self._result_to_response(
-                    request, result, temporal_response
+                    request, result, ctx.response
                 )
+
                 return cast(HttpResponseBase, _processed_results)
         except Exception as e:
             return self.api.on_exception(request, e)
