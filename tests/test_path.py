@@ -1,7 +1,8 @@
 import pytest
-from .main import PathParamController
 
 from ninja_extra.testing import TestClient
+
+from .main import PathParamController
 
 client = TestClient(PathParamController)
 

@@ -1,7 +1,8 @@
 import pytest
-from .main import QueryParamController
 
 from ninja_extra.testing import TestClient
+
+from .main import QueryParamController
 
 response_missing = {
     "detail": [
