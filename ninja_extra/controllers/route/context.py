@@ -19,6 +19,17 @@ class RouteContext:
     APIController Context which will be available to the class instance when handling request
     """
 
+    __slots__ = [
+        "permission_classes",
+        "request",
+        "response",
+        "args",
+        "kwargs",
+        "_api",
+        "_view_signature",
+        "_has_computed_route_parameters",
+    ]
+
     permission_classes: PermissionType
     request: Union[Any, HttpRequest, None]
     response: Union[Any, HttpResponse, None]
@@ -40,8 +51,8 @@ class RouteContext:
         self.args: List[Any] = args or []
         self.kwargs: DictStrAny = kwargs or {}
         self.permission_classes: PermissionType = permission_classes or []
-        self.api = api
-        self.view_signature = view_signature
+        self._api = api
+        self._view_signature = view_signature
         self._has_computed_route_parameters = False
 
     @property
@@ -51,7 +62,7 @@ class RouteContext:
     def compute_route_parameters(
         self,
     ) -> None:
-        if self.view_signature is None or self.api is None:
+        if self._view_signature is None or self._api is None:
             raise ImproperlyConfigured(
                 "view_signature and api are required. "
                 "Or you are taking an approach that is not supported "
@@ -62,9 +73,9 @@ class RouteContext:
             return
 
         values, errors = {}, []
-        for model in self.view_signature.models:
+        for model in self._view_signature.models:
             try:
-                data = model.resolve(self.request, self.api, self.kwargs)
+                data = model.resolve(self.request, self._api, self.kwargs)
                 values.update(data)
             except pydantic.ValidationError as e:
                 items = []
@@ -86,8 +97,8 @@ class RouteContext:
         if errors:
             raise ValidationError(errors)
 
-        if self.view_signature.response_arg:
-            values[self.view_signature.response_arg] = self.response
+        if self._view_signature.response_arg:
+            values[self._view_signature.response_arg] = self.response
 
         self.kwargs.update(values)
         self._has_computed_route_parameters = True
