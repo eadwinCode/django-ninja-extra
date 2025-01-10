@@ -1,5 +1,5 @@
 import pytest
-from main import QueryParamController
+from .main import QueryParamController
 
 from ninja_extra.testing import TestClient
 
