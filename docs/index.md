@@ -4,112 +4,195 @@
 [![PyPI version](https://img.shields.io/pypi/pyversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![PyPI version](https://img.shields.io/pypi/djversions/django-ninja-extra.svg)](https://pypi.python.org/pypi/django-ninja-extra)
 [![Codecov](https://img.shields.io/codecov/c/gh/eadwinCode/django-ninja-extra)](https://codecov.io/gh/eadwinCode/django-ninja-extra)
-[![Downloads](https://pepy.tech/badge/django-ninja-extra)](https://pepy.tech/project/django-ninja-extra)
+[![Downloads](https://static.pepy.tech/badge/django-ninja-extra)](https://pepy.tech/project/django-ninja-extra)
 
 # Django Ninja Extra
 
-**Django Ninja Extra** package offers a **class-based** approach plus extra functionalities that will speed up your RESTful API development with [**Django Ninja**](https://django-ninja.rest-framework.com)
+## Overview
 
-**Key features:**
+Django Ninja Extra is a powerful extension for [Django Ninja](https://django-ninja.rest-framework.com) that enhances your Django REST API development experience. It introduces class-based views and advanced features while maintaining the high performance and simplicity of Django Ninja. Whether you're building a small API or a large-scale application, Django Ninja Extra provides the tools you need for clean, maintainable, and efficient API development.
 
-All **Django-Ninja** features :
+## Features
 
-- **Easy**: Designed to be easy to use and intuitive.
-- **FAST execution**: Very high performance thanks to **<a href="https://pydantic-docs.helpmanual.io" target="_blank">Pydantic</a>** and **<a href="/async-support/">async support</a>**.
-- **Fast to code**: Type hints and automatic docs lets you focus only on business logic.
-- **Standards-based**: Based on the open standards for APIs: **OpenAPI** (previously known as Swagger) and **JSON Schema**.
-- **Django friendly**: (obviously) has good integration with the Django core and ORM.
+### Core Features (Inherited from Django Ninja)
+- ⚡ **High Performance**: Built on Pydantic for lightning-fast validation
+- 🔄 **Async Support**: First-class support for async/await operations
+- 📝 **Type Safety**: Comprehensive type hints for better development experience
+- 🎯 **Django Integration**: Seamless integration with Django's ecosystem
+- 📚 **OpenAPI Support**: Automatic API documentation with Swagger/ReDoc
 
-Plus **Extra**:
+### Extra Features
+- 🏗️ **Class-Based Controllers**: 
+  - Organize related endpoints in controller classes
+  - Inherit common functionality
+  - Share dependencies across endpoints
 
-- **Class Based**: Design your APIs in a class based fashion.
-- **Permissions**: Protect endpoint(s) at ease with defined permissions and authorizations at route level or controller level.
-- **Dependency Injection**: Controller classes supports dependency injection with python [**Injector** ](https://injector.readthedocs.io/en/latest/) or [**django_injector**](https://github.com/blubber/django_injector). Giving you the ability to inject API dependable services to APIController class and utilizing them where needed
+- 🔒 **Advanced Permission System (Similar to Django Rest Framework)**:
+  - Controller-level permissions
+  - Route-level permission overrides
+  - Custom permission classes
 
----
+- 💉 **Dependency Injection**:
+  - Built-in support for [Injector](https://injector.readthedocs.io/en/latest/)
+  - Compatible with [django_injector](https://github.com/blubber/django_injector)
+  - Automatic dependency resolution
 
-### Requirements
+- 🔧 **Service Layer**:
+  - Injectable services for business logic
+  - Better separation of concerns
+  - Reusable components
+
+## Requirements
 - Python >= 3.6
-- django >= 2.1 
-- pydantic >= 1.6 
+- Django >= 2.1
+- Pydantic >= 1.6
 - Django-Ninja >= 0.16.1
-
-
-Full documentation, [visit](https://eadwincode.github.io/django-ninja-extra/).
 
 ## Installation
 
-```
+1. Install the package:
+```bash
 pip install django-ninja-extra
 ```
-After installation, add `ninja_extra` to your `INSTALLED_APPS`
 
-```Python 
+2. Add to INSTALLED_APPS:
+```python
 INSTALLED_APPS = [
     ...,
     'ninja_extra',
 ]
 ```
 
-## Usage
+## Quick Start Guide
 
-In your django project next to urls.py create new `api.py` file:
+### 1. Basic API Setup
 
-```Python
+Create `api.py` in your Django project:
+
+```python
 from ninja_extra import NinjaExtraAPI, api_controller, http_get
 
 api = NinjaExtraAPI()
 
-# function based definition
-@api.get("/add", tags=['Math'])
-def add(request, a: int, b: int):
-    return {"result": a + b}
+# Function-based endpoint example
+@api.get("/hello", tags=['Basic'])
+def hello(request, name: str = "World"):
+    return {"message": f"Hello, {name}!"}
 
-#class based definition
-@api_controller('/', tags=['Math'], permissions=[])
-class MathAPI:
 
-    @http_get('/subtract',)
-    def subtract(self, a: int, b: int):
-        """Subtracts a from b"""
-        return {"result": a - b}
+# Class-based controller example
+@api_controller('/math', tags=['Math'])
+class MathController:
+    @http_get('/add')
+    def add(self, a: int, b: int):
+        """Add two numbers"""
+        return {"result": a + b}
 
-    @http_get('/divide',)
-    def divide(self, a: int, b: int):
-        """Divides a by b"""
-        return {"result": a / b}
-    
-    @http_get('/multiple',)
-    def multiple(self, a: int, b: int):
-        """Multiples a with b"""
+    @http_get('/multiply')
+    def multiply(self, a: int, b: int):
+        """Multiply two numbers"""
         return {"result": a * b}
-    
-api.register_controllers(
-    MathAPI
-)
+
+# Register your controllers
+api.register_controllers(MathController)
 ```
 
-Now go to `urls.py` and add the following:
+### 2. URL Configuration
 
-```Python
-...
+In `urls.py`:
+```python
 from django.urls import path
 from .api import api
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", api.urls),  # <---------- !
+    path("api/", api.urls),  # This will mount your API at /api/
 ]
 ```
 
-### Interactive API docs
+## Advanced Features
 
-Now go to <a href="http://127.0.0.1:8000/api/docs" target="_blank">http://127.0.0.1:8000/api/docs</a>
+### Authentication and Permissions
 
-You will see the automatic interactive API documentation (provided by <a href="https://github.com/swagger-api/swagger-ui" target="_blank">Swagger UI</a>):
+```python
+from ninja_extra import api_controller, http_get
+from ninja_extra.permissions import IsAuthenticated, PermissionBase
 
-![Swagger UI](images/ui_swagger_preview_readme.gif)
+# Custom permission
+class IsAdmin(PermissionBase):
+    def has_permission(self, context):
+        return context.request.user.is_staff
 
-## Tutorials
-- [django-ninja - Permissions, Controllers & Throttling with django-ninja-extra!](https://www.youtube.com/watch?v=yQqig-c2dd4) - Learn how to use permissions, controllers and throttling with django-ninja-extra
-- [BookStore API](https://github.com/eadwinCode/bookstoreapi) - A sample project that demonstrates how to use django-ninja-extra with ninja schema and ninja-jwt
+@api_controller('/admin', tags=['Admin'], permissions=[IsAuthenticated, IsAdmin])
+class AdminController:
+    @http_get('/stats')
+    def get_stats(self):
+        return {"status": "admin only data"}
+    
+    @http_get('/public', permissions=[])  # Override to make public
+    def public_stats(self):
+        return {"status": "public data"}
+```
+
+### Dependency Injection with Services
+
+```python
+from injector import inject
+from ninja_extra import api_controller, http_get
+
+
+# Service class
+class UserService:
+    def get_user_details(self, user_id: int):
+        return {"user_id": user_id, "status": "active"}
+
+
+# Controller with dependency injection
+@api_controller('/users', tags=['Users'])
+class UserController:
+    def __init__(self, user_service: UserService):
+        self.user_service = user_service
+
+    @http_get('/{user_id}')
+    def get_user(self, user_id: int):
+        return self.user_service.get_user_details(user_id)
+```
+
+## API Documentation
+
+Access your API's interactive documentation at `/api/docs`:
+
+![Swagger UI](docs/images/ui_swagger_preview_readme.gif)
+
+## Learning Resources
+
+### Tutorials
+- 📺 [Video: Permissions & Controllers](https://www.youtube.com/watch?v=yQqig-c2dd4)
+- 💻 [Example: BookStore API](https://github.com/eadwinCode/bookstoreapi)
+- 📚 [Official Documentation](https://eadwincode.github.io/django-ninja-extra/)
+
+### Community and Support
+- 🌟 [GitHub Repository](https://github.com/eadwinCode/django-ninja-extra)
+- 🐛 [Issue Tracker](https://github.com/eadwinCode/django-ninja-extra/issues)
+- 💬 [Discussions](https://github.com/eadwinCode/django-ninja-extra/discussions)
+
+## Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. Fork the repository
+2. Create a feature branch
+3. Write your changes
+4. Submit a pull request
+
+Please ensure your code follows our coding standards and includes appropriate tests.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support the Project
+
+- ⭐ Star the repository
+- 🐛 Report issues
+- 📖 Contribute to documentation
+- 🤝 Submit pull requests

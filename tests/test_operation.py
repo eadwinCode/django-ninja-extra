@@ -2,8 +2,9 @@ import uuid
 
 import django
 import pytest
+from ninja import Body, Schema
 
-from ninja_extra import api_controller, http_delete, http_get, route, status
+from ninja_extra import api_controller, http_delete, http_get, http_post, route, status
 from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
 from ninja_extra.helper import get_route_function
 from ninja_extra.operation import AsyncOperation, Operation
@@ -118,8 +119,17 @@ class TestAsyncOperations:
 
 
 def test_controller_operation_order():
+    class InputSchema(Schema):
+        name: str
+        age: int
+
     @api_controller("/my/api/users", tags=["User"])
     class UserAPIController:
+        @http_post("/me")
+        def set_user(self, request, data: Body[InputSchema]):
+            assert self.context.kwargs["data"] == data
+            return data
+
         @http_get("/me")
         def get_current_user(self, request):
             return {"debug": "ok", "message": "Current user"}
@@ -133,6 +143,10 @@ def test_controller_operation_order():
             return {"debug": "ok", "message": "User deleted"}
 
     client = TestClient(UserAPIController)
+
+    response = client.post("/me", json={"name": "Ellar", "age": 2})
+    assert response.json() == {"name": "Ellar", "age": 2}
+
     response = client.get("/me")
     assert response.json() == {"debug": "ok", "message": "Current user"}
 
