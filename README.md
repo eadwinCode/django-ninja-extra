@@ -198,7 +198,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## DEPRECATION NOTICE
 ### 0.22.2
-The `service` attribute in `ModelController` has been changed from a class object to an **instance** object. When creating a custom `ModelService` for a `ModelController`, you must specify it using `service_type`. 
+The `service` attribute in `ModelController` has been changed from a class object to an **instance** object. When creating a custom `ModelService` for a `ModelController`, you have to specify it as `service_type`. 
 
 This is because services are now injected as dependencies during controller instantiation. Service instantiation is delegated to the injector package, so ensure that any additional dependencies required by your `ModelService` are properly registered in the dependency injection container. 
 
