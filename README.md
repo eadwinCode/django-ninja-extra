@@ -195,3 +195,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - 🐛 Report issues
 - 📖 Contribute to documentation
 - 🤝 Submit pull requests
+
+## DEPRECATION NOTICE
+### 0.22.2
+The `service` attribute in `ModelController` has been changed from a class object to an **instance** object. When creating a custom `ModelService` for a `ModelController`, you must specify it using `service_type`. 
+
+This is because services are now injected as dependencies during controller instantiation. Service instantiation is delegated to the injector package, so ensure that any additional dependencies required by your `ModelService` are properly registered in the dependency injection container. 
+
+For more details, please refer to the [documentation](https://eadwincode.github.io/django-ninja-extra/api_controller/model_controller/03_model_service/#advanced-service-patterns)
