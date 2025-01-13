@@ -8,8 +8,6 @@
 
 # Django Ninja Extra
 
-## Overview
-
 Django Ninja Extra is a powerful extension for [Django Ninja](https://django-ninja.rest-framework.com) that enhances your Django REST API development experience. It introduces class-based views and advanced features while maintaining the high performance and simplicity of Django Ninja. Whether you're building a small API or a large-scale application, Django Ninja Extra provides the tools you need for clean, maintainable, and efficient API development.
 
 ## Features
@@ -20,6 +18,7 @@ Django Ninja Extra is a powerful extension for [Django Ninja](https://django-nin
 - 📝 **Type Safety**: Comprehensive type hints for better development experience
 - 🎯 **Django Integration**: Seamless integration with Django's ecosystem
 - 📚 **OpenAPI Support**: Automatic API documentation with Swagger/ReDoc
+- 🔒 **API Throttling**: Rate limiting for your API
 
 ### Extra Features
 - 🏗️ **Class-Based Controllers**: 
@@ -43,6 +42,7 @@ Django Ninja Extra is a powerful extension for [Django Ninja](https://django-nin
   - Reusable components
 
 ## Requirements
+
 - Python >= 3.6
 - Django >= 2.1
 - Pydantic >= 1.6
@@ -161,7 +161,7 @@ class UserController:
 
 Access your API's interactive documentation at `/api/docs`:
 
-![Swagger UI](docs/images/ui_swagger_preview_readme.gif)
+![Swagger UI](/images/ui_swagger_preview_readme.gif)
 
 ## Learning Resources
 
