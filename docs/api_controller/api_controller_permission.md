@@ -1,120 +1,290 @@
-# **APIController Permissions**
+# Django Ninja Extra Permissions Guide
 
-The concept of this permission system came from Django [DRF](https://www.django-rest-framework.org/api-guide/permissions/).
+Permissions in Django Ninja Extra provide a flexible way to control access to your API endpoints. The permission system is inspired by [Django REST Framework](https://www.django-rest-framework.org/api-guide/permissions/) and allows you to define both global and endpoint-specific access controls.
 
-Permission checks are always run at the very start of the route function, before any other code is allowed to proceed. 
-Permission checks will typically use the authentication information in the `request.user` and `request.auth` properties to determine if the incoming request should be permitted.
+## **How Permissions Work**
 
-Permissions are used to grant or deny access for different classes of users to different parts of the API.
+Permissions are checked at the start of each route function execution. They use the authentication information available in `request.user` and `request.auth` to determine if the request should be allowed to proceed.
 
-The simplest style of permission would be to allow access to any authenticated user, and deny access to any unauthenticated user. 
-This corresponds to the `IsAuthenticated` class in **Django Ninja Extra**.
+## **Built-in Permission Classes**
 
-A slightly less strict style of permission would be to allow full access to authenticated users, but allow read-only access to unauthenticated users. 
-This corresponds to the `IsAuthenticatedOrReadOnly` class in **Django Ninja Extra**.
+Django Ninja Extra comes with several built-in permission classes:
 
-### **Limitations of object level permissions**
-During the handling of a request, the `has_permission` method is automatically invoked for all the permissions specified 
-in the permission list of the route function. However, `has_object_permission` is not triggered since 
-it requires an object for permission validation. As a result of that, `has_object_permission` method for permissions are
-invoked when attempting to retrieve an object using the `get_object_or_exception` 
-or `get_object_or_none` methods within the controller. Async versions of these methods are supported with `aget_object_or_exception` and `get_object_or_none`.
-
-## **Custom permissions**
-
-To implement a custom permission, override `BasePermission` and implement either, or both, of the following methods:
-
-    .has_permission(self, request: HttpRequest, controller: "APIController")
-    .has_object_permission(self, request: HttpRequest, controller: "APIController", obj: Any)
-Example
+### **1. AllowAny**
+Allows unrestricted access to any endpoint.
 
 ```python
 from ninja_extra import permissions, api_controller, http_get
 
-class ReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.method in permissions.SAFE_METHODS
-
-@api_controller(permissions=[permissions.IsAuthenticated | ReadOnly])
-class PermissionController:
-    @http_get('/must_be_authenticated', permissions=[permissions.IsAuthenticated])
-    def must_be_authenticated(self, word: str):
-        return dict(says=word)
+@api_controller(permissions=[permissions.AllowAny])
+class PublicController:
+    @http_get("/public")
+    def public_endpoint(self):
+        return {"message": "This endpoint is public"}
 ```
 
-
-## **Permissions Supported Operands**
-- & (and) eg: `permissions.IsAuthenticated & ReadOnly`
-- | (or) eg: `permissions.IsAuthenticated | ReadOnly`
-- ~ (not) eg: `~(permissions.IsAuthenticated & ReadOnly)`
-
-
-## **Using Permission Object in Controllers**
-
-The Ninja-Extra permission system provides flexibility in defining permissions either as an instance of a permission class or as a type.
-
-In the example below, the `ReadOnly` class is defined as a subclass of `permissions.BasePermission` and 
-its instance is then passed to the `permissions` parameter within the `api_controller` decorator.
+### **2. IsAuthenticated**
+Only allows access to authenticated users.
 
 ```python
-from ninja_extra import permissions, api_controller, ControllerBase
+from ninja_extra import permissions, api_controller, http_get
 
-class ReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.method in permissions.SAFE_METHODS
-
-@api_controller(permissions=[permissions.IsAuthenticated | ReadOnly()])
-class SampleController(ControllerBase):
-    pass
+@api_controller(permissions=[permissions.IsAuthenticated])
+class PrivateController:
+    @http_get("/profile")
+    def get_profile(self, request):
+        return {
+            "username": request.user.username,
+            "email": request.user.email
+        }
 ```
 
-In the provided example, the `UserWithPermission` class is utilized to assess different permissions for distinct controllers or route functions.
+### **3. IsAuthenticatedOrReadOnly**
+Allows read-only access to unauthenticated users, but requires authentication for write operations.
 
-For instance:
 ```python
-from ninja_extra import permissions, api_controller, ControllerBase, http_post, http_delete
+from ninja_extra import permissions, api_controller, http_get, http_post
 
-class UserWithPermission(permissions.BasePermission):
-    def __init__(self, permission: str) -> None:
-        self._permission = permission
+@api_controller("/posts", permissions=[permissions.IsAuthenticatedOrReadOnly])
+class BlogController:
+    @http_get("/")  # Accessible to everyone
+    def list_posts(self):
+        return {"posts": ["Post 1", "Post 2"]}
     
-    def has_permission(self, request, view):
-        return request.user.has_perm(self._permission)
-    
-
-@api_controller('/blog')
-class BlogController(ControllerBase):
-    @http_post('/', permissions=[permissions.IsAuthenticated & UserWithPermission('blog.add')])
-    def add_blog(self):
-        pass
-    
-    @http_delete('/', permissions=[permissions.IsAuthenticated & UserWithPermission('blog.delete')])
-    def delete_blog(self):
-        pass
+    @http_post("/")  # Only accessible to authenticated users
+    def create_post(self, request, title: str):
+        return {"message": f"Post '{title}' created by {request.user.username}"}
 ```
 
-In this scenario, the `UserWithPermission` class is employed to verify whether the user possesses the `blog.add` 
-permission to access the `add_blog` action and `blog.delete` permission for the `delete_blog` action within the `BlogController`. 
-The permissions are explicitly configured for each route function, allowing fine-grained control over user access based on specific permissions.
+### **4. IsAdminUser**
+Only allows access to admin users (users with `is_staff=True`).
 
-## **AllowAny**
-The `AllowAny` permission class grants unrestricted access, irrespective of whether the request is authenticated or unauthenticated. While not mandatory, using this permission class is optional, as you can achieve the same outcome by employing an empty list or tuple for the permissions setting. 
-However, specifying the `AllowAny` class can be beneficial as it explicitly communicates the intention of allowing unrestricted access.
+```python
+from ninja_extra import permissions, api_controller, http_get
 
-## **IsAuthenticated**
-The `IsAuthenticated` permission class denies permission to unauthenticated users and grants permission to authenticated users. 
+@api_controller("/admin", permissions=[permissions.IsAdminUser])
+class AdminController:
+    @http_get("/stats")
+    def get_stats(self):
+        return {"active_users": 100, "total_posts": 500}
+```
 
-This permission is appropriate if you intend to restrict API access solely to registered users.
+## **Custom Permissions**
 
-## **IsAdminUser**
-The `IsAdminUser` permission class denies permission to any user, except when `user.is_staff` is `True`, 
-in which case permission is granted. 
+You can create custom permissions by subclassing `BasePermission`:
 
-This permission is suitable if you intend to restrict API access to a 
-specific subset of trusted administrators.
+```python
+from ninja_extra import permissions, api_controller, http_get
+from django.http import HttpRequest
 
-## **IsAuthenticatedOrReadOnly**
-The `IsAuthenticatedOrReadOnly` permission class allows authenticated users to perform any request. 
-For unauthenticated users, requests will only be permitted if the method is one of the "safe" methods: GET, HEAD, or OPTIONS. 
+class HasAPIKey(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, controller):
+        api_key = request.headers.get('X-API-Key')
+        return api_key == 'your-secret-key'
 
-This permission is appropriate if you want your API to grant read permissions to anonymous users while restricting write permissions to authenticated users.
+@api_controller(permissions=[HasAPIKey])
+class APIKeyProtectedController:
+    @http_get("/protected")
+    def protected_endpoint(self):
+        return {"message": "Access granted with valid API key"}
+```
+
+### **Object-Level Permissions**
+
+For fine-grained control over individual objects:
+
+```python
+from ninja_extra import permissions, api_controller, http_get
+from django.http import HttpRequest
+from django.shortcuts import get_object_or_404
+from .models import Post
+
+class IsPostAuthor(permissions.BasePermission):
+    def has_object_permission(self, request: HttpRequest, controller, obj: Post):
+        return obj.author == request.user
+
+@api_controller("/posts")
+class PostController:
+    @http_get("/{post_id}", permissions=[permissions.IsAuthenticated & IsPostAuthor()])
+    def get_post(self, request, post_id: int):
+        # The has_object_permission method will be called automatically
+        # when using get_object_or_exception or get_object_or_none
+        post = self.get_object_or_exception(Post, id=post_id)
+        return {"title": post.title, "content": post.content}
+```
+
+## **Combining Permissions**
+
+Django Ninja Extra supports combining permissions using logical operators:
+
+- `&` (AND): Both permissions must pass
+- `|` (OR): At least one permission must pass
+- `~` (NOT): Inverts the permission
+
+```python
+from ninja_extra import permissions, api_controller, http_get
+
+class HasPremiumSubscription(permissions.BasePermission):
+    def has_permission(self, request, controller):
+        return request.user.has_perm('premium_subscription')
+
+@api_controller("/content")
+class ContentController:
+    @http_get("/basic", permissions=[permissions.IsAuthenticated | HasPremiumSubscription()])
+    def basic_content(self):
+        return {"content": "Basic content"}
+    
+    @http_get("/premium", permissions=[permissions.IsAuthenticated & HasPremiumSubscription()])
+    def premium_content(self):
+        return {"content": "Premium content"}
+    
+    @http_get("/non-premium", permissions=[permissions.IsAuthenticated & ~HasPremiumSubscription()])
+    def non_premium_content(self):
+        return {"content": "Content for non-premium users"}
+```
+
+## **Role-Based Permissions**
+
+You can dynamically check different roles or permissions for a user using a single permission class. Here's an example:
+
+```python
+from ninja_extra import permissions, api_controller, http_get, http_post, http_delete
+
+class HasRole(permissions.BasePermission):
+    def __init__(self, required_role: str):
+        self.required_role = required_role
+    
+    def has_permission(self, request, controller):
+        return request.user.has_perm(self.required_role)
+
+
+@api_controller("/articles", permissions=[permissions.IsAuthenticated])
+class ArticleController:
+    @http_get("/", permissions=[HasRole("articles.view")])
+    def list_articles(self):
+        return {"articles": ["Article 1", "Article 2"]}
+    
+    @http_post("/", permissions=[HasRole("articles.add")])
+    def create_article(self, title: str):
+        return {"message": f"Article '{title}' created"}
+    
+    @http_delete("/{id}", permissions=[HasRole("articles.delete")])
+    def delete_article(self, id: int):
+        return {"message": f"Article {id} deleted"}
+```
+In the above example, the `HasRole` permission class is used to check if the user has the `articles.view`, `articles.add` or `articles.delete` permission in different routes.
+
+## **Interacting with Route Function Parameters and RouteContext**
+
+Sometimes you need to access route function parameters within your permission class before the actual route function is executed. Django Ninja Extra provides the `RouteContext` class to handle this scenario.
+
+By default, permission checks are performed before route function parameters are resolved. However, you can explicitly trigger parameter resolution using the `RouteContext` class.
+
+### **Basic Route Context Usage**
+
+```python
+from ninja_extra import permissions, api_controller, http_get, ControllerBase
+from django.http import HttpRequest
+
+class IsOwner(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, controller: ControllerBase):
+        # Access route context and compute parameters
+        controller.context.compute_route_parameters()
+        
+        # Now you can access path and query parameters
+        user_id = controller.context.kwargs.get('user_id')
+        return request.user.id == user_id
+
+@api_controller("/users")
+class UserController:
+    @http_get("/{user_id}/profile", permissions=[IsOwner()])
+    def get_user_profile(self, user_id: int):
+        return {"message": f"Access granted to profile {user_id}"}
+```
+
+### **Advanced Route Context Examples**
+
+Here are more complex examples showing different ways to use route context:
+
+```python
+from ninja_extra import permissions, api_controller, http_get, http_post, ControllerBase
+from django.http import HttpRequest
+from typing import Optional
+
+class HasTeamAccess(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, controller: ControllerBase):
+        # Compute parameters to access both path and query parameters
+        controller.context.compute_route_parameters()
+        
+        team_id = controller.context.kwargs.get('team_id')
+        role = controller.context.kwargs.get('role', 'member')  # Default to 'member'
+        
+        return request.user.has_team_permission(team_id, role)
+
+class HasProjectAccess(permissions.BasePermission):
+    def __init__(self, required_role: str):
+        self.required_role = required_role
+
+    def has_permission(self, request: HttpRequest, controller: ControllerBase):
+        controller.context.compute_route_parameters()
+        
+        # Access multiple parameters
+        project_id = controller.context.kwargs.get('project_id')
+        team_id = controller.context.kwargs.get('team_id')
+        
+        return (
+            request.user.is_authenticated and
+            request.user.has_project_permission(project_id, team_id, self.required_role)
+        )
+
+@api_controller("/teams")
+class TeamProjectController:
+    @http_get("/{team_id}/projects/{project_id}", permissions=[HasTeamAccess() & HasProjectAccess("viewer")])
+    def get_project(self, team_id: int, project_id: int):
+        return {"message": f"Access granted to project {project_id} in team {team_id}"}
+    
+    @http_post("/{team_id}/projects", permissions=[HasTeamAccess() & HasProjectAccess("admin")])
+    def create_project(self, team_id: int, name: str, description: Optional[str] = None):
+        return {
+            "message": f"Created project '{name}' in team {team_id}",
+            "description": description
+        }
+```
+
+### **Working with Query Parameters**
+
+You can also access query parameters in your permission classes:
+
+```python
+from ninja_extra import permissions, api_controller, http_get, ControllerBase
+from django.http import HttpRequest
+
+class HasFeatureAccess(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, controller: ControllerBase):
+        controller.context.compute_route_parameters()
+        
+        # Access query parameters
+        feature_name = controller.context.kwargs.get('feature')
+        environment = controller.context.kwargs.get('env', 'production')
+        
+        return request.user.has_feature_access(feature_name, environment)
+
+@api_controller("/features")
+class FeatureController:
+    @http_get("/check", permissions=[HasFeatureAccess()])
+    def check_feature(self, feature: str, env: str = "production"):
+        return {
+            "feature": feature,
+            "environment": env,
+            "status": "enabled"
+        }
+```
+
+### **Important Notes**
+
+1. Always call `compute_route_parameters()` before accessing route parameters in permission classes
+2. Route parameters are available in `controller.context.kwargs` after computation
+3. Both path parameters and query parameters are accessible
+4. You can combine route context-based permissions with other permission types
+5. Route parameters are computed only once, even if accessed by multiple permission classes
+6. The computation results are cached for the duration of the request
