@@ -148,6 +148,7 @@ class EventModelController(ModelControllerBase):
             "summary": "List all events",
             "description": "Retrieves a paginated list of all events",
             "tags": ["events"],
+            "schema_out": CustomListSchema,
         },
         find_one_route_info={
             "summary": "Get event details",
