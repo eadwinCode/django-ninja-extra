@@ -60,7 +60,7 @@ class ModelControllerBuilder:
         kw.update(self._config.create_route_info)
         create_item = self._route_factory.create(
             schema_in=self._create_schema,  # type:ignore[arg-type]
-            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            schema_out=kw.pop('schema_out', self._retrieve_schema),  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
         )
 
@@ -82,7 +82,7 @@ class ModelControllerBuilder:
             path=_path,
             lookup_param=self._model_pk_name,
             schema_in=self._update_schema,  # type:ignore[arg-type]
-            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            schema_out=kw.pop('schema_out', self._retrieve_schema),  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
         )
 
@@ -105,7 +105,7 @@ class ModelControllerBuilder:
         patch_item = self._route_factory.patch(
             path=_path,
             lookup_param=self._model_pk_name,
-            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            schema_out=kw.pop('schema_out', self._retrieve_schema),  # type:ignore[arg-type]
             schema_in=self._patch_schema,  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
         )
@@ -154,7 +154,7 @@ class ModelControllerBuilder:
 
         list_items = self._route_factory.list(
             path="/",
-            schema_out=self._retrieve_schema,  # type:ignore[arg-type]
+            schema_out=kw.pop('schema_out', self._retrieve_schema),  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
             **paginate_kwargs,
         )
