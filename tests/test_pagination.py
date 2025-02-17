@@ -217,6 +217,21 @@ class TestPagination:
             "results": [90, 91, 92, 93, 94, 95, 96, 97, 98, 99],
         }
 
+    @pytest.mark.parametrize("page_size", [-1, 0])
+    def test_case4_invalid_page_size(self, page_size: int):
+        response = client.get(f"/items_4?page_size={page_size}")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "ctx": {"gt": 0},
+                    "loc": ["query", "page_size"],
+                    "msg": "Input should be greater than 0",
+                    "type": "greater_than",
+                }
+            ]
+        }
+
     def test_case4(self):
         response = client.get("/items_4?page=2").json()
         assert response.get("results") == ITEMS[10:20]
@@ -225,7 +240,6 @@ class TestPagination:
         assert response.get("previous") == "http://testlocation/"
 
         schema = api.get_openapi_schema()["paths"]["/api/items_4"]["get"]
-        # print(schema)
         assert schema["parameters"] == [
             {
                 "in": "query",
@@ -245,6 +259,7 @@ class TestPagination:
                     "title": "Page Size",
                     "default": 10,
                     "exclusiveMaximum": 200,
+                    "exclusiveMinimum": 0,
                     "type": "integer",
                 },
                 "required": False,
