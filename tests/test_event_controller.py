@@ -35,7 +35,7 @@ class TestEventController:
     def test_list_events_works(self):
         for i in range(3):
             object_data = self.dummy_data.copy()
-            object_data.update(title=f"{object_data['title']}_{i+1}")
+            object_data.update(title=f"{object_data['title']}_{i + 1}")
             Event.objects.create(**object_data)
 
         client = TestClient(EventController)
