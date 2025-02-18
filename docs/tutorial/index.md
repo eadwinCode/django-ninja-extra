@@ -120,4 +120,3 @@ class MyAPIController:
 api.register_controllers(MyAPIController)
 ```
 To have a complete Controller setup, the APIController must be decorated with `ControllerRouter` before it's been registered.
-
