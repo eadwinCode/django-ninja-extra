@@ -104,7 +104,7 @@ def test_event_model_open_api_schema_case_4():
             "schema": {
                 "title": "Page Size",
                 "default": 100,
-                "exclusiveMaximum": 200,
+                "exclusiveMaximum": 201,
                 "exclusiveMinimum": 0,
                 "type": "integer",
             },
@@ -149,7 +149,7 @@ def test_event_model_open_api_auto_gen_schema():
             "name": "page_size",
             "schema": {
                 "default": 100,
-                "exclusiveMaximum": 200,
+                "exclusiveMaximum": 201,
                 "exclusiveMinimum": 0,
                 "title": "Page Size",
                 "type": "integer",

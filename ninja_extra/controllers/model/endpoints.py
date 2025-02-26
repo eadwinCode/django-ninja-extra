@@ -707,9 +707,9 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             )
             instance = await _check_if_coroutine(instance)
 
-            assert instance, (
-                "`service.patch_async()` or `custom_handler` must return a value"
-            )
+            assert (
+                instance
+            ), "`service.patch_async()` or `custom_handler` must return a value"
             return instance
 
         patch_item.__name__ = cls._change_name("patch_item")
@@ -748,9 +748,9 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             )
             instance = await _check_if_coroutine(instance)
 
-            assert instance, (
-                "`service.update_async` or `custom_handler` must return a value"
-            )
+            assert (
+                instance
+            ), "`service.update_async` or `custom_handler` must return a value"
             return instance
 
         update_item.__name__ = cls._change_name("update_item")
@@ -775,9 +775,9 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             )
             instance = await _check_if_coroutine(instance)
 
-            assert instance, (
-                "`service.create_async` or  `custom_handler` must return a value"
-            )
+            assert (
+                instance
+            ), "`service.create_async` or  `custom_handler` must return a value"
             return instance
 
         create_item.__name__ = cls._change_name("create_item")

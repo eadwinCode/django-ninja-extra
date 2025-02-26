@@ -258,7 +258,7 @@ class TestPagination:
                 "schema": {
                     "title": "Page Size",
                     "default": 10,
-                    "exclusiveMaximum": 200,
+                    "exclusiveMaximum": 201,
                     "exclusiveMinimum": 0,
                     "type": "integer",
                 },
