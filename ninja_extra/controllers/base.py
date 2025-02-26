@@ -400,9 +400,9 @@ class APIController:
         else:
             cls._api_controller = self
 
-        assert isinstance(cls.throttling_classes, (list, tuple)), (
-            f"Controller[{cls.__name__}].throttling_class must be a list or tuple"
-        )
+        assert isinstance(
+            cls.throttling_classes, (list, tuple)
+        ), f"Controller[{cls.__name__}].throttling_class must be a list or tuple"
 
         throttling_objects: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = (
             NOT_SET
@@ -424,9 +424,9 @@ class APIController:
 
         if issubclass(cls, ModelControllerBase):
             if cls.model_config:
-                assert cls.service_type is not None, (
-                    "service_type is required for ModelControllerBase"
-                )
+                assert (
+                    cls.service_type is not None
+                ), "service_type is required for ModelControllerBase"
                 # if model_config is not provided, treat controller class as normal
                 builder = ModelControllerBuilder(cls, self)
                 builder.register_model_routes()
