@@ -22,6 +22,7 @@ NinjaEXTRA_SETTINGS_DEFAULTS = {
     "THROTTLE_RATES": {"user": None, "anon": None},
     "ORDERING_CLASS": "ninja_extra.ordering.Ordering",
     "SEARCHING_CLASS": "ninja_extra.searching.Searching",
+    "ROUTE_CONTEXT_CLASS": "ninja_extra.controllers.RouteContext",
 }
 
 USER_SETTINGS = UserDefinedSettingsMapper(
@@ -55,6 +56,9 @@ class NinjaExtraSettings(BaseModel):
     SEARCHING_CLASS: Any = Field(
         "ninja_extra.searching.Searching",
     )
+    ROUTE_CONTEXT_CLASS: Any = Field(
+        "ninja_extra.controllers.RouteContext",
+    )
 
     @validator("INJECTOR_MODULES", pre=True)
     def pre_injector_module_validate(cls, value: Any) -> Any:
@@ -70,6 +74,12 @@ class NinjaExtraSettings(BaseModel):
 
     @validator("PAGINATION_CLASS", pre=True)
     def pre_pagination_class_validate(cls, value: Any) -> Any:
+        if isinstance(value, list):
+            raise ValueError("Invalid data type")
+        return value
+
+    @validator("ROUTE_CONTEXT_CLASS", pre=True)
+    def pre_route_context_class_validate(cls, value: Any) -> Any:
         if isinstance(value, list):
             raise ValueError("Invalid data type")
         return value

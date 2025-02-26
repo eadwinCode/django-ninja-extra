@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union, cast
 
 import pydantic
 from django.core.exceptions import ImproperlyConfigured
@@ -7,6 +7,7 @@ from django.http.request import HttpRequest
 from ninja.errors import ValidationError
 from ninja.types import DictStrAny
 
+from ninja_extra.conf import settings
 from ninja_extra.details import ViewSignature
 from ninja_extra.types import PermissionType
 
@@ -124,5 +125,6 @@ def get_route_execution_context(
         "api": api,
         "view_signature": view_signature,
     }
-    context = RouteContext(**init_kwargs)  # type:ignore[arg-type]
-    return context
+    context_class = settings.ROUTE_CONTEXT_CLASS
+    context = context_class(**init_kwargs)
+    return cast(RouteContext, context)
