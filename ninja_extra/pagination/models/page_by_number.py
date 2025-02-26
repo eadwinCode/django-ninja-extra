@@ -26,7 +26,7 @@ logger = logging.getLogger()
 class PageNumberPaginationExtra(PaginationBase):
     class Input(Schema):
         page: int = Field(1, gt=0)
-        page_size: int = Field(100, lt=200)
+        page_size: int = Field(100, gt=0, lt=201)
 
     page_query_param = "page"
     page_size_query_param = "page_size"
@@ -48,7 +48,7 @@ class PageNumberPaginationExtra(PaginationBase):
     def create_input(self) -> Type[Input]:
         class DynamicInput(PageNumberPaginationExtra.Input):
             page: int = Field(1, gt=0)
-            page_size: int = Field(self.page_size, lt=self.max_page_size)
+            page_size: int = Field(self.page_size, gt=0, lt=self.max_page_size + 1)
 
         return DynamicInput
 
