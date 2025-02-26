@@ -20,7 +20,8 @@ NINJA_EXTRA = {
     },
     'NUM_PROXIES': None,
     'ORDERING_CLASS':"ninja_extra.ordering.Ordering",
-    'SEARCHING_CLASS':"ninja_extra.searching.Search",
+    'SEARCHING_CLASS':"ninja_extra.searching.Searching",
+    'ROUTE_CONTEXT_CLASS':"ninja_extra.controllers.RouteContext",
 }
 ```
 
@@ -69,3 +70,10 @@ default: `ninja_extra.ordering.Ordering`
 It defines the default searching class used by the `searching` decorator
 function if a searching class is not defined.
 default: `ninja_extra.searching.Searching`
+
+# `ROUTE_CONTEXT_CLASS`
+
+It defines the default `RouteContext` class that will be instantiated during request processing.
+default: `ninja_extra.controllers.RouteContext`
+
+See [Route Context](route_context.md) for more details.
