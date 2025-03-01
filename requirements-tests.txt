@@ -1,5 +1,5 @@
 django-stubs
-mypy == 1.14.1
+mypy == 1.15.0
 ninja-schema>=0.14.1
 pytest
 pytest-asyncio==0.24.0
