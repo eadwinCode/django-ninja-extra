@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List, Optional, Union, cast
+import typing as t
 
 import pydantic
 from django.core.exceptions import ImproperlyConfigured
@@ -7,15 +7,16 @@ from django.http.request import HttpRequest
 from ninja.errors import ValidationError
 from ninja.types import DictStrAny
 
-from ninja_extra.conf import settings
-from ninja_extra.details import ViewSignature
+from ninja_extra.interfaces.route_context import RouteContextBase
+from ninja_extra.lazy import settings_lazy
 from ninja_extra.types import PermissionType
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
+    from ninja_extra.details import ViewSignature
     from ninja_extra.main import NinjaExtraAPI
 
 
-class RouteContext:
+class RouteContext(RouteContextBase):
     """
     APIController Context which will be available to the class instance when handling request
     """
@@ -32,24 +33,24 @@ class RouteContext:
     ]
 
     permission_classes: PermissionType
-    request: Union[Any, HttpRequest, None]
-    response: Union[Any, HttpResponse, None]
-    args: List[Any]
+    request: t.Union[t.Any, HttpRequest, None]
+    response: t.Union[t.Any, HttpResponse, None]
+    args: t.List[t.Any]
     kwargs: DictStrAny
 
     def __init__(
         self,
         request: HttpRequest,
-        args: Optional[List[Any]] = None,
-        permission_classes: Optional[PermissionType] = None,
-        kwargs: Optional[DictStrAny] = None,
-        response: Optional[HttpResponse] = None,
-        api: Optional["NinjaExtraAPI"] = None,
-        view_signature: Optional[ViewSignature] = None,
+        args: t.Optional[t.List[t.Any]] = None,
+        permission_classes: t.Optional[PermissionType] = None,
+        kwargs: t.Optional[DictStrAny] = None,
+        response: t.Optional[HttpResponse] = None,
+        api: t.Optional["NinjaExtraAPI"] = None,
+        view_signature: t.Optional["ViewSignature"] = None,
     ):
         self.request = request
         self.response = response
-        self.args: List[Any] = args or []
+        self.args: t.List[t.Any] = args or []
         self.kwargs: DictStrAny = kwargs or {}
         self.permission_classes: PermissionType = permission_classes or []
         self._api = api
@@ -107,12 +108,12 @@ class RouteContext:
 
 def get_route_execution_context(
     request: HttpRequest,
-    temporal_response: Optional[HttpResponse] = None,
-    permission_classes: Optional[PermissionType] = None,
-    api: Optional["NinjaExtraAPI"] = None,
-    view_signature: Optional[ViewSignature] = None,
-    *args: Any,
-    **kwargs: Any,
+    temporal_response: t.Optional[HttpResponse] = None,
+    permission_classes: t.Optional[PermissionType] = None,
+    api: t.Optional["NinjaExtraAPI"] = None,
+    view_signature: t.Optional["ViewSignature"] = None,
+    *args: t.Any,
+    **kwargs: t.Any,
 ) -> RouteContext:
     init_kwargs = {
         "permission_classes": permission_classes
@@ -125,6 +126,9 @@ def get_route_execution_context(
         "api": api,
         "view_signature": view_signature,
     }
-    context_class = settings.ROUTE_CONTEXT_CLASS
-    context = context_class(**init_kwargs)
-    return cast(RouteContext, context)
+    context_class = t.cast(
+        t.Type[RouteContext],
+        settings_lazy().ROUTE_CONTEXT_CLASS,
+    )
+    context = context_class(**init_kwargs)  # type:ignore[arg-type]
+    return context

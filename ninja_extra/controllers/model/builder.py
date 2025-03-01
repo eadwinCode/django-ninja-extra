@@ -8,7 +8,7 @@ from .endpoints import ModelAsyncEndpointFactory, ModelEndpointFactory
 from .schemas import ModelConfig
 
 if t.TYPE_CHECKING:
-    from ..base import APIController, ModelControllerBase
+    from ninja_extra.controllers.base import APIController, ModelControllerBase
 
 
 class ModelControllerBuilder:
@@ -31,7 +31,7 @@ class ModelControllerBuilder:
             self._config.model._meta.pk.attname,
         )
         internal_type = self._config.model._meta.pk.get_internal_type()
-        self._pk_type: t.Type = TYPES.get(internal_type, str)  # type:ignore[assignment]
+        self._pk_type: t.Type = TYPES.get(internal_type, str)
         self._model_pk_name = model_pk
         self._model_name = self._config.model.__name__.replace("Model", "")
 

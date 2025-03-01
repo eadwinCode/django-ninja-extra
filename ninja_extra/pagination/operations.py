@@ -11,7 +11,7 @@ from asgiref.sync import sync_to_async
 from django.http import HttpRequest
 from ninja.pagination import PaginationBase
 
-from ninja_extra.controllers.route.context import RouteContext
+from ninja_extra.context import RouteContext
 from ninja_extra.shortcuts import add_ninja_contribute_args
 
 if TYPE_CHECKING:  # pragma: no cover

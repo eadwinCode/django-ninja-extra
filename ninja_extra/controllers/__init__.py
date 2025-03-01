@@ -1,3 +1,6 @@
+import typing as t
+import warnings
+
 from .base import ControllerBase, ModelControllerBase, api_controller
 from .model import (
     ModelAsyncEndpointFactory,
@@ -21,7 +24,6 @@ from .route import (
     http_put,
     route,
 )
-from .route.context import RouteContext
 from .route.route_functions import AsyncRouteFunction, RouteFunction
 
 __all__ = [
@@ -41,7 +43,6 @@ __all__ = [
     "Ok",
     "Id",
     "Detail",
-    "RouteContext",
     "ModelControllerBase",
     "ModelConfig",
     "ModelService",
@@ -52,3 +53,16 @@ __all__ = [
     "ModelEndpointFactory",
     "ModelAsyncEndpointFactory",
 ]
+
+
+def __getattr__(name: str) -> t.Any:
+    if name == "RouteContext":
+        warnings.warn(
+            "RouteContext is deprecated and will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from ninja_extra.context import RouteContext
+
+        return RouteContext
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

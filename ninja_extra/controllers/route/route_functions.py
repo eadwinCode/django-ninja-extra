@@ -6,9 +6,11 @@ from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, cast
 
 from django.http import HttpRequest, HttpResponse
 
+from ninja_extra.context import (
+    RouteContext,
+    get_route_execution_context,
+)
 from ninja_extra.dependency_resolver import get_injector, service_resolver
-
-from .context import RouteContext, get_route_execution_context
 
 if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra.controllers.base import APIController, ControllerBase

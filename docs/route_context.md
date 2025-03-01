@@ -77,9 +77,9 @@ You can access the `RouteContext` during schema validation using the `service_re
 
 ```python
 from ninja_extra import service_resolver
-from ninja_extra.controllers import RouteContext
+from ninja_extra.context import RouteContext
 from ninja import ModelSchema
-from pydantic import validator
+from pydantic import field_validator
 from django.urls import reverse
 
 class UserProfileSchema(ModelSchema):
@@ -89,7 +89,7 @@ class UserProfileSchema(ModelSchema):
         model = UserProfile
         model_fields = ["avatar_url", "bio"]
 
-    @validator("avatar_url")
+    @field_validator("avatar_url", mode="before")
     def make_absolute_url(cls, value):
         # Get RouteContext to access request
         context: RouteContext = service_resolver(RouteContext)

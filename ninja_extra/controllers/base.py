@@ -34,6 +34,7 @@ from ninja.throttling import BaseThrottle
 from ninja.utils import normalize_path
 
 from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION, THROTTLED_OBJECTS
+from ninja_extra.context import RouteContext
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import Operation, PathView
@@ -55,8 +56,7 @@ from .route.route_functions import AsyncRouteFunction, RouteFunction
 
 if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra import NinjaExtraAPI
-
-    from .route.context import RouteContext
+    from ninja_extra.controllers.model import ModelConfig
 
 T = TypeVar("T")
 
@@ -285,7 +285,7 @@ class ModelControllerBase(ControllerBase):
     def __init__(self, service: ModelService):
         self.service = service
 
-    model_config: Optional[ModelConfig] = None
+    model_config: Optional["ModelConfig"] = None
 
 
 ControllerClassType = TypeVar(

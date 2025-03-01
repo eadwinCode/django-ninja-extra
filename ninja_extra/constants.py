@@ -2,7 +2,7 @@ import contextvars
 import typing as t
 
 if t.TYPE_CHECKING:  # pragma: no cover
-    from ninja_extra.controllers.route.context import RouteContext
+    from ninja_extra.context import RouteContext
 
 
 POST = "POST"
