@@ -60,7 +60,7 @@ class NinjaExtraSettings(BaseModel):
         from_attributes = True
         validate_assignment = True
 
-    PAGINATION_CLASS: PaginationClassHandlerType = Field(
+    PAGINATION_CLASS: PaginationClassHandlerType = Field(  # type: ignore[assignment]
         "ninja.pagination.LimitOffsetPagination",
     )
     PAGINATION_PER_PAGE: int = Field(100)
@@ -69,19 +69,19 @@ class NinjaExtraSettings(BaseModel):
     )
     THROTTLE_CLASSES: List[ThrottlingClassHandlerType] = Field(
         [
-            "ninja_extra.throttling.AnonRateThrottle",
-            "ninja_extra.throttling.UserRateThrottle",
+            "ninja_extra.throttling.AnonRateThrottle",  # type: ignore[list-item]
+            "ninja_extra.throttling.UserRateThrottle",  # type: ignore[list-item]
         ]
     )
     NUM_PROXIES: Optional[int] = None
     INJECTOR_MODULES: List[InjectorModuleHandlerType] = []
-    ORDERING_CLASS: OrderingClassHandlerType = Field(
+    ORDERING_CLASS: OrderingClassHandlerType = Field(  # type: ignore[assignment]
         "ninja_extra.ordering.Ordering",
     )
-    SEARCHING_CLASS: SearchingClassHandlerType = Field(
+    SEARCHING_CLASS: SearchingClassHandlerType = Field(  # type: ignore[assignment]
         "ninja_extra.searching.Searching",
     )
-    ROUTE_CONTEXT_CLASS: RouteContextHandlerType = Field(
+    ROUTE_CONTEXT_CLASS: RouteContextHandlerType = Field(  # type: ignore[assignment]
         "ninja_extra.context.RouteContext",
     )
 

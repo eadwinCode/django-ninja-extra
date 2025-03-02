@@ -150,7 +150,7 @@ class Route(object):
             if not isinstance(type_hint, t._SpecialForm):
                 response = type_hint
         route_obj = cls(
-            view_func,  # type:ignore[arg-type]
+            view_func,
             path=path,
             methods=methods,
             auth=auth,

@@ -458,7 +458,7 @@ class APIController:
             fail_silently(inject, constructor_or_class=cls)
 
         ControllerRegistry().add_controller(cls)
-        return cls
+        return cls  # type: ignore[return-value]
 
     @property
     def path_operations(self) -> Dict[str, PathView]:

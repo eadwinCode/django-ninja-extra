@@ -111,7 +111,7 @@ class PathResolverOperation:
                 )
             self.as_view = functools.wraps(func)(self.get_view_function())
         else:
-            self.as_view = func  # type:ignore[assignment]
+            self.as_view = func
 
     def get_path_fields(self) -> t.Generator:
         for path_name, path_type in self.compiled_path.param_convertors.items():
