@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Type, TypeVar, Union, cast
+import typing as t
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
@@ -9,12 +9,12 @@ from ninja_extra.shortcuts import fail_silently
 
 __all__ = ["service_resolver", "get_injector", "register_injector_modules"]
 
-T = TypeVar("T")
+T = t.TypeVar("T")
 
 
 def get_injector() -> Injector:
-    app = cast(
-        Optional[NinjaExtraConfig],
+    app = t.cast(
+        t.Optional[NinjaExtraConfig],
         fail_silently(apps.get_app_config, NinjaExtraConfig.name),
     )
     if not app:
@@ -25,20 +25,20 @@ def get_injector() -> Injector:
     return injector
 
 
-def service_resolver(*interfaces: Type[T]) -> Union[Tuple[T, ...], T]:
+def service_resolver(*interfaces: t.Type[T]) -> t.Union[t.Tuple[T, ...], T]:
     assert interfaces, "Service can not be empty"
 
     injector = get_injector()
 
     if len(interfaces) > 1:
-        services_resolved: List[T] = []
+        services_resolved: t.List[T] = []
         for service in interfaces:
             services_resolved.append(injector.get(service))
         return tuple(services_resolved)
     return injector.get(interfaces[0])
 
 
-def register_injector_modules(*modules: Union[Module, Type[Module]]) -> None:
+def register_injector_modules(*modules: t.Union[Module, t.Type[Module]]) -> None:
     for module in modules:
         injector = get_injector()
         if isinstance(module, type) and issubclass(module, Module):

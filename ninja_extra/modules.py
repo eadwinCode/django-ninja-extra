@@ -4,7 +4,7 @@ from typing import Optional
 from django.conf import Settings, settings
 from injector import Binder, Module, singleton
 
-from ninja_extra.controllers.route.context import RouteContext
+from ninja_extra.context import RouteContext
 
 from .constants import ROUTE_CONTEXT_VAR
 

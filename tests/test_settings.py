@@ -1,11 +1,14 @@
 import pytest
-from pydantic.v1 import ValidationError
 
 from ninja_extra.conf import settings
-from ninja_extra.controllers import RouteContext
+from ninja_extra.context import RouteContext
+from ninja_extra.interfaces.ordering import OrderingBase
+from ninja_extra.interfaces.searching import SearchingBase
+from ninja_extra.pagination import PageNumberPaginationExtra
+from ninja_extra.throttling import BaseThrottle
 
 
-class CustomPaginationImport:
+class CustomPaginationImport(PageNumberPaginationExtra):
     pass
 
 
@@ -13,16 +16,18 @@ class CustomModuleImport:
     pass
 
 
-class CustomThrottlingClassImport:
+class CustomThrottlingClassImport(BaseThrottle):
     pass
 
 
-class CustomOrderingClassImport:
-    pass
+class CustomOrderingClassImport(OrderingBase):
+    def ordering_queryset(self, items, ordering_input):
+        pass
 
 
-class CustomSearchClassImport:
-    pass
+class CustomSearchClassImport(SearchingBase):
+    def searching_queryset(self, items, search_input):
+        pass
 
 
 class CustomRouteContextClassImport(RouteContext):
@@ -60,40 +65,46 @@ def test_setting_imports_string_works(monkeypatch):
             "tests.test_settings.CustomRouteContextClassImport",
         )
 
-        assert isinstance(settings.INJECTOR_MODULES[0](), CustomModuleImport)
-        assert isinstance(settings.PAGINATION_CLASS(), CustomPaginationImport)
-        assert isinstance(settings.THROTTLE_CLASSES[0](), CustomThrottlingClassImport)
-        assert isinstance(settings.ORDERING_CLASS(), CustomOrderingClassImport)
-        assert isinstance(settings.SEARCHING_CLASS(), CustomSearchClassImport)
+        assert settings.INJECTOR_MODULES[0] is CustomModuleImport
+        assert settings.PAGINATION_CLASS is CustomPaginationImport
+        assert settings.THROTTLE_CLASSES[0] is CustomThrottlingClassImport
+        assert settings.ORDERING_CLASS is CustomOrderingClassImport
+        assert settings.SEARCHING_CLASS is CustomSearchClassImport
         assert isinstance(
             settings.ROUTE_CONTEXT_CLASS(request=None), CustomRouteContextClassImport
         )
-    with pytest.raises(ValidationError):
+
+    with pytest.raises(ValueError):
         monkeypatch.setattr(
             settings, "PAGINATION_CLASS", ["tests.test_settings.CustomModuleImport"]
         )
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
+        monkeypatch.setattr(
+            settings, "PAGINATION_CLASS", "tests.test_settings.CustomModuleImport"
+        )
+
+    with pytest.raises(ValueError):
         monkeypatch.setattr(
             settings, "THROTTLE_CLASSES", "tests.test_settings.CustomModuleImport"
         )
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         monkeypatch.setattr(
             settings, "INJECTOR_MODULES", "tests.test_settings.CustomModuleImport"
         )
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         monkeypatch.setattr(
-            settings, "ORDERING_CLASS", ["tests.test_settings.CustomModuleImport"]
+            settings, "ORDERING_CLASS", "tests.test_settings.CustomModuleImport"
         )
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         monkeypatch.setattr(
-            settings, "SEARCHING_CLASS", ["tests.test_settings.CustomModuleImport"]
+            settings, "SEARCHING_CLASS", "tests.test_settings.CustomModuleImport"
         )
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         monkeypatch.setattr(
-            settings, "ROUTE_CONTEXT_CLASS", ["tests.test_settings.CustomModuleImport"]
+            settings, "ROUTE_CONTEXT_CLASS", "tests.test_settings.CustomModuleImport"
         )

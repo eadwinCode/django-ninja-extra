@@ -37,6 +37,7 @@ from ninja.utils import check_csrf
 
 from ninja_extra.compatible import asynccontextmanager
 from ninja_extra.constants import ROUTE_CONTEXT_VAR
+from ninja_extra.context import RouteContext, get_route_execution_context
 from ninja_extra.exceptions import APIException, Throttled
 from ninja_extra.helper import get_function_name
 from ninja_extra.logger import request_logger
@@ -44,7 +45,6 @@ from ninja_extra.logger import request_logger
 # from ninja_extra.signals import route_context_finished, route_context_started
 from ninja_extra.types import PermissionType
 
-from .controllers.route.context import RouteContext, get_route_execution_context
 from .details import ViewSignature
 
 if TYPE_CHECKING:  # pragma: no cover

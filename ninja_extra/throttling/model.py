@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 from ninja.throttling import SimpleRateThrottle as BaseSimpleRateThrottle
 
-from ninja_extra.conf import settings
+from ninja_extra.lazy import settings_lazy
 
 
 class SimpleRateThrottle(BaseSimpleRateThrottle):
@@ -34,7 +34,7 @@ class SimpleRateThrottle(BaseSimpleRateThrottle):
 
     def get_throttling_rates(self) -> Dict[str, Optional[str]]:
         rates = self.THROTTLE_RATES.copy()
-        rates.update(settings.THROTTLE_RATES)
+        rates.update(settings_lazy().THROTTLE_RATES)
 
         return rates
 
@@ -86,7 +86,7 @@ class SimpleRateThrottle(BaseSimpleRateThrottle):
 
         xff = request.META.get("HTTP_X_FORWARDED_FOR")
         remote_addr = request.META.get("REMOTE_ADDR")
-        num_proxies = settings.NUM_PROXIES
+        num_proxies = settings_lazy().NUM_PROXIES
 
         if num_proxies is not None:
             if num_proxies == 0 or xff is None:

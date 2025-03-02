@@ -7,16 +7,16 @@ from ninja import Schema
 from ninja.constants import NOT_SET
 
 from ninja_extra import api_controller, permissions, route
+from ninja_extra.context import (
+    RouteContext,
+    get_route_execution_context,
+)
 from ninja_extra.controllers import (
     AsyncRouteFunction,
     RouteFunction,
     RouteInvalidParameterException,
 )
 from ninja_extra.controllers.base import get_all_controller_route_function
-from ninja_extra.controllers.route.context import (
-    RouteContext,
-    get_route_execution_context,
-)
 from ninja_extra.exceptions import PermissionDenied
 from ninja_extra.helper import get_route_function
 from ninja_extra.permissions import AllowAny

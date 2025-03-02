@@ -35,7 +35,7 @@ Let's create a more practical example with a Todo application that demonstrates 
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
-from injector import inject, singleton
+from injector import inject
 
 # Data Models
 class TodoItem(BaseModel):

@@ -1,17 +1,12 @@
 import inspect
 import logging
-from typing import (
-    Any,
-    Callable,
-    Type,
-    overload,
-)
+from typing import Any, Callable, Type, cast, overload
 
 from ninja.constants import NOT_SET
 from ninja.pagination import PaginationBase
 from ninja.signature import is_async
 
-from ninja_extra.conf import settings
+from ninja_extra.lazy import settings_lazy
 from ninja_extra.pagination.operations import (
     AsyncPaginatorOperation,
     PaginatorOperation,
@@ -38,7 +33,9 @@ def paginate(
     isfunction = inspect.isfunction(func_or_pgn_class)
     is_not_set = func_or_pgn_class == NOT_SET
 
-    pagination_class: Type[PaginationBase] = settings.PAGINATION_CLASS
+    pagination_class: Type[PaginationBase] = cast(
+        Type[PaginationBase], settings_lazy().PAGINATION_CLASS
+    )
 
     if isfunction:
         return _inject_pagination(func_or_pgn_class, pagination_class)
