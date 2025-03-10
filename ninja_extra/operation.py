@@ -326,6 +326,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             ROUTE_CONTEXT_VAR.set(None)
 
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
+        from asgiref.sync import sync_to_async
         try:
             async with self._prep_run(
                 request,
@@ -343,7 +344,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                     await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
 
                 if not ctx.has_computed_route_parameters:
-                    ctx.compute_route_parameters()
+                    await sync_to_async(ctx.compute_route_parameters)()
 
                 result = await self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 assert ctx.response is not None
