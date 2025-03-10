@@ -3,6 +3,7 @@ from typing import List
 
 from django.shortcuts import get_object_or_404
 from ninja import Schema
+from ninja.params import Path
 
 from ninja_extra import api_controller, http_get, http_post
 
@@ -46,8 +47,8 @@ class EventController:
         return list(Event.objects.all())
 
     @http_get("/{int:id}")
-    def get_event(self, id: int) -> EventSchema:
-        event = get_object_or_404(Event, id=id)
+    def get_event(self, event_id: int = Path(..., alias="id")) -> EventSchema:
+        event = get_object_or_404(Event, id=event_id)
         return event
 
     @http_get("/{int:id}/from-orm")

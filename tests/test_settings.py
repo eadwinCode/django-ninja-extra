@@ -65,9 +65,9 @@ def test_setting_imports_string_works(monkeypatch):
             "tests.test_settings.CustomRouteContextClassImport",
         )
 
-        assert settings.INJECTOR_MODULES[0] is CustomModuleImport
+        assert isinstance(settings.INJECTOR_MODULES[0](), CustomModuleImport)
         assert settings.PAGINATION_CLASS is CustomPaginationImport
-        assert settings.THROTTLE_CLASSES[0] is CustomThrottlingClassImport
+        assert isinstance(settings.THROTTLE_CLASSES[0](), CustomThrottlingClassImport)
         assert settings.ORDERING_CLASS is CustomOrderingClassImport
         assert settings.SEARCHING_CLASS is CustomSearchClassImport
         assert isinstance(
@@ -108,3 +108,4 @@ def test_setting_imports_string_works(monkeypatch):
         monkeypatch.setattr(
             settings, "ROUTE_CONTEXT_CLASS", "tests.test_settings.CustomModuleImport"
         )
+        assert settings.ROUTE_CONTEXT_CLASS
