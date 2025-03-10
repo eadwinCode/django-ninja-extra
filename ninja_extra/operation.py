@@ -211,7 +211,7 @@ class Operation(NinjaOperation):
                 if not ctx.has_computed_route_parameters:
                     ctx.compute_route_parameters()
 
-                result = self.view_func(request, **ctx.kwargs)
+                result = self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 assert ctx.response is not None
                 _processed_results = self._result_to_response(
                     request, result, ctx.response
@@ -345,7 +345,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 if not ctx.has_computed_route_parameters:
                     ctx.compute_route_parameters()
 
-                result = await self.view_func(request, **ctx.kwargs)
+                result = await self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 assert ctx.response is not None
                 _processed_results = await self._result_to_response(
                     request, result, ctx.response

@@ -52,6 +52,7 @@ class RouteContext(RouteContextBase):
         self.response = response
         self.args: t.List[t.Any] = args or []
         self.kwargs: DictStrAny = kwargs or {}
+        self.kwargs.update({"view_func_kwargs": {}})
         self.permission_classes: PermissionType = permission_classes or []
         self._api = api
         self._view_signature = view_signature
@@ -102,7 +103,7 @@ class RouteContext(RouteContextBase):
         if self._view_signature.response_arg:
             values[self._view_signature.response_arg] = self.response
 
-        self.kwargs.update(values)
+        self.kwargs.update({"view_func_kwargs": values}, **values)
         self._has_computed_route_parameters = True
 
 

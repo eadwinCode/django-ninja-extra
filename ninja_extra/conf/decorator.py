@@ -5,6 +5,7 @@ from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core.core_schema import CoreSchema, with_info_plain_validator_function
 
+from ninja_extra.lazy import LazyStrImport
 from ninja_extra.shortcuts import fail_silently
 
 
@@ -29,6 +30,8 @@ class AllowTypeOfSource:
                 try_import_value = fail_silently(import_string, value)
                 if try_import_value is not None:
                     value = try_import_value
+                else:
+                    value = LazyStrImport(value)
 
             if (self.validator and not self.validator(source, value)) or (
                 not self.validator and not isinstance(value, source)

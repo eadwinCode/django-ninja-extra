@@ -18,6 +18,7 @@ _GenericModelValidator = AllowTypeOfSource(
     error_message=lambda source,
     value: f"Expected type of {source.__name__}, received: {type(value)}",
 )
+
 PaginationClassHandlerType = Annotated[PaginationBase, _GenericModelValidator]
 ThrottlingClassHandlerType = Annotated[BaseThrottle, _GenericModelValidator]
 SearchingClassHandlerType = Annotated[SearchingBase, _GenericModelValidator]
@@ -34,7 +35,7 @@ InjectorModuleHandlerType = Annotated[Any, _InjectorModuleValidator]
 
 class UserDefinedSettingsMapper:
     def __init__(self, data: dict) -> None:
-        self.__dict__ = data
+        self.__dict__ = dict(NinjaEXTRA_SETTINGS_DEFAULTS, **data)
 
 
 NinjaEXTRA_SETTINGS_DEFAULTS = {

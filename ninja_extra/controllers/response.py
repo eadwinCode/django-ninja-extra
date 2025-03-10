@@ -8,7 +8,7 @@ from typing import (
 
 from ninja import Schema
 
-from .. import status
+from ninja_extra import status
 
 
 class ControllerResponse:
