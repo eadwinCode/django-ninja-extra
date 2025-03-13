@@ -11,10 +11,14 @@ from ninja_extra.conf.decorator import AllowTypeOfSource
 from ninja_extra.interfaces.ordering import OrderingBase
 from ninja_extra.interfaces.route_context import RouteContextBase
 from ninja_extra.interfaces.searching import SearchingBase
+from ninja_extra.lazy import LazyStrImport
 
 _GenericModelValidator = AllowTypeOfSource(
-    validator=lambda source, value: isinstance(value, type)
-    and issubclass(value, source),
+    validator=lambda source, value: (
+        isinstance(value, LazyStrImport)
+        or isinstance(value, type)
+        and issubclass(value, source)
+    ),
     error_message=lambda source,
     value: f"Expected type of {source.__name__}, received: {type(value)}",
 )
