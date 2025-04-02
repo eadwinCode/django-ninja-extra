@@ -272,19 +272,28 @@ class TestPagination:
         assert response["items"] == ITEMS[10:20]
 
         schema = api.get_openapi_schema()["paths"]["/api/items_5"]["get"]
-        # print(schema)
+        # print(schema["parameters"])
         assert schema["parameters"] == [
             {
                 "in": "query",
                 "name": "page",
+                "required": False,
                 "schema": {
-                    "title": "Page",
                     "default": 1,
                     "minimum": 1,
+                    "title": "Page",
                     "type": "integer",
                 },
+            },
+            {
+                "in": "query",
+                "name": "page_size",
                 "required": False,
-            }
+                "schema": {
+                    "anyOf": [{"minimum": 1, "type": "integer"}, {"type": "null"}],
+                    "title": "Page Size",
+                },
+            },
         ]
 
     def test_case6(self):
