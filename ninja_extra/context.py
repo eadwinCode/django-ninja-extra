@@ -106,6 +106,11 @@ class RouteContext(RouteContextBase):
         self.kwargs.update({"view_func_kwargs": values}, **values)
         self._has_computed_route_parameters = True
 
+    async def async_compute_route_parameters(self) -> None:
+        from asgiref.sync import sync_to_async
+
+        await sync_to_async(self.compute_route_parameters)()
+
 
 def get_route_execution_context(
     request: HttpRequest,
