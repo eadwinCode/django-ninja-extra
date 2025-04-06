@@ -199,7 +199,15 @@ class AsyncRouteFunction(RouteFunction):
     async def async_run_check_permissions(self, route_context: RouteContext) -> None:
         from asgiref.sync import sync_to_async
 
-        await sync_to_async(self.run_permission_check)(route_context)
+        _route_context = route_context or cast(
+            RouteContext, service_resolver(RouteContext)
+        )
+        with self._prep_controller_route_execution(_route_context) as ctx:
+            # Use async_check_permissions if available, otherwise use sync_to_async
+            if hasattr(ctx.controller_instance, "async_check_permissions"):
+                await ctx.controller_instance.async_check_permissions()
+            else:
+                await sync_to_async(ctx.controller_instance.check_permissions)()
 
     def get_view_function(self) -> Callable:
         async def as_view(
