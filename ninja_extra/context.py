@@ -9,7 +9,7 @@ from ninja.types import DictStrAny
 
 from ninja_extra.interfaces.route_context import RouteContextBase
 from ninja_extra.lazy import settings_lazy
-from ninja_extra.types import PermissionType
+from ninja_extra.permissions import BasePermissionType
 
 if t.TYPE_CHECKING:
     from ninja_extra.details import ViewSignature
@@ -32,7 +32,7 @@ class RouteContext(RouteContextBase):
         "_has_computed_route_parameters",
     ]
 
-    permission_classes: PermissionType
+    permission_classes: t.List[BasePermissionType]
     request: t.Union[t.Any, HttpRequest, None]
     response: t.Union[t.Any, HttpResponse, None]
     args: t.List[t.Any]
@@ -42,7 +42,7 @@ class RouteContext(RouteContextBase):
         self,
         request: HttpRequest,
         args: t.Optional[t.List[t.Any]] = None,
-        permission_classes: t.Optional[PermissionType] = None,
+        permission_classes: t.Optional[t.List[BasePermissionType]] = None,
         kwargs: t.Optional[DictStrAny] = None,
         response: t.Optional[HttpResponse] = None,
         api: t.Optional["NinjaExtraAPI"] = None,
@@ -53,7 +53,7 @@ class RouteContext(RouteContextBase):
         self.args: t.List[t.Any] = args or []
         self.kwargs: DictStrAny = kwargs or {}
         self.kwargs.update({"view_func_kwargs": {}})
-        self.permission_classes: PermissionType = permission_classes or []
+        self.permission_classes: t.List[BasePermissionType] = permission_classes or []
         self._api = api
         self._view_signature = view_signature
         self._has_computed_route_parameters = False
@@ -115,7 +115,7 @@ class RouteContext(RouteContextBase):
 def get_route_execution_context(
     request: HttpRequest,
     temporal_response: t.Optional[HttpResponse] = None,
-    permission_classes: t.Optional[PermissionType] = None,
+    permission_classes: t.Optional[t.List[BasePermissionType]] = None,
     api: t.Optional["NinjaExtraAPI"] = None,
     view_signature: t.Optional["ViewSignature"] = None,
     *args: t.Any,

@@ -1,3 +1,7 @@
+"""
+Base class for APIController.
+"""
+
 import inspect
 import re
 import uuid
@@ -38,8 +42,12 @@ from ninja_extra.context import RouteContext
 from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import Operation, PathView
-from ninja_extra.permissions import AllowAny, BasePermission
-from ninja_extra.permissions.base import OperationHolderMixin
+from ninja_extra.permissions import (
+    AllowAny,
+    AsyncBasePermission,
+    BasePermission,
+    BasePermissionType,
+)
 from ninja_extra.shortcuts import (
     aget_object_or_exception,
     aget_object_or_none,
@@ -47,7 +55,6 @@ from ninja_extra.shortcuts import (
     get_object_or_exception,
     get_object_or_none,
 )
-from ninja_extra.types import PermissionType
 
 from .model import ModelConfig, ModelControllerBuilder, ModelService
 from .registry import ControllerRegistry
@@ -159,7 +166,13 @@ class ControllerBase:
         return cls._api_controller
 
     @classmethod
-    def permission_denied(cls, permission: BasePermission) -> None:
+    def permission_denied(
+        cls, permission: Union[BasePermission, AsyncBasePermission]
+    ) -> None:
+        """
+        This method is called when the permission check fails. By default, it raises an exception.
+        Adapt this method to your needs if you need to raise different exceptions depending on the permission type.
+        """
         message = getattr(permission, "message", None)
         raise PermissionDenied(message)
 
@@ -186,7 +199,7 @@ class ControllerBase:
         obj = await aget_object_or_exception(
             klass=klass, error_message=error_message, exception=exception, **kwargs
         )
-        self.check_object_permissions(obj)
+        await self.async_check_object_permissions(obj)
         return obj
 
     def get_object_or_none(
@@ -202,20 +215,24 @@ class ControllerBase:
     ) -> Optional[Any]:
         obj = await aget_object_or_none(klass=klass, **kwargs)
         if obj:
-            self.check_object_permissions(obj)
+            await self.async_check_object_permissions(obj)
         return obj
 
-    def _get_permissions(self) -> Iterable[BasePermission]:
+    def _get_permissions(self) -> Iterable[Union[BasePermission, AsyncBasePermission]]:
         """
         Instantiates and returns the list of permissions that this view requires.
         """
         assert self.context
 
         for permission_class in self.context.permission_classes:
-            if isinstance(permission_class, (type, OperationHolderMixin)):
-                permission_instance = permission_class()  # type: ignore[operator]
-            else:
-                permission_instance = permission_class
+            permission_instance: Union[BasePermission, AsyncBasePermission] = (
+                permission_class  # type: ignore[assignment]
+            )
+            if isinstance(permission_class, type) and issubclass(
+                permission_class, BasePermission
+            ):
+                permission_instance = permission_class.resolve()
+
             yield permission_instance
 
     def check_permissions(self) -> None:
@@ -246,6 +263,57 @@ class ControllerBase:
                     request=self.context.request, controller=self, obj=obj
                 )
             ):
+                self.permission_denied(permission)
+
+    async def async_check_permissions(self) -> None:
+        """
+        Asynchronous version of check_permissions.
+        Check if the request should be permitted, using async permission checks when available.
+        Raises an appropriate exception if the request is not permitted.
+        """
+
+        if not self.context or not self.context.request:  # pragma: no cover
+            return
+
+        for permission in self._get_permissions():
+            has_permission = False
+            if isinstance(permission, AsyncBasePermission):
+                has_permission = await permission.has_permission_async(
+                    request=self.context.request, controller=self
+                )
+            else:
+                from asgiref.sync import sync_to_async
+
+                has_permission = await sync_to_async(permission.has_permission)(
+                    request=self.context.request, controller=self
+                )
+
+            if not has_permission:
+                self.permission_denied(permission)
+
+    async def async_check_object_permissions(self, obj: Union[Any, Model]) -> None:
+        """
+        Asynchronous version of check_object_permissions.
+        Check if the request should be permitted for a given object, using async permission checks when available.
+        Raises an appropriate exception if the request is not permitted.
+        """
+        if not self.context or not self.context.request:  # pragma: no cover
+            return
+
+        for permission in self._get_permissions():
+            has_permission = False
+            if isinstance(permission, AsyncBasePermission):
+                has_permission = await permission.has_object_permission_async(
+                    request=self.context.request, controller=self, obj=obj
+                )
+            else:
+                from asgiref.sync import sync_to_async
+
+                has_permission = await sync_to_async(permission.has_object_permission)(
+                    request=self.context.request, controller=self, obj=obj
+                )
+
+            if not has_permission:
                 self.permission_denied(permission)
 
     def create_response(
@@ -339,7 +407,7 @@ class APIController:
         auth: Any = NOT_SET,
         throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
         tags: Union[Optional[List[str]], str] = None,
-        permissions: Optional["PermissionType"] = None,
+        permissions: Optional[List[BasePermissionType]] = None,
         auto_import: bool = True,
     ) -> None:
         self.prefix = prefix
@@ -357,7 +425,7 @@ class APIController:
         self._controller_class_route_functions: Dict[str, RouteFunction] = {}
         # `permission_classes` a collection of BasePermission Types
         # a fallback if route functions has no permissions definition
-        self.permission_classes: PermissionType = permissions or [AllowAny]
+        self.permission_classes: List[BasePermissionType] = permissions or [AllowAny]
         # `registered` prevents controllers from being register twice or exist in two different `api` instances
         self.registered: bool = False
 
@@ -588,7 +656,7 @@ def api_controller(
     auth: Any = NOT_SET,
     throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
-    permissions: Optional["PermissionType"] = None,
+    permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
 ) -> Callable[
     [Union[Type, Type[T]]], Union[Type[ControllerBase], Type[T]]
@@ -601,7 +669,7 @@ def api_controller(
     auth: Any = NOT_SET,
     throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
-    permissions: Optional["PermissionType"] = None,
+    permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
 ) -> Union[ControllerClassType, Callable[[ControllerClassType], ControllerClassType]]:
     if isinstance(prefix_or_class, type):
