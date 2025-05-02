@@ -9,7 +9,7 @@ from typing import (
 
 from asgiref.sync import sync_to_async
 from django.http import HttpRequest
-from ninja.pagination import PaginationBase
+from ninja.pagination import AsyncPaginationBase, PaginationBase
 
 from ninja_extra.context import RouteContext
 from ninja_extra.shortcuts import add_ninja_contribute_args
@@ -22,7 +22,7 @@ class PaginatorOperation:
     def __init__(
         self,
         *,
-        paginator: PaginationBase,
+        paginator: Union[PaginationBase, AsyncPaginationBase],
         view_func: Callable,
         paginator_kwargs_name: str = "pagination",
     ) -> None:
@@ -110,8 +110,11 @@ class AsyncPaginatorOperation(PaginatorOperation):
                 request = request_or_controller
             params = dict(kw)
             params["request"] = request
-            paginate_queryset = cast(
-                Callable, sync_to_async(self.paginator.paginate_queryset)
+
+            paginate_queryset = (
+                self.paginator.apaginate_queryset
+                if isinstance(self.paginator, AsyncPaginationBase)
+                else cast(Callable, sync_to_async(self.paginator.paginate_queryset))
             )
             return await paginate_queryset(items, **params)
 
