@@ -17,6 +17,8 @@ from ninja_extra.shortcuts import add_ninja_contribute_args
 if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra.controllers import ControllerBase
 
+import django
+
 
 class PaginatorOperation:
     def __init__(
@@ -110,10 +112,11 @@ class AsyncPaginatorOperation(PaginatorOperation):
                 request = request_or_controller
             params = dict(kw)
             params["request"] = request
-
+            is_supported_async_orm = django.VERSION >= (4, 2)
             paginate_queryset = (
                 self.paginator.apaginate_queryset
                 if isinstance(self.paginator, AsyncPaginationBase)
+                and is_supported_async_orm
                 else cast(Callable, sync_to_async(self.paginator.paginate_queryset))
             )
             return await paginate_queryset(items, **params)
