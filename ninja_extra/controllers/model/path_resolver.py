@@ -74,15 +74,17 @@ class PathResolverOperation:
     for the decorated endpoint
     """
 
-    def __init__(self, path: str, func: t.Callable) -> None:
+    def __init__(
+        self,
+        path: str,
+        func: t.Callable,
+        prefix_route_params: t.Optional[t.Dict[str, str]] = None,
+    ) -> None:
         self.compiled_path = compile_path(path)
         self._view_func = func
+        self.prefix_route_params = prefix_route_params
 
-        if self.compiled_path.has_any_parameter():
-            _ninja_contribute_args: t.List[t.Tuple] = getattr(
-                func, "_ninja_contribute_args", []
-            )
-
+        if self.compiled_path.has_any_parameter() or self.prefix_route_params:
             unique_key = str(uuid.uuid4().hex)[:5]
 
             self.path_construct_name = f"PathModel{unique_key}"
@@ -116,6 +118,17 @@ class PathResolverOperation:
     def get_path_fields(self) -> t.Generator:
         for path_name, path_type in self.compiled_path.param_convertors.items():
             yield path_name, (path_type, ...)
+
+        if self.prefix_route_params:
+            for path_name, path_type in self.prefix_route_params.items():
+                try:
+                    path_type = STRING_TYPES[path_type.lower()]
+                except KeyError:
+                    # If the type is not recognized.
+                    raise ValueError(
+                        f"Unknown path type '{path_type}' for parameter '{path_name}'"
+                    ) from None
+                yield path_name, (path_type, ...)
 
     def get_query_fields(self) -> t.Generator:
         for path_name, path_type in self.compiled_path.query_parameters.items():

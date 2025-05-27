@@ -1,5 +1,5 @@
 from ninja.pagination import LimitOffsetPagination
-from ninja_schema import ModelSchema
+from ninja_schema import ModelSchema, Schema
 
 from ninja_extra import (
     ModelConfig,
@@ -24,6 +24,11 @@ class EventSchema(ModelSchema):
     class Config:
         model = Event
         exclude = ["category"]
+
+
+class EventSchemaWithPrefix(Schema):
+    event: EventSchema
+    organization: int
 
 
 @api_controller("/event")

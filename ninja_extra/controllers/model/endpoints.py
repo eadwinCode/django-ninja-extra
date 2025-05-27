@@ -32,13 +32,29 @@ async def _check_if_coroutine(func_result: t.Union[t.Any, t.Coroutine]) -> t.Any
     return func_result
 
 
-def _path_resolver(path: str, func: t.Callable) -> t.Callable:
+def _path_resolver(
+    path: str,
+    func: t.Callable,
+    prefix_route_params: t.Optional[t.Dict[str, str]] = None,
+) -> t.Callable:
     resolver_class = PathResolverOperation
     if is_async(func):
         resolver_class = AsyncPathResolverOperation
 
-    instance = resolver_class(path, func)
+    instance = resolver_class(path, func, prefix_route_params)
     return instance.as_view
+
+
+class ModelEndpointFunction:
+    __slots__ = ("_view_fun_setup",)
+
+    def __init__(
+        self, view_fun_setup: t.Callable[[t.Type["ModelControllerBase"]], t.Callable]
+    ) -> None:
+        self._view_fun_setup = view_fun_setup
+
+    def setup(self, controller: t.Type["ModelControllerBase"]) -> t.Callable:
+        return self._view_fun_setup(controller)
 
 
 class ModelEndpointFactory:
@@ -95,33 +111,41 @@ class ModelEndpointFactory:
             t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
         openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> t.Callable:
+    ) -> ModelEndpointFunction:
         """
         Creates a POST Action
         """
-        working_path = cls._clean_path(path)
 
-        create_item = _path_resolver(
-            path,
-            cls._create_handler(schema_in=schema_in, custom_handler=custom_handler),
-        )
-        return route.post(
-            working_path,
-            response={status_code: schema_out},
-            url_name=url_name,
-            description=description,
-            operation_id=operation_id,
-            summary=summary,
-            tags=tags,
-            deprecated=deprecated,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            include_in_schema=include_in_schema,
-            permissions=permissions,
-            openapi_extra=openapi_extra,
-        )(create_item)
+        def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
+            api_controller = model_controller_type.get_api_controller()
+
+            working_path = cls._clean_path(path)
+
+            create_item = _path_resolver(
+                path,
+                cls._create_handler(schema_in=schema_in, custom_handler=custom_handler),
+                prefix_route_params=api_controller.prefix_route_params,
+            )
+
+            return route.post(
+                working_path,
+                response={status_code: schema_out},
+                url_name=url_name,
+                description=description,
+                operation_id=operation_id,
+                summary=summary,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+                openapi_extra=openapi_extra,
+            )(create_item)
+
+        return ModelEndpointFunction(view_fun_setup=_setup)
 
     @classmethod
     def update(
@@ -148,37 +172,43 @@ class ModelEndpointFactory:
             t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
         openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> t.Callable:
+    ) -> ModelEndpointFunction:
         """
         Creates a PUT Action
         """
-        working_path = cls._clean_path(path)
-        update_item = _path_resolver(
-            path,
-            cls._update_handler(
-                schema_in=schema_in,
-                object_getter=object_getter,
-                lookup_param=lookup_param,
-                custom_handler=custom_handler,
-            ),
-        )
-        return route.put(
-            working_path,
-            response={status_code: schema_out},
-            url_name=url_name,
-            description=description,
-            operation_id=operation_id,
-            summary=summary,
-            tags=tags,
-            deprecated=deprecated,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            include_in_schema=include_in_schema,
-            permissions=permissions,
-            openapi_extra=openapi_extra,
-        )(update_item)
+
+        def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
+            api_controller = model_controller_type.get_api_controller()
+            working_path = cls._clean_path(path)
+            update_item = _path_resolver(
+                path,
+                cls._update_handler(
+                    schema_in=schema_in,
+                    object_getter=object_getter,
+                    lookup_param=lookup_param,
+                    custom_handler=custom_handler,
+                ),
+                prefix_route_params=api_controller.prefix_route_params,
+            )
+            return route.put(
+                working_path,
+                response={status_code: schema_out},
+                url_name=url_name,
+                description=description,
+                operation_id=operation_id,
+                summary=summary,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+                openapi_extra=openapi_extra,
+            )(update_item)
+
+        return ModelEndpointFunction(_setup)
 
     @classmethod
     def patch(
@@ -205,37 +235,43 @@ class ModelEndpointFactory:
             t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
         openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> t.Callable:
+    ) -> ModelEndpointFunction:
         """
         Creates a PATCH Action
         """
-        working_path = cls._clean_path(path)
-        patch_item = _path_resolver(
-            path,
-            cls._patch_handler(
-                object_getter=object_getter,
-                custom_handler=custom_handler,
-                lookup_param=lookup_param,
-                schema_in=schema_in,
-            ),
-        )
-        return route.patch(
-            working_path,
-            response={status_code: schema_out},
-            url_name=url_name,
-            description=description,
-            operation_id=operation_id,
-            summary=summary,
-            tags=tags,
-            deprecated=deprecated,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            include_in_schema=include_in_schema,
-            permissions=permissions,
-            openapi_extra=openapi_extra,
-        )(patch_item)
+
+        def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
+            api_controller = model_controller_type.get_api_controller()
+            working_path = cls._clean_path(path)
+            patch_item = _path_resolver(
+                path,
+                cls._patch_handler(
+                    object_getter=object_getter,
+                    custom_handler=custom_handler,
+                    lookup_param=lookup_param,
+                    schema_in=schema_in,
+                ),
+                prefix_route_params=api_controller.prefix_route_params,
+            )
+            return route.patch(
+                working_path,
+                response={status_code: schema_out},
+                url_name=url_name,
+                description=description,
+                operation_id=operation_id,
+                summary=summary,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+                openapi_extra=openapi_extra,
+            )(patch_item)
+
+        return ModelEndpointFunction(_setup)
 
     @classmethod
     def find_one(
@@ -260,34 +296,40 @@ class ModelEndpointFactory:
             t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
         openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> t.Callable:
+    ) -> ModelEndpointFunction:
         """
         Creates a GET Action
         """
-        working_path = cls._clean_path(path)
-        get_item = _path_resolver(
-            path,
-            cls._find_one_handler(
-                object_getter=object_getter, lookup_param=lookup_param
-            ),
-        )
-        return route.get(
-            working_path,
-            response={status_code: schema_out},
-            url_name=url_name,
-            description=description,
-            operation_id=operation_id,
-            summary=summary,
-            tags=tags,
-            deprecated=deprecated,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            include_in_schema=include_in_schema,
-            permissions=permissions,
-            openapi_extra=openapi_extra,
-        )(get_item)
+
+        def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
+            api_controller = model_controller_type.get_api_controller()
+            working_path = cls._clean_path(path)
+            get_item = _path_resolver(
+                path,
+                cls._find_one_handler(
+                    object_getter=object_getter, lookup_param=lookup_param
+                ),
+                prefix_route_params=api_controller.prefix_route_params,
+            )
+            return route.get(
+                working_path,
+                response={status_code: schema_out},
+                url_name=url_name,
+                description=description,
+                operation_id=operation_id,
+                summary=summary,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+                openapi_extra=openapi_extra,
+            )(get_item)
+
+        return ModelEndpointFunction(_setup)
 
     @classmethod
     def list(
@@ -318,22 +360,45 @@ class ModelEndpointFactory:
             t.Type[PaginationBase]
         ] = PageNumberPaginationExtra,
         **paginate_kwargs: t.Any,
-    ) -> t.Callable:
+    ) -> ModelEndpointFunction:
         """
         Creates a GET Action to list Items
         """
-        working_path = cls._clean_path(path)
-        list_items = _path_resolver(
-            path, cls._list_handler(queryset_getter=queryset_getter)
-        )
 
-        if pagination_response_schema and pagination_class:
-            list_items = paginate(pagination_class, **paginate_kwargs)(list_items)
+        def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
+            api_controller = model_controller_type.get_api_controller()
+            working_path = cls._clean_path(path)
+            list_items = _path_resolver(
+                path,
+                cls._list_handler(queryset_getter=queryset_getter),
+                prefix_route_params=api_controller.prefix_route_params,
+            )
+
+            if pagination_response_schema and pagination_class:
+                list_items = paginate(pagination_class, **paginate_kwargs)(list_items)
+                return route.get(
+                    working_path,
+                    response={
+                        status_code: pagination_response_schema[schema_out]  # type:ignore[index]
+                    },
+                    url_name=url_name,
+                    description=description,
+                    operation_id=operation_id,
+                    summary=summary,
+                    tags=tags,
+                    deprecated=deprecated,
+                    by_alias=by_alias,
+                    exclude_unset=exclude_unset,
+                    exclude_defaults=exclude_defaults,
+                    exclude_none=exclude_none,
+                    include_in_schema=include_in_schema,
+                    permissions=permissions,
+                    openapi_extra=openapi_extra,
+                )(list_items)
+
             return route.get(
                 working_path,
-                response={
-                    status_code: pagination_response_schema[schema_out]  # type:ignore[index]
-                },
+                response={status_code: t.List[schema_out]},  # type:ignore[valid-type]
                 url_name=url_name,
                 description=description,
                 operation_id=operation_id,
@@ -349,23 +414,7 @@ class ModelEndpointFactory:
                 openapi_extra=openapi_extra,
             )(list_items)
 
-        return route.get(
-            working_path,
-            response={status_code: t.List[schema_out]},  # type:ignore[valid-type]
-            url_name=url_name,
-            description=description,
-            operation_id=operation_id,
-            summary=summary,
-            tags=tags,
-            deprecated=deprecated,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            include_in_schema=include_in_schema,
-            permissions=permissions,
-            openapi_extra=openapi_extra,
-        )(list_items)
+        return ModelEndpointFunction(_setup)
 
     @classmethod
     def delete(
@@ -390,37 +439,43 @@ class ModelEndpointFactory:
             t.List[t.Union[t.Type[BasePermission], BasePermission, t.Any]]
         ] = None,
         openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
-    ) -> t.Callable:
+    ) -> ModelEndpointFunction:
         """
         Creates a DELETE Action to list Items
         """
-        working_path = cls._clean_path(path)
-        delete_item = _path_resolver(
-            path,
-            cls._delete_handler(
-                object_getter=object_getter,
-                lookup_param=lookup_param,
-                custom_handler=custom_handler,
-                status_code=status_code,
-            ),
-        )
-        return route.delete(
-            working_path,
-            url_name=url_name,
-            response={status_code: str},
-            description=description,
-            operation_id=operation_id,
-            summary=summary,
-            tags=tags,
-            deprecated=deprecated,
-            by_alias=by_alias,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            include_in_schema=include_in_schema,
-            permissions=permissions,
-            openapi_extra=openapi_extra,
-        )(delete_item)
+
+        def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
+            api_controller = model_controller_type.get_api_controller()
+            working_path = cls._clean_path(path)
+            delete_item = _path_resolver(
+                path,
+                cls._delete_handler(
+                    object_getter=object_getter,
+                    lookup_param=lookup_param,
+                    custom_handler=custom_handler,
+                    status_code=status_code,
+                ),
+                prefix_route_params=api_controller.prefix_route_params,
+            )
+            return route.delete(
+                working_path,
+                url_name=url_name,
+                response={status_code: str},
+                description=description,
+                operation_id=operation_id,
+                summary=summary,
+                tags=tags,
+                deprecated=deprecated,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+                include_in_schema=include_in_schema,
+                permissions=permissions,
+                openapi_extra=openapi_extra,
+            )(delete_item)
+
+        return ModelEndpointFunction(_setup)
 
     @classmethod
     def _list_handler(
