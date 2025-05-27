@@ -12,7 +12,34 @@ from ninja_extra import (
 from ninja_extra.schemas import NinjaPaginationResponseSchema
 
 from ..models import Event
-from .samples import CreateEventSchema, EventSchema
+from .samples import CreateEventSchema, EventSchema, EventSchemaWithPrefix
+
+
+@api_controller("/event/{int:organization_id}/")
+class AsyncEventModelControllerWithPrefix(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        async_routes=True,
+        allowed_routes=["delete"],
+    )
+
+    async def create_event_handler(
+        self, schema: CreateEventSchema, organization_id: int = None, **kwargs
+    ):
+        """
+        Custom create endpoint with organization_id as a prefix.
+        """
+        print(f"Creating event for organization {organization_id} with data: {kwargs}")
+        data = await self.service.create_async(schema, **kwargs)
+        return {"event": data, "organization": organization_id}
+
+    create_event = ModelAsyncEndpointFactory.create(
+        schema_in=CreateEventSchema,
+        schema_out=EventSchemaWithPrefix,
+        custom_handler=lambda self, schema, **kw: self.create_event_handler(
+            schema, **kw
+        ),
+    )
 
 
 @api_controller("/event")

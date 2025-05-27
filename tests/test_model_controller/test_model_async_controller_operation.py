@@ -1,6 +1,7 @@
 import pytest
 from asgiref.sync import sync_to_async
 
+from ninja_extra.controllers.base import APIController
 from ninja_extra.testing import TestAsyncClient
 
 from ..models import Event
@@ -10,6 +11,7 @@ from .async_samples import (
     AsyncEventModelControllerDifferentPagination,
     AsyncEventModelControllerRetrieveAndList,
     AsyncEventModelControllerWithDefinedSchema,
+    AsyncEventModelControllerWithPrefix,
 )
 
 
@@ -275,4 +277,34 @@ async def test_event_model_controller_manual_control_async():
     }
     # DELETE
     res = await client.delete(f"/{working_id}")
+    assert res.status_code == 204
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_api_controller_prefix_with_parameter():
+    test_item = {
+        "start_date": "2020-01-01",
+        "end_date": "2020-01-02",
+        "title": "test-prefix",
+    }
+    _api_controller: APIController = (
+        AsyncEventModelControllerWithPrefix.get_api_controller()
+    )
+    assert _api_controller._prefix_has_route_param
+
+    client = TestAsyncClient(AsyncEventModelControllerWithPrefix)
+    response = await client.post("/event/452/", json=test_item)
+    data = response.json()
+    assert response.json() == {
+        "event": {
+            "end_date": "2020-01-02",
+            "id": data["event"]["id"],
+            "start_date": "2020-01-01",
+            "title": "test-prefix",
+        },
+        "organization": 452,
+    }
+    assert [("", _api_controller)] == _api_controller.build_routers()
+    res = await client.delete(f"/event/452/{data['event']['id']}")
     assert res.status_code == 204

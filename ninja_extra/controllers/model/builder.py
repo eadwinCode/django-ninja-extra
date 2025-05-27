@@ -4,7 +4,11 @@ from ninja.orm.fields import TYPES
 
 from ninja_extra.constants import ROUTE_FUNCTION
 
-from .endpoints import ModelAsyncEndpointFactory, ModelEndpointFactory
+from .endpoints import (
+    ModelAsyncEndpointFactory,
+    ModelEndpointFactory,
+    ModelEndpointFunction,
+)
 from .schemas import ModelConfig
 
 if t.TYPE_CHECKING:
@@ -64,7 +68,7 @@ class ModelControllerBuilder:
             **kw,  # type:ignore[arg-type]
         )
 
-        self._add_to_controller(create_item)
+        self._add_to_controller(create_item.setup(self._base_cls))
 
     def _register_update_endpoint(self) -> None:
         _path = "/{%s:%s}" % (
@@ -86,7 +90,7 @@ class ModelControllerBuilder:
             **kw,  # type:ignore[arg-type]
         )
 
-        self._add_to_controller(update_item)
+        self._add_to_controller(update_item.setup(self._base_cls))
 
     def _register_patch_endpoint(self) -> None:
         _pk_type = self._pk_type
@@ -110,7 +114,7 @@ class ModelControllerBuilder:
             **kw,  # type:ignore[arg-type]
         )
 
-        self._add_to_controller(patch_item)
+        self._add_to_controller(patch_item.setup(self._base_cls))
 
     def _register_find_one_endpoint(self) -> None:
         _path = "/{%s:%s}" % (
@@ -131,7 +135,7 @@ class ModelControllerBuilder:
             **kw,  # type:ignore[arg-type]
         )
 
-        self._add_to_controller(get_item)
+        self._add_to_controller(get_item.setup(self._base_cls))
 
     def _register_list_endpoint(self) -> None:
         kw = {
@@ -159,7 +163,7 @@ class ModelControllerBuilder:
             **paginate_kwargs,
         )
 
-        self._add_to_controller(list_items)
+        self._add_to_controller(list_items.setup(self._base_cls))
 
     def _register_delete_endpoint(self) -> None:
         _path = "/{%s:%s}" % (
@@ -179,7 +183,7 @@ class ModelControllerBuilder:
             **kw,  # type:ignore[arg-type]
         )
 
-        self._add_to_controller(delete_item)
+        self._add_to_controller(delete_item.setup(self._base_cls))
 
     def register_model_routes(self) -> None:
         for action in self._config.allowed_routes:
@@ -191,3 +195,11 @@ class ModelControllerBuilder:
                     f"is not recognized as ModelController action"
                 )
             action_registration()
+
+        # check for ModelEndpointFunction in the base_cls
+        for attr_name in dir(self._base_cls):
+            attr = getattr(self._base_cls, attr_name)
+            if isinstance(attr, ModelEndpointFunction):
+                self._add_to_controller(attr.setup(self._base_cls))
+                # remove the attribute from the base_cls
+                delattr(self._base_cls, attr_name)

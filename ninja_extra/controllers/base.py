@@ -442,6 +442,19 @@ class APIController:
                 if is_async(_call_back):
                     self.has_auth_async = True
                     break
+        # `_prefix_route_params` a collection of route parameters that are used in the prefix
+        # for example:
+        # `api_controller("/{int:id}/{str:name}/{slug}")` will have `_prefix_route_params` = {"id": int, "name": str, "slug": str}
+        self._prefix_route_params = {}
+        if self._prefix_has_route_param:
+            for match in re.finditer(self._PATH_PARAMETER_COMPONENT_RE, self.prefix):
+                self._prefix_route_params[match.group("parameter")] = match.group(
+                    "converter"
+                )
+
+    @property
+    def prefix_route_params(self) -> Dict[str, str]:
+        return self._prefix_route_params
 
     @property
     def controller_class(self) -> Type["ControllerBase"]:
