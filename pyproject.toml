@@ -41,14 +41,14 @@ classifiers = [
 ]
 
 requires = [
-    "Django >= 2.2",
+    "Django >= 4.0",
     "django-ninja == 1.4.1",
     "injector >= 0.19.0",
     "asgiref",
     "contextlib2"
 ]
 description-file = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 
 
 [tool.flit.metadata.urls]
