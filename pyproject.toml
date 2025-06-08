@@ -42,7 +42,7 @@ classifiers = [
 
 requires = [
     "Django >= 4.0",
-    "django-ninja == 1.4.1",
+    "django-ninja == 1.4.3",
     "injector >= 0.19.0",
     "asgiref",
     "contextlib2"
