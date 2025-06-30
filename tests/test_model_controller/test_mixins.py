@@ -10,15 +10,13 @@ from ninja_extra.mixins import (
     PutModelMixin,
     RetrieveModelMixin,
 )
-
-
 from ninja_extra.testing import TestClient
 
 from ..models import Event
 
+
 @pytest.fixture
 def controller_client_factory():
-
     def _factory(*mixins):
         # Dynamically create a controller class with the given mixins
         @api_controller
@@ -42,7 +40,10 @@ def test_controller_without_model_class_raises_specific_error():
     """
     Test that a mixincontroller without `model_class` attribute raises specific error.
     """
-    with pytest.raises(ImproperlyConfigured, match="must define a model_class attribute"):
+    with pytest.raises(
+        ImproperlyConfigured, match="must define a model_class attribute"
+    ):
+
         @api_controller
         class FaultyController(MixinModelControllerBase):
             pass
@@ -53,7 +54,7 @@ def test_empty_controller_returns_404(controller_client_factory):
     Test an empty controller without any mixins.
     """
     client = controller_client_factory()
-    with pytest.raises(Exception, match="Cannot resolve \"/\""):
+    with pytest.raises(Exception, match='Cannot resolve "/"'):
         client.get("/")
 
 
@@ -63,14 +64,18 @@ def test_list_controller(controller_client_factory):
     Test retrieving a paginated list of objects.
     """
     client = controller_client_factory(ListModelMixin)
-    Event.objects.create(title="Event 1", end_date="2025-01-02", start_date="2025-01-01")
-    Event.objects.create(title="Event 2", end_date="2025-01-03", start_date="2025-01-04")
+    Event.objects.create(
+        title="Event 1", end_date="2025-01-02", start_date="2025-01-01"
+    )
+    Event.objects.create(
+        title="Event 2", end_date="2025-01-03", start_date="2025-01-04"
+    )
 
     response = client.get("/")
 
     assert response.status_code == 200
     # The default response is a list of objects.
-    assert response.json().get("count",0) == 2
+    assert response.json().get("count", 0) == 2
 
 
 @pytest.mark.django_db
@@ -138,7 +143,7 @@ def test_put_fails_with_partial_data(controller_client_factory, event_obj):
     Ensure that a request with missing data fails with a 422 Unprocessable Entity error.
     """
     client = controller_client_factory(PutModelMixin)
-    payload = {"title": "Partial Update"} # Missing start_date and end_date
+    payload = {"title": "Partial Update"}  # Missing start_date and end_date
 
     response = client.put(f"/{event_obj.pk}", json=payload)
     assert response.status_code == 422
