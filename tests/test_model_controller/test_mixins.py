@@ -1,7 +1,7 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-from ninja_extra import api_controller
+from ninja_extra import ModelConfig, api_controller
 from ninja_extra.mixins import (
     DeleteModelMixin,
     ListModelMixin,
@@ -74,7 +74,30 @@ def test_list_controller(controller_client_factory):
     response = client.get("/")
 
     assert response.status_code == 200
-    # The default response is a list of objects.
+    assert response.json().get("count", 0) == 2
+
+
+@pytest.mark.django_db
+def test_modelconfig_controller(controller_client_factory):
+    """
+    Test retrieving a paginated list of objects fro.
+    """
+
+    @api_controller
+    class EventController(MixinModelControllerBase, ListModelMixin):
+        model_config = ModelConfig(model=Event)
+
+    client = TestClient(EventController)
+    Event.objects.create(
+        title="Event 11", end_date="2025-01-02", start_date="2025-01-01"
+    )
+    Event.objects.create(
+        title="Event 22", end_date="2025-01-03", start_date="2025-01-04"
+    )
+
+    response = client.get("/")
+
+    assert response.status_code == 200
     assert response.json().get("count", 0) == 2
 
 

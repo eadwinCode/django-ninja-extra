@@ -54,7 +54,7 @@ class ModelMixinBase(abc.ABC):
         """
         Don't understand exactly why, but this is needed, otherwise `ninja_extra\\controllers\\model\builder.py", line 201, in register_model_routes` crashes.
         """
-        return
+        return  # pragma: no cover
 
     @classmethod
     @abstractmethod
