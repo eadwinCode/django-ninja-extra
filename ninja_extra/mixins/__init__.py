@@ -15,7 +15,8 @@ from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypeVar, cast
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
-from django.db.models import Choices, IntegerChoices
+from django.db.models import Choices, IntegerChoices, QuerySet
+from django.db.models import Model as DjangoModel
 from ninja import Schema
 from ninja.orm import create_schema, fields
 from pydantic import BaseModel
@@ -27,10 +28,6 @@ from ninja_extra import (
 )
 from ninja_extra.controllers.model.endpoints import ModelEndpointFunction
 from ninja_extra.ordering import Ordering, ordering
-
-if TYPE_CHECKING:
-    from django.db.models import Model as DjangoModel
-    from django.db.models import QuerySet
 
 
 class ModelMixinBase(abc.ABC):
