@@ -1,5 +1,6 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from django.db import models
 
 from ninja_extra import ModelConfig, api_controller
 from ninja_extra.mixins import (
@@ -20,10 +21,10 @@ def controller_client_factory():
     def _factory(*mixins):
         # Dynamically create a controller class with the given mixins
         @api_controller
-        class DynamicController(MixinModelControllerBase, *mixins):
+        class DynamicControllerClass(MixinModelControllerBase, *mixins):
             model_class = Event
 
-        return TestClient(DynamicController)
+        return TestClient(DynamicControllerClass)
 
     return _factory
 
@@ -183,3 +184,87 @@ def test_delete_controller(controller_client_factory, event_obj):
 
     assert response.status_code == 204
     assert not Event.objects.filter(id=event_obj.pk).exists()
+
+
+@pytest.mark.django_db
+def test_text_choices_controller(controller_client_factory, event_obj):
+    """
+    Ensure that the specified object is deleted from the database.
+    """
+
+    class CoffeeCycle(models.TextChoices):
+        # The moment of creation.
+        INIT = "__init__", "Instantiated: The Cup is Full"
+
+        # The representation of the coffee.
+        REPR = "__repr__", "Official String Representation: 'Hot, Black Coffee'"
+
+        # What happens when you add milk.
+        ADD = "__add__", "Overloaded: Now with Milk"
+
+        # The end of the coffee's life.
+        DEL = "__del__", "Garbage Collected: The Cup is Empty"
+
+    @api_controller
+    class CoffeeControllerAPI(MixinModelControllerBase, ListModelMixin):
+        model_class = CoffeeCycle
+
+    client = TestClient(CoffeeControllerAPI)
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "count": 4,
+        "next": None,
+        "previous": None,
+        "results": [
+            {"id": "__del__", "label": "Garbage Collected: The Cup is Empty"},
+            {"id": "__init__", "label": "Instantiated: The Cup is Full"},
+            {
+                "id": "__repr__",
+                "label": "Official String Representation: 'Hot, Black Coffee'",
+            },
+            {"id": "__add__", "label": "Overloaded: Now with Milk"},
+        ],
+    }
+
+
+@pytest.mark.django_db
+def test_integer_choices_controller():
+    """
+    Tests that the ListModelMixin correctly serves a Django IntegerChoices enum,
+    with integer IDs and labels sorted alphabetically.
+    """
+
+    # 1. Define an IntegerChoices class for the test
+    class PythonRelease(models.IntegerChoices):
+        LEGACY = 2, "Legacy Python"
+        MODERN = 3, "Modern Python"
+        THE_FUTURE = 4, "The Future (Maybe)"
+
+    # 2. Create a controller that uses the IntegerChoices class
+    @api_controller
+    class PythonReleaseController(MixinModelControllerBase, ListModelMixin):
+        model_class = PythonRelease
+
+    # 3. Instantiate the client and make the request
+    client = TestClient(PythonReleaseController)
+    response = client.get("/")
+
+    # 4. Assert the response is correct
+    assert response.status_code == 200
+
+    # The expected JSON response. IDs are integers, and the list is
+    # sorted by the label text.
+    expected_data = {
+        "count": 3,
+        "next": None,
+        "previous": None,
+        "results": [
+            {"id": 2, "label": "Legacy Python"},
+            {"id": 3, "label": "Modern Python"},
+            {"id": 4, "label": "The Future (Maybe)"},
+        ],
+    }
+
+    assert response.json() == expected_data

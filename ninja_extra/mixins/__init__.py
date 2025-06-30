@@ -11,7 +11,7 @@ from __future__ import annotations
 import abc
 import re
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, TypeVar, cast
+from typing import Any, ClassVar, Optional, TypeVar, cast
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
