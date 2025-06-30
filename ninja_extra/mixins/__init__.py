@@ -150,7 +150,7 @@ class MixinModelControllerBase(ModelControllerBase):
     def __init_subclass__(cls, **kwargs: Any) -> None:
         """Configure the controller."""
 
-        if not cls.model_class and not getattr(cls, "model_config", None):
+        if not hasattr(cls, "model_class")  and not getattr(cls, "model_config", None):
             msg = f"Controller {cls.__name__} must define a model_class attribute"
             raise ImproperlyConfigured(msg)
 
