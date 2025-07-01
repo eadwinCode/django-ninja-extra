@@ -4,7 +4,8 @@ from django.db import models
 
 from ninja_extra import ModelConfig, api_controller
 from ninja_extra.mixins import (
-    CreateModelMixin, DeleteModelMixin,
+    CreateModelMixin,
+    DeleteModelMixin,
     ListModelMixin,
     MixinModelControllerBase,
     PatchModelMixin,
@@ -102,7 +103,6 @@ def test_modelconfig_controller(controller_client_factory):
     assert response.json().get("count", 0) == 2
 
 
-
 @pytest.mark.django_db
 def test_retrieve_controller(controller_client_factory, event_obj):
     """Test retrieving a single, existing item."""
@@ -182,11 +182,20 @@ def test_create_controller(controller_client_factory):
     client = controller_client_factory(CreateModelMixin)
     assert Event.objects.exists() is False
 
-    response = client.post("/", json={"title": "__init__", "start_date": "1956-01-31", "end_date": "2018-07-31"})
+    response = client.post(
+        "/",
+        json={
+            "title": "__init__",
+            "start_date": "1956-01-31",
+            "end_date": "2018-07-31",
+        },
+    )
 
     assert response.status_code == 201
 
-    assert Event.objects.filter(title="__init__", start_date="1956-01-31").exists() is True
+    assert (
+        Event.objects.filter(title="__init__", start_date="1956-01-31").exists() is True
+    )
 
 
 @pytest.mark.django_db

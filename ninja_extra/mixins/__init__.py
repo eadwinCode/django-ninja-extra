@@ -272,7 +272,6 @@ class ListModelMixin(ModelMixinBase):
                 choices_sorted = sorted(mapped, key=lambda t: t[1])
                 return [choice_class(id=k, label=v) for (k, v) in choices_sorted]
 
-
             controller_cls.list = ModelEndpointFactory.list(
                 path="/",
                 operation_id=operation_id,
