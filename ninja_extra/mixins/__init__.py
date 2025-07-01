@@ -134,7 +134,6 @@ class MixinModelControllerBase(ModelControllerBase):
     input_schema: ClassVar[type[BaseModel] | None] = None
     output_schema: ClassVar[type[BaseModel] | None] = None
     model_class: ClassVar[type[DjangoModel]]
-    auto_operation_ids: ClassVar[bool] = True
     operation_id_prefix: ClassVar[str | None] = None
     filter_schema: ClassVar[type[Schema] | None] = None
     ordering_fields: ClassVar[list[str]] = []
@@ -204,8 +203,7 @@ class MixinModelControllerBase(ModelControllerBase):
         """Ensure ModelConfig is properly set up for dependency injection."""
         if not hasattr(cls, "model_config") or not cls.model_config:
             cls.model_config = ModelConfig(model=cls.model_class)
-        elif not cls.model_config.model:
-            cls.model_config.model = cls.model_class
+        assert cls.model_config.model, f"The model_class is not set for {cls.__name__}"
         cls.model_config.allowed_routes = []
 
     @classmethod
@@ -236,14 +234,9 @@ class RetrieveModelMixin(ModelMixinBase):
     @classmethod
     def create_routes(cls, controller_cls: type[MixinModelControllerBase]) -> None:
         """Create the retrieve route."""
-        operation_id = (
-            controller_cls.generate_operation_id("get")
-            if controller_cls.auto_operation_ids
-            else None
-        )
-
         assert controller_cls.output_schema
 
+        operation_id = controller_cls.generate_operation_id("get")
         controller_cls.retrieve = ModelEndpointFactory.find_one(
             path=f"/{controller_cls.lookup_field}",
             operation_id=operation_id,
@@ -260,19 +253,9 @@ class ListModelMixin(ModelMixinBase):
     @classmethod
     def create_routes(cls, controller_cls: type[MixinModelControllerBase]) -> None:
         """Create the enhanced list route."""
-        # Prevent this basic mixin from overwriting a more specific one.
-        if hasattr(controller_cls, "list"):
-            return
+        assert controller_cls.output_schema
 
-        if not controller_cls.output_schema:
-            msg = f"{controller_cls.__name__} must define an 'output_schema' for the ListModelMixin to work."
-            raise ImproperlyConfigured(msg)
-
-        operation_id = (
-            controller_cls.generate_operation_id("list")
-            if controller_cls.auto_operation_ids
-            else None
-        )
+        operation_id = controller_cls.generate_operation_id("list")
 
         # TODO(mbo20): refactor into separate ChoideModelMixin class
         if issubclass(controller_cls.model_class, models.Choices):
@@ -288,6 +271,7 @@ class ListModelMixin(ModelMixinBase):
                 mapped = [(choice[0], str(choice[1])) for choice in choices]
                 choices_sorted = sorted(mapped, key=lambda t: t[1])
                 return [choice_class(id=k, label=v) for (k, v) in choices_sorted]
+
 
             controller_cls.list = ModelEndpointFactory.list(
                 path="/",
@@ -335,14 +319,10 @@ class CreateModelMixin(ModelMixinBase):
     @classmethod
     def create_routes(cls, controller_cls: type[MixinModelControllerBase]) -> None:
         """Create the create route."""
-        operation_id = (
-            controller_cls.generate_operation_id("create")
-            if controller_cls.auto_operation_ids
-            else None
-        )
-
         assert controller_cls.input_schema
         assert controller_cls.output_schema
+
+        operation_id = controller_cls.generate_operation_id("create")
         controller_cls.create = ModelEndpointFactory.create(
             path="/",
             operation_id=operation_id,
@@ -358,14 +338,10 @@ class PutModelMixin(ModelMixinBase):
     @classmethod
     def create_routes(cls, controller_cls: type[MixinModelControllerBase]) -> None:
         """Create the update route."""
-        operation_id = (
-            controller_cls.generate_operation_id("update")
-            if controller_cls.auto_operation_ids
-            else None
-        )
-
         assert controller_cls.input_schema
         assert controller_cls.output_schema
+
+        operation_id = controller_cls.generate_operation_id("update")
         controller_cls.update = ModelEndpointFactory.update(
             path=f"/{controller_cls.lookup_field}",
             operation_id=operation_id,
@@ -382,11 +358,7 @@ class PatchModelMixin(ModelMixinBase):
     @classmethod
     def create_routes(cls, controller_cls: type[MixinModelControllerBase]) -> None:
         """Create the patch route."""
-        operation_id = (
-            controller_cls.generate_operation_id("patch")
-            if controller_cls.auto_operation_ids
-            else None
-        )
+        assert controller_cls.output_schema
 
         patch_schema = (
             create_schema(  # see: https://github.com/vitalik/django-ninja/issues/1183
@@ -396,7 +368,7 @@ class PatchModelMixin(ModelMixinBase):
             )
         )
 
-        assert controller_cls.output_schema
+        operation_id = controller_cls.generate_operation_id("patch")
         controller_cls.patch = ModelEndpointFactory.patch(
             path=f"/{controller_cls.lookup_field}",
             operation_id=operation_id,
@@ -413,11 +385,7 @@ class DeleteModelMixin(ModelMixinBase):
     @classmethod
     def create_routes(cls, controller_cls: type[MixinModelControllerBase]) -> None:
         """Create the delete route."""
-        operation_id = (
-            controller_cls.generate_operation_id("delete")
-            if controller_cls.auto_operation_ids
-            else None
-        )
+        operation_id = controller_cls.generate_operation_id("delete")
 
         controller_cls.delete = ModelEndpointFactory.delete(
             path=f"/{controller_cls.lookup_field}",

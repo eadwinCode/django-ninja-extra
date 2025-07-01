@@ -4,7 +4,7 @@ from django.db import models
 
 from ninja_extra import ModelConfig, api_controller
 from ninja_extra.mixins import (
-    DeleteModelMixin,
+    CreateModelMixin, DeleteModelMixin,
     ListModelMixin,
     MixinModelControllerBase,
     PatchModelMixin,
@@ -102,6 +102,7 @@ def test_modelconfig_controller(controller_client_factory):
     assert response.json().get("count", 0) == 2
 
 
+
 @pytest.mark.django_db
 def test_retrieve_controller(controller_client_factory, event_obj):
     """Test retrieving a single, existing item."""
@@ -171,6 +172,21 @@ def test_put_fails_with_partial_data(controller_client_factory, event_obj):
 
     response = client.put(f"/{event_obj.pk}", json=payload)
     assert response.status_code == 422
+
+
+@pytest.mark.django_db
+def test_create_controller(controller_client_factory):
+    """
+    Test retrieving a paginated list of objects.
+    """
+    client = controller_client_factory(CreateModelMixin)
+    assert Event.objects.exists() is False
+
+    response = client.post("/", json={"title": "__init__", "start_date": "1956-01-31", "end_date": "2018-07-31"})
+
+    assert response.status_code == 201
+
+    assert Event.objects.filter(title="__init__", start_date="1956-01-31").exists() is True
 
 
 @pytest.mark.django_db
