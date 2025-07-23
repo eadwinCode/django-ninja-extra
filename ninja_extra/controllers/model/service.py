@@ -12,7 +12,7 @@ from ninja_extra.shortcuts import aget_object_or_exception, get_object_or_except
 
 from .interfaces import AsyncModelServiceBase, ModelServiceBase
 
-django_version_greater_than_4_2 = django.VERSION >= (4, 2)
+django_version_greater_than_4_2 = django.VERSION > (4, 2)
 
 
 def _async_django_support(sync_method_name: str) -> t.Callable[..., t.Any]:
