@@ -1,6 +1,8 @@
 import traceback
 import typing as t
+from functools import wraps
 
+import django
 from asgiref.sync import sync_to_async
 from django.db.models import Model, QuerySet
 from pydantic import BaseModel as PydanticModel
@@ -9,6 +11,30 @@ from ninja_extra.exceptions import NotFound
 from ninja_extra.shortcuts import aget_object_or_exception, get_object_or_exception
 
 from .interfaces import AsyncModelServiceBase, ModelServiceBase
+
+django_version_greater_than_4_2 = django.VERSION >= (4, 2)
+
+
+def _async_django_support(sync_method_name: str) -> t.Callable[..., t.Any]:
+    """
+    Ensures that django version supports async orm methods.
+    If not, it will use sync_to_async to call the sync method with thread_sensitive=True.
+    """
+
+    def decorator(func: t.Callable[..., t.Coroutine]) -> t.Callable[..., t.Coroutine]:
+        @wraps(func)
+        async def wrapper(self: "ModelService", *args: t.Any, **kwargs: t.Any) -> t.Any:
+            if not django_version_greater_than_4_2:
+                alternate_method = getattr(self, sync_method_name)
+                return await sync_to_async(alternate_method, thread_sensitive=True)(
+                    *args, **kwargs
+                )
+
+            return await func(self, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class ModelService(ModelServiceBase, AsyncModelServiceBase):
@@ -21,7 +47,7 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
     def __init__(self, model: t.Type[Model]) -> None:
         self.model = model
 
-    # --- Synchonous Methods ---
+    # --- Synchronous Methods ---
 
     def get_one(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
         obj = get_object_or_exception(
@@ -75,6 +101,7 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
 
     # --- Asynchronous Methods (using native async ORM where possible) ---
 
+    @_async_django_support("get_one")
     async def get_one_async(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
         obj = await aget_object_or_exception(
             klass=self.model, error_message=None, exception=NotFound, pk=pk
@@ -84,6 +111,7 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
     async def get_all_async(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
         return await sync_to_async(self.get_all, thread_sensitive=True)(**kwargs)
 
+    @_async_django_support("create")
     async def create_async(self, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
         data = schema.model_dump(by_alias=True)
         data.update(kwargs)
@@ -111,6 +139,7 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
             )
             raise TypeError(msg) from tex
 
+    @_async_django_support("update")
     async def update_async(
         self, instance: Model, schema: PydanticModel, **kwargs: t.Any
     ) -> t.Any:
@@ -121,10 +150,12 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
         await instance.asave()
         return instance
 
+    @_async_django_support("patch")
     async def patch_async(
         self, instance: Model, schema: PydanticModel, **kwargs: t.Any
     ) -> t.Any:
         return await self.update_async(instance=instance, schema=schema, **kwargs)
 
+    @_async_django_support("delete")
     async def delete_async(self, instance: Model, **kwargs: t.Any) -> t.Any:
         await instance.adelete()
