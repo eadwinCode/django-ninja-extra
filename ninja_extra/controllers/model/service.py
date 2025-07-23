@@ -30,10 +30,10 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
     async def get_one_async(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
         return await sync_to_async(self.get_one, thread_sensitive=True)(pk, **kwargs)
 
-    def get_all(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
+    def get_all(self, **kwargs: t.Any) -> QuerySet:
         return self.model.objects.all()
 
-    async def get_all_async(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
+    async def get_all_async(self, **kwargs: t.Any) -> QuerySet:
         return await sync_to_async(self.get_all, thread_sensitive=True)(**kwargs)
 
     def create(self, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
