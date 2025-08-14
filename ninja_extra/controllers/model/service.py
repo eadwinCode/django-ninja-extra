@@ -67,7 +67,7 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
         return await sync_to_async(self.create, thread_sensitive=True)(schema, **kwargs)
 
     def update(self, instance: Model, schema: PydanticModel, **kwargs: t.Any) -> t.Any:
-        data = schema.model_dump(exclude_none=True)
+        data = schema.model_dump(exclude_unset=True)
         data.update(kwargs)
         for attr, value in data.items():
             setattr(instance, attr, value)
