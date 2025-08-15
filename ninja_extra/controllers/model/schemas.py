@@ -19,10 +19,11 @@ try:
 
     NINJA_SCHEMA_VERSION = tuple(map(int, ninja_schema_version.split(".")))
 except Exception:  # pragma: no cover
-    ConfigError = NinjaSchemaModelSchemaConfig = ModelSchemaConfigAdapter = (
-        SchemaFactory
-    ) = None
-    NINJA_SCHEMA_VERSION = (0, 0, 0)
+    ConfigError: t.Optional[t.Type[Exception]] = None  # type: ignore[no-redef]
+    NinjaSchemaModelSchemaConfig: t.Optional[t.Type[t.Any]] = None  # type: ignore[no-redef]
+    ModelSchemaConfigAdapter: t.Optional[t.Type[t.Any]] = None  # type: ignore[no-redef]
+    SchemaFactory: t.Optional[t.Type[t.Any]] = None  # type: ignore[no-redef]
+    NINJA_SCHEMA_VERSION: t.Tuple[int, int, int] = (0, 0, 0)  # type: ignore[no-redef]
 
 
 from ninja_extra.pagination import PageNumberPaginationExtra, PaginatedResponseSchema
@@ -133,7 +134,7 @@ class ModelConfig(PydanticModel):
             # if all schemas have been provided, then we don't need to generate any schema
             return
 
-        if not NinjaSchemaModelSchemaConfig:  # pragma: no cover
+        if NinjaSchemaModelSchemaConfig is None:  # pragma: no cover
             raise RuntimeError(
                 "ninja-schema package is required for ModelControllerSchema generation.\n pip install ninja-schema"
             )
