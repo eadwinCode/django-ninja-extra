@@ -6,16 +6,6 @@ from ninja.pagination import PaginationBase
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field, field_validator
 
-if t.TYPE_CHECKING:
-    from ninja_schema.errors import ConfigError
-    from ninja_schema.orm.factory import SchemaFactory
-    from ninja_schema.orm.model_schema import (
-        ModelSchemaConfig as NinjaSchemaModelSchemaConfig,
-    )
-    from ninja_schema.orm.model_schema import (
-        ModelSchemaConfigAdapter,
-    )
-
 try:
     from ninja_schema import __version__ as ninja_schema_version
     from ninja_schema.errors import ConfigError
@@ -29,11 +19,11 @@ try:
 
     NINJA_SCHEMA_VERSION = tuple(map(int, ninja_schema_version.split(".")))
 except Exception:  # pragma: no cover
-    ConfigError = None
-    NinjaSchemaModelSchemaConfig = None
-    ModelSchemaConfigAdapter = None
-    SchemaFactory = None
-    NINJA_SCHEMA_VERSION = (0, 0, 0)
+    ConfigError: t.Optional[t.Type[Exception]] = None  # type: ignore[no-redef]
+    NinjaSchemaModelSchemaConfig: t.Optional[t.Type[t.Any]] = None  # type: ignore[no-redef]
+    ModelSchemaConfigAdapter: t.Optional[t.Type[t.Any]] = None  # type: ignore[no-redef]
+    SchemaFactory: t.Optional[t.Type[t.Any]] = None  # type: ignore[no-redef]
+    NINJA_SCHEMA_VERSION: t.Tuple[int, int, int] = (0, 0, 0)  # type: ignore[no-redef]
 
 
 from ninja_extra.pagination import PageNumberPaginationExtra, PaginatedResponseSchema
