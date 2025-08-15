@@ -6,6 +6,16 @@ from ninja.pagination import PaginationBase
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field, field_validator
 
+if t.TYPE_CHECKING:
+    from ninja_schema.errors import ConfigError
+    from ninja_schema.orm.factory import SchemaFactory
+    from ninja_schema.orm.model_schema import (
+        ModelSchemaConfig as NinjaSchemaModelSchemaConfig,
+    )
+    from ninja_schema.orm.model_schema import (
+        ModelSchemaConfigAdapter,
+    )
+
 try:
     from ninja_schema import __version__ as ninja_schema_version
     from ninja_schema.errors import ConfigError
@@ -19,9 +29,10 @@ try:
 
     NINJA_SCHEMA_VERSION = tuple(map(int, ninja_schema_version.split(".")))
 except Exception:  # pragma: no cover
-    ConfigError = NinjaSchemaModelSchemaConfig = ModelSchemaConfigAdapter = (
-        SchemaFactory
-    ) = None
+    ConfigError = None
+    NinjaSchemaModelSchemaConfig = None
+    ModelSchemaConfigAdapter = None
+    SchemaFactory = None
     NINJA_SCHEMA_VERSION = (0, 0, 0)
 
 
@@ -133,7 +144,7 @@ class ModelConfig(PydanticModel):
             # if all schemas have been provided, then we don't need to generate any schema
             return
 
-        if not NinjaSchemaModelSchemaConfig:  # pragma: no cover
+        if NinjaSchemaModelSchemaConfig is None:  # pragma: no cover
             raise RuntimeError(
                 "ninja-schema package is required for ModelControllerSchema generation.\n pip install ninja-schema"
             )
