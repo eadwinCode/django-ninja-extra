@@ -1,3 +1,4 @@
+from typing import Optional
 from unittest import mock
 
 import pytest
@@ -110,7 +111,7 @@ def test_openapi_schema_params_are_correct_on_two_apis():
     @api_controller("/")
     class ItemsController:
         @http_get("/items_1")
-        def items_1(self, ordering: str | None = None):
+        def items_1(self, ordering: Optional[str] = None):
             return {"ok": True}
 
     # Two independent API instances
