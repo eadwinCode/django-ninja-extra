@@ -11,6 +11,7 @@ from typing import (
     Union,
     cast,
 )
+from weakref import WeakSet
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
@@ -79,6 +80,8 @@ class NinjaExtraAPI(NinjaAPI):
         self._routers: List[Tuple[str, router.Router]] = []  # type: ignore
         self.default_router = router.Router()
         self.add_router("", self.default_router)
+        self._registered_controllers: "WeakSet[type[ControllerBase]]" = WeakSet()
+        self._controller_clones: dict[type[ControllerBase], type[ControllerBase]] = {}
 
     def api_exception_handler(
         self, request: HttpRequest, exc: exceptions.APIException
@@ -120,11 +123,39 @@ class NinjaExtraAPI(NinjaAPI):
                 raise ImproperlyConfigured(
                     f"{controller.__class__.__name__} class is not a controller"
                 )
+            if controller in self._registered_controllers or controller in self._controller_clones:
+                continue
+
             api_controller: APIController = controller.get_api_controller()
+            if api_controller.registered:
+                # Clone the controller for isolation in this API instance
+                # Create a unique subclass to avoid shared class state
+                cloned_controller_name = f"{controller.__name__}_clone_for_{self.urls_namespace or 'api'}"
+                cloned_controller = type(cloned_controller_name, (controller,), {})
+
+                # Clone the APIController config from the original
+                cloned_api_controller = APIController(
+                    prefix=api_controller.prefix,
+                    auth=api_controller.auth if api_controller.auth is not NOT_SET else NOT_SET,
+                    throttle=api_controller.throttle if api_controller.throttle is not NOT_SET else NOT_SET,
+                    tags=api_controller.tags,
+                    permissions=api_controller.permission_classes,
+                    auto_import=api_controller.auto_import,
+                )
+
+                # Apply the cloned decorator to the cloned class (this rebuilds routes, operations, etc.)
+                cloned_controller = cloned_api_controller(cloned_controller)
+
+                # Update to use the cloned versions for registration
+                api_controller = cloned_api_controller
+                self._registered_controllers.add(controller)
+                self._controller_clones[controller] = cloned_controller
+                controller = cloned_controller  # Optional, but ensures consistency
             if not api_controller.registered:
                 self._routers.extend(api_controller.build_routers())  # type: ignore
                 api_controller.set_api_instance(self)
                 api_controller.registered = True
+                self._registered_controllers.add(controller)
 
     def auto_discover_controllers(self) -> None:
         from django.apps import apps
