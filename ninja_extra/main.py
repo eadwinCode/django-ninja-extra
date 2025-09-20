@@ -134,7 +134,7 @@ class NinjaExtraAPI(NinjaAPI):
                 # Create a unique subclass to avoid shared class state
                 cloned_controller_name = f"{controller.__name__}_clone_for_{self.urls_namespace or 'api'}"
                 cloned_controller = type(cloned_controller_name, (controller,), {})
-                
+
                 # Clone the APIController config from the original
                 cloned_api_controller = APIController(
                     prefix=api_controller.prefix,
