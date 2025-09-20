@@ -1,3 +1,4 @@
+import logging
 from importlib import import_module
 from typing import (
     Any,
@@ -34,6 +35,7 @@ __all__ = [
     "NinjaExtraAPI",
 ]
 
+logger = logging.getLogger(__name__)
 
 class NinjaExtraAPI(NinjaAPI):
     def __init__(
@@ -132,7 +134,7 @@ class NinjaExtraAPI(NinjaAPI):
                 # Create a unique subclass to avoid shared class state
                 cloned_controller_name = f"{controller.__name__}_clone_for_{self.urls_namespace or 'api'}"
                 cloned_controller = type(cloned_controller_name, (controller,), {})
-
+                
                 # Clone the APIController config from the original
                 cloned_api_controller = APIController(
                     prefix=api_controller.prefix,
@@ -145,7 +147,13 @@ class NinjaExtraAPI(NinjaAPI):
 
                 # Apply the cloned decorator to the cloned class (this rebuilds routes, operations, etc.)
                 cloned_controller = cloned_api_controller(cloned_controller)
-
+                logger.info(
+                    "Controller cloned %s from %s at namespace=%s from app=%s",
+                    cloned_controller.__name__,
+                    controller.__name__,
+                    self.urls_namespace or "api",
+                    getattr(self, "app_name", "ninja"),
+                )
                 # Update to use the cloned versions for registration
                 api_controller = cloned_api_controller
                 self._registered_controllers.add(controller)
