@@ -5,4 +5,4 @@ pytest
 pytest-asyncio==1.0.0
 pytest-cov
 pytest-django
-ruff ==0.12.11
+ruff ==0.13.2
