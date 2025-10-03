@@ -460,7 +460,7 @@ class ModelEndpointFactory:
             return route.delete(
                 working_path,
                 url_name=url_name,
-                response={status_code: str},
+                response={status_code: None},
                 description=description,
                 operation_id=operation_id,
                 summary=summary,
