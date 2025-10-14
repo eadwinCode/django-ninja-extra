@@ -219,7 +219,6 @@ class EventModelController(ModelControllerBase):
 
     list_events = ModelEndpointFactory.list(
         path="/",
-        schema_in=EventQueryParams,
         schema_out=EventSchema,
         queryset_getter=lambda self, query: self.service.get_filtered_events(query)
     )
