@@ -39,7 +39,7 @@ from ninja.utils import normalize_path
 
 from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION, THROTTLED_OBJECTS
 from ninja_extra.context import RouteContext
-from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
+from ninja_extra.exceptions import APIException, NotFound, PermissionDenied
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import Operation, PathView
 from ninja_extra.permissions import (
@@ -58,7 +58,6 @@ from ninja_extra.shortcuts import (
 
 from .model import ModelConfig, ModelControllerBuilder, ModelService
 from .registry import ControllerRegistry
-from .response import Detail, Id, Ok
 from .route.route_functions import AsyncRouteFunction, RouteFunction
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -150,11 +149,6 @@ class ControllerBase:
     context: Optional["RouteContext"] = None
     throttling_classes: List[Type["BaseThrottle"]] = []
     throttling_init_kwargs: Optional[Dict[Any, Any]] = None
-
-    Ok = Ok  # TODO: remove soonest
-    Id = Id  # TODO: remove soonest
-    Detail = Detail  # TODO: remove soonest
-    bad_request = bad_request  # TODO: remove soonest
 
     @classmethod
     def get_api_controller(cls) -> "APIController":
@@ -520,8 +514,6 @@ class APIController:
                         DeprecationWarning,
                         stacklevel=2,
                     )
-                # if not hasattr(cls, "service"):
-                #     cls.service = ModelService(cls.model_config.model)
 
         compute_api_route_function(cls, self)
 
