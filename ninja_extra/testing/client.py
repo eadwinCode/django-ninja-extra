@@ -33,7 +33,7 @@ class NinjaExtraClientBase(NinjaClientBase):
     ) -> "NinjaResponse":
         if json is not None:
             request_params["body"] = json_dumps(json, cls=NinjaJSONEncoder)
-        if "query" in request_params and isinstance(request_params["query"], dict):
+        if "query" in request_params and isinstance(request_params["query"], dict | list):
             query = request_params.pop("query")
             url_encode = urlencode(query)
             path = f"{path}?{url_encode}"
