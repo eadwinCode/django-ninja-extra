@@ -55,3 +55,14 @@ class EventController:
     def get_event_from_orm(self, id: int) -> EventSchema:
         event = get_object_or_404(Event, id=id)
         return EventSchema.from_orm(event)
+
+
+@api_controller("inventory-items", urls_namespace="inventory")
+class NamespacedController:
+    @http_get("", url_name="inventory-item-list")
+    def list_items(self):
+        return [{"id": 1, "name": "sample"}]
+
+    @http_get("/{int:item_id}", url_name="inventory-item-detail")
+    def get_item(self, item_id: int):
+        return {"id": item_id, "name": f"sample-{item_id}"}
