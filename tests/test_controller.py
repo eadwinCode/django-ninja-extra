@@ -67,6 +67,20 @@ class DisableAutoImportController:
     auto_import = False  # disable auto_import of the controller
 
 
+@api_controller
+class SomeControllerWithSingleRoute:
+    @http_get("/example")
+    def example(self):
+        pass
+
+
+@api_controller(append_unique_op_id=False)
+class SomeControllerWithoutUniqueSuffix:
+    @http_get("/example")
+    def example(self):
+        pass
+
+
 class TestAPIController:
     def test_api_controller_as_decorator(self):
         controller_type = api_controller("prefix", tags="new_tag", auth=FakeAuth())(
@@ -142,6 +156,43 @@ class TestAPIController:
         operation = path_view.operations[0]
         assert operation.methods == route_function.route.route_params.methods
         assert operation.operation_id == route_function.route.route_params.operation_id
+
+    def test_controller_should_append_unique_op_id_to_operation_id(self):
+        _api_controller = SomeControllerWithSingleRoute.get_api_controller()
+        controller_name = (
+            str(_api_controller.controller_class.__name__)
+            .lower()
+            .replace("controller", "")
+        )
+        route_view_func_name: RouteFunction = get_route_function(
+            SomeControllerWithRoute().example
+        ).route.view_func.__name__
+
+        operation_id = (
+            _api_controller._path_operations.get("/example").operations[0].operation_id
+        )
+        raw_operation_id = "_".join(operation_id.split("_")[:-1])
+        op_id_postfix = operation_id.split("_")[-1]
+
+        assert raw_operation_id == f"{controller_name}_{route_view_func_name}"
+        assert len(op_id_postfix) == 8
+
+    def test_controller_should_not_add_unique_suffix_following_params(self):
+        _api_controller = SomeControllerWithoutUniqueSuffix.get_api_controller()
+        controller_name = (
+            str(_api_controller.controller_class.__name__)
+            .lower()
+            .replace("controller", "")
+        )
+        route_view_func_name: RouteFunction = get_route_function(
+            SomeControllerWithRoute().example
+        ).route.view_func.__name__
+
+        operation_id = (
+            _api_controller._path_operations.get("/example").operations[0].operation_id
+        )
+
+        assert operation_id == f"{controller_name}_{route_view_func_name}"
 
     def test_get_route_function_should_return_instance_route_definitions(self):
         for route_definition in get_route_functions(SomeControllerWithRoute):
