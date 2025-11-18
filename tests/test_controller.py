@@ -323,3 +323,7 @@ def test_namespaced_controller_detail(client):
     assert response.status_code == 200
     assert response.json() == {"id": 5, "name": "sample-5"}
     assert reverse("api-1.0.0:inventory:inventory-item-detail", kwargs={"item_id": 5}) == "/api/inventory-items/5"
+
+
+def test_default_url_name(client):
+    assert reverse("api-1.0.0:get_event", kwargs={"id": 5}) == "/api/events/5"

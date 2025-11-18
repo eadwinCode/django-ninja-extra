@@ -611,6 +611,8 @@ class APIController:
                 f"endpoint={get_function_name(route_function.route.view_func)}"
             )
         data = route_function.route.route_params.dict()
+        if not data.get("url_name"):
+            data["url_name"] = get_function_name(route_function.route.view_func)
         route_function.operation = self.add_api_operation(
             view_func=route_function.as_view, **data
         )
