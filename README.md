@@ -43,8 +43,8 @@ Django Ninja Extra is a powerful extension for [Django Ninja](https://django-nin
 
 ## Requirements
 
-- Python >= 3.6
-- Django >= 2.1
+- Python >= 3.8
+- Django >= 4.0
 - Pydantic >= 1.6
 - Django-Ninja >= 0.16.1
 
