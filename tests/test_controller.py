@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import django
 import pytest
 from django.contrib.auth.models import Group
+from django.urls import reverse
 
 from ninja_extra import (
     NinjaExtraAPI,
@@ -308,3 +309,21 @@ def test_async_controller():
         example_route_function.operation.auth_callbacks[0],
         AsyncFakeAuth,
     )
+
+
+def test_namespaced_controller_list(client):
+    response = client.get("/api/inventory-items")
+    assert response.status_code == 200
+    assert response.json() == [{"id": 1, "name": "sample"}]
+    assert reverse("api-1.0.0:inventory:inventory-item-list") == "/api/inventory-items"
+
+
+def test_namespaced_controller_detail(client):
+    response = client.get("/api/inventory-items/5")
+    assert response.status_code == 200
+    assert response.json() == {"id": 5, "name": "sample-5"}
+    assert reverse("api-1.0.0:inventory:inventory-item-detail", kwargs={"item_id": 5}) == "/api/inventory-items/5"
+
+
+def test_default_url_name(client):
+    assert reverse("api-1.0.0:get_event", kwargs={"id": 5}) == "/api/events/5"
