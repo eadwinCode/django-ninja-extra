@@ -75,7 +75,7 @@ class SomeControllerWithSingleRoute:
         pass
 
 
-@api_controller(append_unique_op_id=False)
+@api_controller(use_unique_op_id=False)
 class SomeControllerWithoutUniqueSuffix:
     @http_get("/example")
     def example(self):
@@ -373,7 +373,10 @@ def test_namespaced_controller_detail(client):
     response = client.get("/api/inventory-items/5")
     assert response.status_code == 200
     assert response.json() == {"id": 5, "name": "sample-5"}
-    assert reverse("api-1.0.0:inventory:inventory-item-detail", kwargs={"item_id": 5}) == "/api/inventory-items/5"
+    assert (
+        reverse("api-1.0.0:inventory:inventory-item-detail", kwargs={"item_id": 5})
+        == "/api/inventory-items/5"
+    )
 
 
 def test_default_url_name(client):

@@ -404,7 +404,7 @@ class APIController:
         permissions: Optional[List[BasePermissionType]] = None,
         auto_import: bool = True,
         urls_namespace: Optional[str] = None,
-        append_unique_op_id: bool = True
+        use_unique_op_id: bool = True,
     ) -> None:
         self.prefix = prefix
         # Optional controller-level URL namespace. Applied to all route paths.
@@ -414,7 +414,7 @@ class APIController:
 
         self.tags = tags  # type: ignore
         self.throttle = throttle
-        self.append_unique_op_id = append_unique_op_id
+        self.use_unique_op_id = use_unique_op_id
 
         self.auto_import: bool = auto_import  # set to false and it would be ignored when api.auto_discover is called
         # `controller_class` target class that the APIController wraps
@@ -496,11 +496,14 @@ class APIController:
                 item(**throttling_init_kwargs) for item in cls.throttling_classes
             ]
 
+        class_name = str(cls.__name__).lower().replace("controller", "")
         if not self.tags:
-            tag = str(cls.__name__).lower().replace("controller", "")
-            self.tags = [tag]
+            self.tags = [class_name]
 
         self._controller_class = cls
+        if not self.urls_namespace:
+            # if urls_namespace is not provided, use the class name as the namespace
+            self.urls_namespace = class_name
 
         if issubclass(cls, ModelControllerBase):
             if cls.model_config:
@@ -560,6 +563,7 @@ class APIController:
 
     def urls_paths(self, prefix: str) -> Iterator[Union[URLPattern, URLResolver]]:
         namespaced_patterns: List[URLPattern] = []
+        assert self.urls_namespace, "urls_namespace is required"
 
         for path, path_view in self.path_operations.items():
             path = path.replace("{", "<").replace("}", ">")
@@ -576,15 +580,15 @@ class APIController:
                 else:
                     pattern = django_path(route, view)
 
-                if self.urls_namespace:
-                    namespaced_patterns.append(pattern)
-                else:
-                    yield pattern
+                namespaced_patterns.append(pattern)
 
-        if self.urls_namespace and namespaced_patterns:
+        if namespaced_patterns:
             yield django_path(
                 "",
-                include((namespaced_patterns, self.urls_namespace), namespace=self.urls_namespace),
+                include(
+                    (namespaced_patterns, self.urls_namespace),
+                    namespace=self.urls_namespace,
+                ),
             )
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -602,7 +606,7 @@ class APIController:
             route_function.route.route_params.operation_id = (
                 f"{controller_name}_{route_function.route.view_func.__name__}"
             )
-            if self.append_unique_op_id:
+            if self.use_unique_op_id:
                 route_function.route.route_params.operation_id += (
                     f"_{uuid.uuid4().hex[:8]}"
                 )
@@ -695,7 +699,7 @@ def api_controller(
     permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
     urls_namespace: Optional[str] = None,
-    append_unique_op_id: bool = True,
+    use_unique_op_id: bool = True,
 ) -> Callable[
     [Union[Type, Type[T]]], Union[Type[ControllerBase], Type[T]]
 ]:  # pragma: no cover
@@ -710,7 +714,7 @@ def api_controller(
     permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
     urls_namespace: Optional[str] = None,
-    append_unique_op_id: bool = True,
+    use_unique_op_id: bool = True,
 ) -> Union[ControllerClassType, Callable[[ControllerClassType], ControllerClassType]]:
     if isinstance(prefix_or_class, type):
         return APIController(
@@ -720,7 +724,7 @@ def api_controller(
             permissions=permissions,
             auto_import=auto_import,
             throttle=throttle,
-            append_unique_op_id=append_unique_op_id,
+            use_unique_op_id=use_unique_op_id,
             urls_namespace=urls_namespace,
         )(prefix_or_class)
 
@@ -732,7 +736,7 @@ def api_controller(
             permissions=permissions,
             auto_import=auto_import,
             throttle=throttle,
-            append_unique_op_id=append_unique_op_id,
+            use_unique_op_id=use_unique_op_id,
             urls_namespace=urls_namespace,
         )(cls)
 
