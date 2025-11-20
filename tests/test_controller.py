@@ -380,4 +380,4 @@ def test_namespaced_controller_detail(client):
 
 
 def test_default_url_name(client):
-    assert reverse("api-1.0.0:get_event", kwargs={"id": 5}) == "/api/events/5"
+    assert reverse("api-1.0.0:event:get_event", kwargs={"id": 5}) == "/api/events/5"

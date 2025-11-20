@@ -26,9 +26,9 @@ def test_with_client(client: Client):
 
 def test_reverse():
     # check that url reversing works
-    assert reverse("api-1.0.0:event-create-url-name") == "/api/events"
-    assert reverse("api-1.0.0:event-list") == "/api/events"
-    assert reverse("api-1.0.0:event-list-2") == "/api/events/list"
+    assert reverse("api-1.0.0:event:event-create-url-name") == "/api/events"
+    assert reverse("api-1.0.0:event:event-list") == "/api/events"
+    assert reverse("api-1.0.0:event:event-list-2") == "/api/events/list"
 
 
 def json_payload(data):
