@@ -404,6 +404,7 @@ class APIController:
         permissions: Optional[List[BasePermissionType]] = None,
         auto_import: bool = True,
         urls_namespace: Optional[str] = None,
+        append_unique_op_id: bool = True
     ) -> None:
         self.prefix = prefix
         # Optional controller-level URL namespace. Applied to all route paths.
@@ -413,6 +414,7 @@ class APIController:
 
         self.tags = tags  # type: ignore
         self.throttle = throttle
+        self.append_unique_op_id = append_unique_op_id
 
         self.auto_import: bool = auto_import  # set to false and it would be ignored when api.auto_discover is called
         # `controller_class` target class that the APIController wraps
@@ -597,7 +599,13 @@ class APIController:
             controller_name = (
                 str(self.controller_class.__name__).lower().replace("controller", "")
             )
-            route_function.route.route_params.operation_id = f"{controller_name}_{route_function.route.view_func.__name__}_{str(uuid.uuid4())[:8]}"
+            route_function.route.route_params.operation_id = (
+                f"{controller_name}_{route_function.route.view_func.__name__}"
+            )
+            if self.append_unique_op_id:
+                route_function.route.route_params.operation_id += (
+                    f"_{uuid.uuid4().hex[:8]}"
+                )
 
         if (
             self.auth
@@ -687,6 +695,7 @@ def api_controller(
     permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
     urls_namespace: Optional[str] = None,
+    append_unique_op_id: bool = True,
 ) -> Callable[
     [Union[Type, Type[T]]], Union[Type[ControllerBase], Type[T]]
 ]:  # pragma: no cover
@@ -701,6 +710,7 @@ def api_controller(
     permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
     urls_namespace: Optional[str] = None,
+    append_unique_op_id: bool = True,
 ) -> Union[ControllerClassType, Callable[[ControllerClassType], ControllerClassType]]:
     if isinstance(prefix_or_class, type):
         return APIController(
@@ -710,6 +720,7 @@ def api_controller(
             permissions=permissions,
             auto_import=auto_import,
             throttle=throttle,
+            append_unique_op_id=append_unique_op_id,
             urls_namespace=urls_namespace,
         )(prefix_or_class)
 
@@ -721,6 +732,7 @@ def api_controller(
             permissions=permissions,
             auto_import=auto_import,
             throttle=throttle,
+            append_unique_op_id=append_unique_op_id,
             urls_namespace=urls_namespace,
         )(cls)
 
