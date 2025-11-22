@@ -3,12 +3,15 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Optional,
+    Type,
     Union,
     cast,
 )
 
 from asgiref.sync import sync_to_async
 from django.http import HttpRequest
+from ninja import FilterSchema, Query
 from ninja.pagination import AsyncPaginationBase, PaginationBase
 
 from ninja_extra.context import RouteContext
@@ -27,10 +30,13 @@ class PaginatorOperation:
         paginator: Union[PaginationBase, AsyncPaginationBase],
         view_func: Callable,
         paginator_kwargs_name: str = "pagination",
+        filter_schema: Optional[Type[FilterSchema]] = None,
     ) -> None:
         self.paginator = paginator
         self.paginator_kwargs_name = paginator_kwargs_name
         self.view_func = view_func
+        self.filter_schema = filter_schema
+        self.filter_kwargs_name = "filters"
 
         paginator_view = self.get_view_function()
         self.as_view = wraps(view_func)(paginator_view)
@@ -42,6 +48,16 @@ class PaginatorOperation:
                 self.paginator.InputSource,
             ),
         )
+        # Add filter_schema as a contribute arg if provided
+        if self.filter_schema:
+            add_ninja_contribute_args(
+                self.as_view,
+                (
+                    self.filter_kwargs_name,
+                    self.filter_schema,
+                    Query(...),
+                ),
+            )
         paginator_view.paginator_operation = self  # type:ignore[attr-defined]
 
     @property
@@ -59,7 +75,16 @@ class PaginatorOperation:
             if self.paginator.pass_parameter:
                 func_kwargs[self.paginator.pass_parameter] = pagination_params
 
+            # Extract filter parameters if filter_schema is provided
+            filter_params = None
+            if self.filter_schema:
+                filter_params = func_kwargs.pop(self.filter_kwargs_name, None)
+
             items = self.view_func(request_or_controller, *args, **func_kwargs)
+
+            # Apply filters if filter_schema is provided and filter_params exist
+            if self.filter_schema and filter_params:
+                items = filter_params.filter(items)
 
             if (
                 isinstance(items, tuple)
@@ -94,7 +119,16 @@ class AsyncPaginatorOperation(PaginatorOperation):
             if self.paginator.pass_parameter:
                 func_kwargs[self.paginator.pass_parameter] = pagination_params
 
+            # Extract filter parameters if filter_schema is provided
+            filter_params = None
+            if self.filter_schema:
+                filter_params = func_kwargs.pop(self.filter_kwargs_name, None)
+
             items = await self.view_func(request_or_controller, *args, **func_kwargs)
+
+            # Apply filters if filter_schema is provided and filter_params exist
+            if self.filter_schema and filter_params:
+                items = filter_params.filter(items)
 
             if (
                 isinstance(items, tuple)

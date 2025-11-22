@@ -1,7 +1,8 @@
 import inspect
 import logging
-from typing import Any, Callable, Type, cast, overload
+from typing import Any, Callable, Optional, Type, cast, overload
 
+from ninja import FilterSchema
 from ninja.constants import NOT_SET
 from ninja.pagination import PaginationBase
 from ninja.signature import is_async
@@ -22,13 +23,17 @@ def paginate() -> Callable[..., Any]:  # pragma: no cover
 
 @overload
 def paginate(
-    func_or_pgn_class: Any = NOT_SET, **paginator_params: Any
+    func_or_pgn_class: Any = NOT_SET,
+    filter_schema: Optional[Type[FilterSchema]] = None,
+    **paginator_params: Any,
 ) -> Callable[..., Any]:  # pragma: no cover
     ...
 
 
 def paginate(
-    func_or_pgn_class: Any = NOT_SET, **paginator_params: Any
+    func_or_pgn_class: Any = NOT_SET,
+    filter_schema: Optional[Type[FilterSchema]] = None,
+    **paginator_params: Any,
 ) -> Callable[..., Any]:
     isfunction = inspect.isfunction(func_or_pgn_class)
     is_not_set = func_or_pgn_class == NOT_SET
@@ -38,13 +43,17 @@ def paginate(
     )
 
     if isfunction:
-        return _inject_pagination(func_or_pgn_class, pagination_class)
+        return _inject_pagination(
+            func_or_pgn_class, pagination_class, filter_schema=filter_schema
+        )
 
     if not is_not_set:
         pagination_class = func_or_pgn_class
 
     def wrapper(func: Callable[..., Any]) -> Any:
-        return _inject_pagination(func, pagination_class, **paginator_params)
+        return _inject_pagination(
+            func, pagination_class, filter_schema=filter_schema, **paginator_params
+        )
 
     return wrapper
 
@@ -52,6 +61,7 @@ def paginate(
 def _inject_pagination(
     func: Callable[..., Any],
     paginator_class: Type[PaginationBase],
+    filter_schema: Optional[Type[FilterSchema]] = None,
     **paginator_params: Any,
 ) -> Callable[..., Any]:
     paginator: PaginationBase = paginator_class(**paginator_params)
@@ -61,7 +71,10 @@ def _inject_pagination(
     if is_async(func):
         paginator_operation_class = AsyncPaginatorOperation
     paginator_operation = paginator_operation_class(
-        paginator=paginator, view_func=func, paginator_kwargs_name=paginator_kwargs_name
+        paginator=paginator,
+        view_func=func,
+        paginator_kwargs_name=paginator_kwargs_name,
+        filter_schema=filter_schema,
     )
 
     return paginator_operation.as_view
