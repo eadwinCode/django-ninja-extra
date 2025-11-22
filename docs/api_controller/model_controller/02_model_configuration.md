@@ -128,6 +128,84 @@ class EventModelController(ModelControllerBase):
     )
 ```
 
+### **Pagination with Filtering**
+
+You can combine pagination with Django Ninja's `FilterSchema` to automatically add filtering capabilities to your Model Controller's list endpoint:
+
+```python
+from typing import Optional
+from ninja import FilterSchema
+from ninja_extra import ModelConfig, ModelPagination
+from ninja_extra.pagination import PageNumberPaginationExtra
+
+# Define a FilterSchema for your model
+class EventFilterSchema(FilterSchema):
+    title: Optional[str] = None
+    category: Optional[str] = None
+    start_date__gte: Optional[str] = None
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        pagination=ModelPagination(
+            klass=PageNumberPaginationExtra,
+            filter_schema=EventFilterSchema,  # Add filtering support
+            paginator_kwargs={"page_size": 25}
+        )
+    )
+```
+
+This configuration automatically applies the `FilterSchema` to the list endpoint, allowing users to filter results:
+
+```
+GET /api/events/?title=Conference&category=Tech&page=1&page_size=25
+```
+
+### **Advanced Filtering with Custom Lookups**
+
+Use Django Ninja's `FilterLookup` annotation for more sophisticated filtering:
+
+```python
+from typing import Annotated, Optional
+from ninja import FilterSchema, FilterLookup
+
+class AdvancedEventFilterSchema(FilterSchema):
+    # Case-insensitive search
+    title: Annotated[Optional[str], FilterLookup("title__icontains")] = None
+    
+    # Date range filtering
+    start_date_after: Annotated[Optional[str], FilterLookup("start_date__gte")] = None
+    start_date_before: Annotated[Optional[str], FilterLookup("start_date__lte")] = None
+    
+    # Related field filtering
+    category: Annotated[Optional[str], FilterLookup("category__name__iexact")] = None
+    
+    # Multiple field search
+    search: Annotated[
+        Optional[str],
+        FilterLookup([
+            "title__icontains",
+            "description__icontains",
+            "location__icontains"
+        ])
+    ] = None
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        pagination=ModelPagination(
+            klass=PageNumberPaginationExtra,
+            filter_schema=AdvancedEventFilterSchema,
+            paginator_kwargs={"page_size": 50}
+        )
+    )
+```
+
+!!! info "Learn More About FilterSchema"
+    For comprehensive documentation on FilterSchema features, custom expressions, combining filters, and advanced filtering techniques, visit: [https://django-ninja.dev/guides/input/filtering/](https://django-ninja.dev/guides/input/filtering/)
+
 ## **Route Configuration**
 
 You can customize individual route behavior using route info dictionaries. Each route type (`create_route_info`, `list_route_info`, `find_one_route_info`, `update_route_info`, `patch_route_info`, `delete_route_info`) accepts various configuration parameters.
@@ -316,7 +394,13 @@ class EventModelController(ModelControllerBase):
     - Consider your data size when choosing pagination class
     - Use appropriate page sizes for your use case
 
-4. **Async Support**:
+4. **Filtering**:
+    - Use `FilterSchema` to provide flexible filtering on list endpoints
+    - Leverage `FilterLookup` for complex database lookups (e.g., `__icontains`, `__gte`)
+    - Consider indexing filtered fields in your database for performance
+    - Document available filters in your API documentation
+
+5. **Async Support**:
     - Enable `async_routes` when using async database operations
     - Implement custom async services for complex operations
     - Consider performance implications of async operations 

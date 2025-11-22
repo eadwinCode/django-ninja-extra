@@ -3,6 +3,7 @@ import uuid
 
 from django.db.models import Model as DjangoModel
 from django.db.models import QuerySet
+from ninja import FilterSchema
 from ninja.constants import NOT_SET, NOT_SET_TYPE
 from ninja.pagination import PaginationBase
 from ninja.params import Body
@@ -392,6 +393,7 @@ class ModelEndpointFactory:
         pagination_class: t.Optional[
             t.Type[PaginationBase]
         ] = PageNumberPaginationExtra,
+        filter_schema: t.Optional[t.Type[FilterSchema]] = None,
         **paginate_kwargs: t.Any,
     ) -> ModelEndpointFunction:
         """
@@ -408,7 +410,9 @@ class ModelEndpointFactory:
             )
 
             if pagination_response_schema and pagination_class:
-                list_items = paginate(pagination_class, **paginate_kwargs)(list_items)
+                list_items = paginate(
+                    pagination_class, filter_schema=filter_schema, **paginate_kwargs
+                )(list_items)
                 return route.get(
                     working_path,
                     response=response
