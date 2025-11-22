@@ -501,10 +501,9 @@ class APIController:
             self.tags = [class_name]
 
         self._controller_class = cls
-        if not self.urls_namespace:
-            # if urls_namespace is not provided, use the class name as the namespace
-            self.urls_namespace = class_name
-
+        # if not self.urls_namespace:
+        #     # if urls_namespace is not provided, use the class name as the namespace
+        #     self.urls_namespace = class_name
         if issubclass(cls, ModelControllerBase):
             if cls.model_config:
                 assert cls.service_type is not None, (
@@ -563,7 +562,6 @@ class APIController:
 
     def urls_paths(self, prefix: str) -> Iterator[Union[URLPattern, URLResolver]]:
         namespaced_patterns: List[URLPattern] = []
-        assert self.urls_namespace, "urls_namespace is required"
 
         for path, path_view in self.path_operations.items():
             path = path.replace("{", "<").replace("}", ">")
@@ -575,14 +573,14 @@ class APIController:
             for op in path_view.operations:
                 op = cast(Operation, op)
                 view = path_view.get_view()
-                if op.url_name:
-                    pattern = django_path(route, view, name=op.url_name)
+                pattern = django_path(route, view, name=op.url_name)
+
+                if self.urls_namespace:
+                    namespaced_patterns.append(pattern)
                 else:
-                    pattern = django_path(route, view)
+                    yield pattern
 
-                namespaced_patterns.append(pattern)
-
-        if namespaced_patterns:
+        if namespaced_patterns and self.urls_namespace:
             yield django_path(
                 "",
                 include(
