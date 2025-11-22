@@ -2,6 +2,7 @@ import typing as t
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model
+from ninja import FilterSchema
 from ninja.pagination import PaginationBase
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field, field_validator
@@ -43,6 +44,7 @@ class ModelPagination(PydanticModel):
     klass: t.Type[PaginationBase] = PageNumberPaginationExtra
     paginator_kwargs: t.Optional[dict] = None
     pagination_schema: t.Type[PydanticModel] = PaginatedResponseSchema
+    filter_schema: t.Optional[t.Type[FilterSchema]] = None
 
     @field_validator("pagination_schema", mode="before")
     def validate_schema(cls, value: t.Any) -> t.Any:

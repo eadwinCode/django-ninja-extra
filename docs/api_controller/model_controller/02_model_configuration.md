@@ -130,7 +130,54 @@ class EventModelController(ModelControllerBase):
 
 ## **Route Configuration**
 
-You can customize individual route behavior using route info dictionaries:
+You can customize individual route behavior using route info dictionaries. Each route type (`create_route_info`, `list_route_info`, `find_one_route_info`, `update_route_info`, `patch_route_info`, `delete_route_info`) accepts various configuration parameters.
+
+### **Common Route Parameters**
+
+All route types support these common parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `path` | `str` | varies by route | Custom path for the route |
+| `status_code` | `int` | varies by route | HTTP status code for successful responses |
+| `auth` | `Any` | NOT_SET | Authentication class or instance |
+| `throttle` | `BaseThrottle \| List[BaseThrottle]` | NOT_SET | Throttle class(es) for rate limiting |
+| `response` | `Any` | NOT_SET | Custom response configuration |
+| `url_name` | `str \| None` | None | Django URL name for the route |
+| `description` | `str \| None` | None | Detailed description for OpenAPI docs |
+| `operation_id` | `str \| None` | None | Custom operation ID for OpenAPI |
+| `summary` | `str \| None` | varies by route | Short summary for OpenAPI docs |
+| `tags` | `List[str] \| None` | None | Tags for grouping in OpenAPI docs |
+| `deprecated` | `bool \| None` | None | Mark route as deprecated in OpenAPI |
+| `by_alias` | `bool` | False | Use schema field aliases in response |
+| `exclude_unset` | `bool` | False | Exclude unset fields from response |
+| `exclude_defaults` | `bool` | False | Exclude fields with default values |
+| `exclude_none` | `bool` | False | Exclude None fields from response |
+| `include_in_schema` | `bool` | True | Include route in OpenAPI schema |
+| `permissions` | `List[BasePermission]` | None | Permission classes for the route |
+| `openapi_extra` | `Dict[str, Any] \| None` | None | Extra OpenAPI schema properties |
+
+### **Route-Specific Parameters**
+
+#### **Create Route (`create_route_info`)**
+- `custom_handler`: Custom handler function to override default create logic
+
+#### **Update/Patch Routes (`update_route_info`, `patch_route_info`)**
+- `object_getter`: Custom function to retrieve the object
+- `custom_handler`: Custom handler function to override default update/patch logic
+
+#### **Find One Route (`find_one_route_info`)**
+- `object_getter`: Custom function to retrieve the object
+
+#### **Delete Route (`delete_route_info`)**
+- `object_getter`: Custom function to retrieve the object
+- `custom_handler`: Custom handler function to override default delete logic
+
+#### **List Route (`list_route_info`)**
+- `queryset_getter`: Custom function to retrieve the queryset
+- `pagination_response_schema`: Custom pagination response schema
+
+### **Basic Example**
 
 ```python
 @api_controller("/events")
@@ -148,12 +195,62 @@ class EventModelController(ModelControllerBase):
             "summary": "List all events",
             "description": "Retrieves a paginated list of all events",
             "tags": ["events"],
-            "schema_out": CustomListSchema,
         },
         find_one_route_info={
             "summary": "Get event details",
             "description": "Retrieves details of a specific event",
             "tags": ["events"],
+        }
+    )
+```
+
+### **Advanced Configuration Example**
+
+```python
+from ninja_extra import status
+from ninja_extra.permissions import IsAuthenticated, IsAdminUser
+from ninja_extra.throttling import AnonRateThrottle
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        create_route_info={
+            "summary": "Create a new event",
+            "description": "Creates a new event with the provided data",
+            "tags": ["events", "management"],
+            "status_code": status.HTTP_201_CREATED,
+            "permissions": [IsAuthenticated],
+            "throttle": AnonRateThrottle(),
+            "exclude_none": True,
+            "openapi_extra": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "example1": {
+                                    "summary": "Conference event",
+                                    "value": {
+                                        "title": "Tech Conference 2024",
+                                        "start_date": "2024-06-01",
+                                        "end_date": "2024-06-03"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        update_route_info={
+            "summary": "Update event",
+            "permissions": [IsAuthenticated, IsAdminUser],
+            "exclude_unset": True,
+        },
+        delete_route_info={
+            "summary": "Delete an event",
+            "permissions": [IsAdminUser],
+            "status_code": status.HTTP_204_NO_CONTENT,
         }
     )
 ```
