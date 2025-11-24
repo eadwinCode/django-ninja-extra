@@ -104,6 +104,26 @@ class RouteFunction(object):
         as_view.get_route_function = lambda: self  # type:ignore
         return as_view
 
+    def clone(self, view_func: Callable[..., Any]) -> "RouteFunction":
+        from ninja_extra.controllers.route import Route
+
+        route_params = self.route.route_params.dict()
+        permissions = self.route.permissions
+        if permissions is not None:
+            permissions = list(permissions)
+
+        if route_params["tags"] is not None:
+            route_params["tags"] = list(route_params["tags"])
+        route_params["methods"] = list(route_params["methods"])
+
+        cloned_route = Route(
+            view_func,
+            **route_params,
+            permissions=permissions,
+        )
+
+        return type(self)(route=cloned_route)
+
     def _process_view_function_result(self, result: Any) -> Any:
         """
         This process any a returned value from view_func

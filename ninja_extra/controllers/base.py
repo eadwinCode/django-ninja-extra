@@ -4,7 +4,6 @@ Base class for APIController.
 
 import inspect
 import re
-import types
 import uuid
 import warnings
 from abc import ABC
@@ -74,121 +73,31 @@ class MissingAPIControllerDecoratorException(Exception):
 
 def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
     """
-    Get all route functions from a controller class.
-    This function will recursively search for route functions in the base classes of the controller class
-    in order that they are defined.
+    Return fresh RouteFunction instances for a controller class.
 
-    Args:
-        cls (Type): The controller class.
-
-    Returns:
-        Iterable[RouteFunction]: An iterable of route functions.
+    Each call yields a clone of the RouteFunction template stored on the
+    controller method, ensuring metadata is not shared across subclasses.
     """
 
+    for _, method, template in _iter_route_templates(cls):
+        yield template.clone(method)
+
+
+def _iter_route_templates(
+    cls: Type,
+) -> Iterable[Tuple[str, Callable[..., Any], RouteFunction]]:
     seen: set[str] = set()
     for base_cls in inspect.getmro(cls):
-        if base_cls in [ControllerBase, ABC, object]:
+        if base_cls in (ControllerBase, ABC, object):
             continue
         for attr_name, method in base_cls.__dict__.items():
             if attr_name in seen:
                 continue
-            if hasattr(method, ROUTE_FUNCTION):
-                seen.add(attr_name)
-                yield getattr(method, ROUTE_FUNCTION)
-
-
-def _copy_route_enabled_function(func: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Create a deep copy of a function object to enable per-subclass route metadata.
-
-    When controllers inherit route-decorated methods, Python shares the same
-    function object across all subclasses. This causes route metadata (stored
-    as function attributes) to be overwritten by the last-registered controller.
-
-    This function creates a new function object with the same code, globals,
-    closure, and attributes, allowing each subclass to maintain independent
-    route metadata.
-
-    Args:
-        func: The route-decorated function to clone
-
-    Returns:
-        A new function object with copied attributes (excluding ROUTE_FUNCTION)
-
-    Note:
-        The ROUTE_FUNCTION attribute is intentionally excluded and will be
-        recreated by _attach_route_metadata() with subclass-specific metadata.
-    """
-    new_func = types.FunctionType(
-        func.__code__,
-        func.__globals__,
-        name=func.__name__,
-        argdefs=func.__defaults__,
-        closure=func.__closure__,
-    )
-    new_func.__kwdefaults__ = getattr(func, "__kwdefaults__", None)
-    new_func.__annotations__ = dict(getattr(func, "__annotations__", {}))
-    new_func.__doc__ = func.__doc__
-    new_func.__module__ = func.__module__
-    new_func.__qualname__ = func.__qualname__
-
-    # Copy over any custom attributes while skipping the route metadata – a fresh
-    # copy will be attached later for the subclass-specific function object.
-    if func.__dict__:
-        for key, value in func.__dict__.items():
-            if key == ROUTE_FUNCTION:
+            route_template = getattr(method, ROUTE_FUNCTION, None)
+            if route_template is None:
                 continue
-            new_func.__dict__[key] = value
-
-    return new_func
-
-
-def _attach_route_metadata(
-    target_func: Callable[..., Any], source_route: RouteFunction
-) -> None:
-    """
-    Recreate route metadata on a cloned function by reapplying the route decorator.
-
-    This function takes a freshly cloned function and reattaches route metadata
-    by invoking Route._create_route_function() with the original parameters.
-    This creates a new RouteFunction instance specific to the target function,
-    preventing metadata sharing between subclasses.
-
-    Args:
-        target_func: The cloned function that needs route metadata
-        source_route: The original RouteFunction containing metadata to copy
-
-    Note:
-        Uses a local import to avoid circular dependency issues between
-        controllers.base and controllers.route modules.
-    """
-    # Local import required to avoid circular dependency
-    from ninja_extra.controllers.route import Route
-
-    route = source_route.route
-    params = route.route_params
-
-    Route._create_route_function(
-        target_func,
-        path=params.path,
-        methods=list(params.methods),
-        auth=params.auth,
-        throttle=params.throttle,
-        response=params.response,
-        operation_id=params.operation_id,
-        summary=params.summary,
-        description=params.description,
-        tags=list(params.tags) if params.tags else None,
-        deprecated=params.deprecated,
-        by_alias=params.by_alias,
-        exclude_unset=params.exclude_unset,
-        exclude_defaults=params.exclude_defaults,
-        exclude_none=params.exclude_none,
-        url_name=params.url_name,
-        include_in_schema=params.include_in_schema,
-        permissions=route.permissions,
-        openapi_extra=params.openapi_extra,
-    )
+            seen.add(attr_name)
+            yield attr_name, method, route_template
 
 
 def get_all_controller_route_function(
@@ -579,8 +488,6 @@ class APIController:
         else:
             cls._api_controller = self
 
-        self._ensure_route_isolation(cls)
-
         assert isinstance(cls.throttling_classes, (list, tuple)), (
             f"Controller[{cls.__name__}].throttling_class must be a list or tuple"
         )
@@ -640,45 +547,6 @@ class APIController:
 
         ControllerRegistry().add_controller(cls)
         return cls
-
-    def _ensure_route_isolation(self, cls: Type["ControllerBase"]) -> None:
-        """
-        Ensure each controller subclass has its own copy of inherited route methods.
-
-        When a controller inherits route-decorated methods from a base class,
-        Python shares the same function object across all subclasses. This causes
-        route metadata mutations during registration to affect all subclasses,
-        resulting in URL resolution pointing to the wrong controller.
-
-        This method walks the MRO and creates per-subclass copies of inherited
-        route methods that haven't been explicitly overridden, ensuring each
-        controller maintains independent route metadata.
-
-        Example:
-            >>> class BaseController(ControllerBase):
-            ...     @http_get("/report")
-            ...     def report(self): ...
-            >>> 
-            >>> @api_controller("/alpha")
-            >>> class AlphaController(BaseController):
-            ...     pass  # gets its own copy of report()
-        """
-        for base_cls in cls.__mro__[1:]:
-            if base_cls in (ControllerBase, ABC, object):
-                continue
-
-            for attr_name, method in base_cls.__dict__.items():
-                # Skip if the subclass already overrides this method
-                if attr_name in cls.__dict__:
-                    continue
-
-                if hasattr(method, ROUTE_FUNCTION):
-                    cloned_func = _copy_route_enabled_function(method)
-                    cloned_func.__qualname__ = f"{cls.__qualname__}.{attr_name}"
-                    _attach_route_metadata(
-                        cloned_func, getattr(method, ROUTE_FUNCTION)
-                    )
-                    setattr(cls, attr_name, cloned_func)
 
     @property
     def path_operations(self) -> Dict[str, PathView]:
