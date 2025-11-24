@@ -3,9 +3,12 @@ import uuid
 
 from django.db.models import Model as DjangoModel
 from django.db.models import QuerySet
+from ninja import FilterSchema
+from ninja.constants import NOT_SET, NOT_SET_TYPE
 from ninja.pagination import PaginationBase
 from ninja.params import Body
 from ninja.signature import is_async
+from ninja.throttling import BaseThrottle
 from pydantic import BaseModel as PydanticModel
 
 from ninja_extra import status
@@ -95,6 +98,9 @@ class ModelEndpointFactory:
         schema_out: t.Type[PydanticModel],
         path: str = "/",
         status_code: int = status.HTTP_201_CREATED,
+        auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
+        response: t.Any = NOT_SET,
         url_name: t.Optional[str] = None,
         custom_handler: t.Optional[t.Callable[..., t.Any]] = None,
         description: t.Optional[str] = None,
@@ -129,7 +135,9 @@ class ModelEndpointFactory:
 
             return route.post(
                 working_path,
-                response={status_code: schema_out},
+                response=response
+                if response is not NOT_SET
+                else {status_code: schema_out},
                 url_name=url_name,
                 description=description,
                 operation_id=operation_id,
@@ -143,6 +151,8 @@ class ModelEndpointFactory:
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                auth=auth,
+                throttle=throttle,
             )(create_item)
 
         return ModelEndpointFunction(view_fun_setup=_setup)
@@ -155,6 +165,9 @@ class ModelEndpointFactory:
         schema_in: t.Type[PydanticModel],
         schema_out: t.Type[PydanticModel],
         status_code: int = status.HTTP_200_OK,
+        auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
+        response: t.Any = NOT_SET,
         url_name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
@@ -192,7 +205,9 @@ class ModelEndpointFactory:
             )
             return route.put(
                 working_path,
-                response={status_code: schema_out},
+                response=response
+                if response is not NOT_SET
+                else {status_code: schema_out},
                 url_name=url_name,
                 description=description,
                 operation_id=operation_id,
@@ -206,6 +221,8 @@ class ModelEndpointFactory:
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                auth=auth,
+                throttle=throttle,
             )(update_item)
 
         return ModelEndpointFunction(_setup)
@@ -218,6 +235,9 @@ class ModelEndpointFactory:
         schema_in: t.Type[PydanticModel],
         schema_out: t.Type[PydanticModel],
         status_code: int = status.HTTP_200_OK,
+        auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
+        response: t.Any = NOT_SET,
         url_name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
@@ -255,7 +275,9 @@ class ModelEndpointFactory:
             )
             return route.patch(
                 working_path,
-                response={status_code: schema_out},
+                response=response
+                if response is not NOT_SET
+                else {status_code: schema_out},
                 url_name=url_name,
                 description=description,
                 operation_id=operation_id,
@@ -269,6 +291,8 @@ class ModelEndpointFactory:
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                auth=auth,
+                throttle=throttle,
             )(patch_item)
 
         return ModelEndpointFunction(_setup)
@@ -280,6 +304,9 @@ class ModelEndpointFactory:
         lookup_param: str,
         schema_out: t.Type[PydanticModel],
         status_code: int = status.HTTP_200_OK,
+        auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
+        response: t.Any = NOT_SET,
         url_name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
@@ -313,7 +340,9 @@ class ModelEndpointFactory:
             )
             return route.get(
                 working_path,
-                response={status_code: schema_out},
+                response=response
+                if response is not NOT_SET
+                else {status_code: schema_out},
                 url_name=url_name,
                 description=description,
                 operation_id=operation_id,
@@ -327,6 +356,8 @@ class ModelEndpointFactory:
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                auth=auth,
+                throttle=throttle,
             )(get_item)
 
         return ModelEndpointFunction(_setup)
@@ -337,6 +368,9 @@ class ModelEndpointFactory:
         schema_out: t.Type[PydanticModel],
         path: str = "/",
         status_code: int = status.HTTP_200_OK,
+        auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
+        response: t.Any = NOT_SET,
         url_name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         operation_id: t.Optional[str] = None,
@@ -359,6 +393,7 @@ class ModelEndpointFactory:
         pagination_class: t.Optional[
             t.Type[PaginationBase]
         ] = PageNumberPaginationExtra,
+        filter_schema: t.Optional[t.Type[FilterSchema]] = None,
         **paginate_kwargs: t.Any,
     ) -> ModelEndpointFunction:
         """
@@ -375,10 +410,14 @@ class ModelEndpointFactory:
             )
 
             if pagination_response_schema and pagination_class:
-                list_items = paginate(pagination_class, **paginate_kwargs)(list_items)
+                list_items = paginate(
+                    pagination_class, filter_schema=filter_schema, **paginate_kwargs
+                )(list_items)
                 return route.get(
                     working_path,
-                    response={
+                    response=response
+                    if response is not NOT_SET
+                    else {
                         status_code: pagination_response_schema[schema_out]  # type:ignore[index]
                     },
                     url_name=url_name,
@@ -394,11 +433,15 @@ class ModelEndpointFactory:
                     include_in_schema=include_in_schema,
                     permissions=permissions,
                     openapi_extra=openapi_extra,
+                    auth=auth,
+                    throttle=throttle,
                 )(list_items)
 
             return route.get(
                 working_path,
-                response={status_code: t.List[schema_out]},  # type:ignore[valid-type]
+                response=response
+                if response is not NOT_SET
+                else {status_code: t.List[schema_out]},  # type:ignore[valid-type]
                 url_name=url_name,
                 description=description,
                 operation_id=operation_id,
@@ -412,6 +455,8 @@ class ModelEndpointFactory:
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                auth=auth,
+                throttle=throttle,
             )(list_items)
 
         return ModelEndpointFunction(_setup)
@@ -422,6 +467,9 @@ class ModelEndpointFactory:
         path: str,
         lookup_param: str,
         status_code: int = status.HTTP_204_NO_CONTENT,
+        auth: t.Any = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
+        response: t.Any = NOT_SET,
         url_name: t.Optional[str] = None,
         description: t.Optional[str] = None,
         object_getter: t.Optional[t.Callable[..., DjangoModel]] = None,
@@ -460,7 +508,7 @@ class ModelEndpointFactory:
             return route.delete(
                 working_path,
                 url_name=url_name,
-                response={status_code: str},
+                response=response if response is not NOT_SET else {status_code: None},
                 description=description,
                 operation_id=operation_id,
                 summary=summary,
@@ -473,6 +521,8 @@ class ModelEndpointFactory:
                 include_in_schema=include_in_schema,
                 permissions=permissions,
                 openapi_extra=openapi_extra,
+                auth=auth,
+                throttle=throttle,
             )(delete_item)
 
         return ModelEndpointFunction(_setup)

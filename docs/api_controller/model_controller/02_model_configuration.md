@@ -128,9 +128,134 @@ class EventModelController(ModelControllerBase):
     )
 ```
 
+### **Pagination with Filtering**
+
+You can combine pagination with Django Ninja's `FilterSchema` to automatically add filtering capabilities to your Model Controller's list endpoint:
+
+```python
+from typing import Optional
+from ninja import FilterSchema
+from ninja_extra import ModelConfig, ModelPagination
+from ninja_extra.pagination import PageNumberPaginationExtra
+
+# Define a FilterSchema for your model
+class EventFilterSchema(FilterSchema):
+    title: Optional[str] = None
+    category: Optional[str] = None
+    start_date__gte: Optional[str] = None
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        pagination=ModelPagination(
+            klass=PageNumberPaginationExtra,
+            filter_schema=EventFilterSchema,  # Add filtering support
+            paginator_kwargs={"page_size": 25}
+        )
+    )
+```
+
+This configuration automatically applies the `FilterSchema` to the list endpoint, allowing users to filter results:
+
+```
+GET /api/events/?title=Conference&category=Tech&page=1&page_size=25
+```
+
+### **Advanced Filtering with Custom Lookups**
+
+Use Django Ninja's `FilterLookup` annotation for more sophisticated filtering:
+
+```python
+from typing import Annotated, Optional
+from ninja import FilterSchema, FilterLookup
+
+class AdvancedEventFilterSchema(FilterSchema):
+    # Case-insensitive search
+    title: Annotated[Optional[str], FilterLookup("title__icontains")] = None
+    
+    # Date range filtering
+    start_date_after: Annotated[Optional[str], FilterLookup("start_date__gte")] = None
+    start_date_before: Annotated[Optional[str], FilterLookup("start_date__lte")] = None
+    
+    # Related field filtering
+    category: Annotated[Optional[str], FilterLookup("category__name__iexact")] = None
+    
+    # Multiple field search
+    search: Annotated[
+        Optional[str],
+        FilterLookup([
+            "title__icontains",
+            "description__icontains",
+            "location__icontains"
+        ])
+    ] = None
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        pagination=ModelPagination(
+            klass=PageNumberPaginationExtra,
+            filter_schema=AdvancedEventFilterSchema,
+            paginator_kwargs={"page_size": 50}
+        )
+    )
+```
+
+!!! info "Learn More About FilterSchema"
+    For comprehensive documentation on FilterSchema features, custom expressions, combining filters, and advanced filtering techniques, visit: [https://django-ninja.dev/guides/input/filtering/](https://django-ninja.dev/guides/input/filtering/)
+
 ## **Route Configuration**
 
-You can customize individual route behavior using route info dictionaries:
+You can customize individual route behavior using route info dictionaries. Each route type (`create_route_info`, `list_route_info`, `find_one_route_info`, `update_route_info`, `patch_route_info`, `delete_route_info`) accepts various configuration parameters.
+
+### **Common Route Parameters**
+
+All route types support these common parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `path` | `str` | varies by route | Custom path for the route |
+| `status_code` | `int` | varies by route | HTTP status code for successful responses |
+| `auth` | `Any` | NOT_SET | Authentication class or instance |
+| `throttle` | `BaseThrottle \| List[BaseThrottle]` | NOT_SET | Throttle class(es) for rate limiting |
+| `response` | `Any` | NOT_SET | Custom response configuration |
+| `url_name` | `str \| None` | None | Django URL name for the route |
+| `description` | `str \| None` | None | Detailed description for OpenAPI docs |
+| `operation_id` | `str \| None` | None | Custom operation ID for OpenAPI |
+| `summary` | `str \| None` | varies by route | Short summary for OpenAPI docs |
+| `tags` | `List[str] \| None` | None | Tags for grouping in OpenAPI docs |
+| `deprecated` | `bool \| None` | None | Mark route as deprecated in OpenAPI |
+| `by_alias` | `bool` | False | Use schema field aliases in response |
+| `exclude_unset` | `bool` | False | Exclude unset fields from response |
+| `exclude_defaults` | `bool` | False | Exclude fields with default values |
+| `exclude_none` | `bool` | False | Exclude None fields from response |
+| `include_in_schema` | `bool` | True | Include route in OpenAPI schema |
+| `permissions` | `List[BasePermission]` | None | Permission classes for the route |
+| `openapi_extra` | `Dict[str, Any] \| None` | None | Extra OpenAPI schema properties |
+
+### **Route-Specific Parameters**
+
+#### **Create Route (`create_route_info`)**
+- `custom_handler`: Custom handler function to override default create logic
+
+#### **Update/Patch Routes (`update_route_info`, `patch_route_info`)**
+- `object_getter`: Custom function to retrieve the object
+- `custom_handler`: Custom handler function to override default update/patch logic
+
+#### **Find One Route (`find_one_route_info`)**
+- `object_getter`: Custom function to retrieve the object
+
+#### **Delete Route (`delete_route_info`)**
+- `object_getter`: Custom function to retrieve the object
+- `custom_handler`: Custom handler function to override default delete logic
+
+#### **List Route (`list_route_info`)**
+- `queryset_getter`: Custom function to retrieve the queryset
+- `pagination_response_schema`: Custom pagination response schema
+
+### **Basic Example**
 
 ```python
 @api_controller("/events")
@@ -148,12 +273,62 @@ class EventModelController(ModelControllerBase):
             "summary": "List all events",
             "description": "Retrieves a paginated list of all events",
             "tags": ["events"],
-            "schema_out": CustomListSchema,
         },
         find_one_route_info={
             "summary": "Get event details",
             "description": "Retrieves details of a specific event",
             "tags": ["events"],
+        }
+    )
+```
+
+### **Advanced Configuration Example**
+
+```python
+from ninja_extra import status
+from ninja_extra.permissions import IsAuthenticated, IsAdminUser
+from ninja_extra.throttling import AnonRateThrottle
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        create_route_info={
+            "summary": "Create a new event",
+            "description": "Creates a new event with the provided data",
+            "tags": ["events", "management"],
+            "status_code": status.HTTP_201_CREATED,
+            "permissions": [IsAuthenticated],
+            "throttle": AnonRateThrottle(),
+            "exclude_none": True,
+            "openapi_extra": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "example1": {
+                                    "summary": "Conference event",
+                                    "value": {
+                                        "title": "Tech Conference 2024",
+                                        "start_date": "2024-06-01",
+                                        "end_date": "2024-06-03"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        update_route_info={
+            "summary": "Update event",
+            "permissions": [IsAuthenticated, IsAdminUser],
+            "exclude_unset": True,
+        },
+        delete_route_info={
+            "summary": "Delete an event",
+            "permissions": [IsAdminUser],
+            "status_code": status.HTTP_204_NO_CONTENT,
         }
     )
 ```
@@ -219,7 +394,13 @@ class EventModelController(ModelControllerBase):
     - Consider your data size when choosing pagination class
     - Use appropriate page sizes for your use case
 
-4. **Async Support**:
+4. **Filtering**:
+    - Use `FilterSchema` to provide flexible filtering on list endpoints
+    - Leverage `FilterLookup` for complex database lookups (e.g., `__icontains`, `__gte`)
+    - Consider indexing filtered fields in your database for performance
+    - Document available filters in your API documentation
+
+5. **Async Support**:
     - Enable `async_routes` when using async database operations
     - Implement custom async services for complex operations
     - Consider performance implications of async operations 

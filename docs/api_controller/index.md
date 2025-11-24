@@ -43,6 +43,10 @@ The fourth argument, `permissions`, is a list of all permissions that should be 
 
 The fifth argument, `auto_import`, defaults to true, which automatically adds your controller to auto import list.
 
+The sixth argument, `urls_namespace`, defaults to `Controller Class Name`, or if set will nest the routes of this controller under their own namespace.
+
+The seventh argument, `use_unique_op_id`, defaults to true, which appends a unique operation id suffix to the controller's routes to avoid conflicts.
+
 for example:
 
 ```python

@@ -1,4 +1,5 @@
 import logging
+import warnings
 from importlib import import_module
 from typing import (
     Any,
@@ -59,6 +60,18 @@ class NinjaExtraAPI(NinjaAPI):
         app_name: str = "ninja",
         **kwargs: Any,
     ) -> None:
+        # add a warning if there csrf is True
+        if csrf:
+            (
+                warnings.warn(
+                    (
+                        "CSRF is deprecated and will be removed in a future version"
+                        "see https://django-ninja.dev/reference/csrf for more details."
+                    ),
+                    DeprecationWarning,
+                    stacklevel=2,
+                ),
+            )
         super(NinjaExtraAPI, self).__init__(
             title=title,
             version=version,
@@ -66,7 +79,6 @@ class NinjaExtraAPI(NinjaAPI):
             openapi_url=openapi_url,
             docs_url=docs_url,
             urls_namespace=urls_namespace,
-            csrf=csrf,
             auth=auth,
             renderer=renderer,
             parser=parser,

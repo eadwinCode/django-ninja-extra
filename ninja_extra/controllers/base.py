@@ -27,7 +27,7 @@ from typing import (
 
 from django.db.models import Model, QuerySet
 from django.http import HttpResponse
-from django.urls import URLPattern
+from django.urls import URLPattern, URLResolver, include
 from django.urls import path as django_path
 from injector import inject, is_decorated_with_inject
 from ninja import NinjaAPI, Router
@@ -39,7 +39,7 @@ from ninja.utils import normalize_path
 
 from ninja_extra.constants import ROUTE_FUNCTION, THROTTLED_FUNCTION, THROTTLED_OBJECTS
 from ninja_extra.context import RouteContext
-from ninja_extra.exceptions import APIException, NotFound, PermissionDenied, bad_request
+from ninja_extra.exceptions import APIException, NotFound, PermissionDenied
 from ninja_extra.helper import get_function_name
 from ninja_extra.operation import Operation, PathView
 from ninja_extra.permissions import (
@@ -58,7 +58,6 @@ from ninja_extra.shortcuts import (
 
 from .model import ModelConfig, ModelControllerBuilder, ModelService
 from .registry import ControllerRegistry
-from .response import Detail, Id, Ok
 from .route.route_functions import AsyncRouteFunction, RouteFunction
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -150,11 +149,6 @@ class ControllerBase:
     context: Optional["RouteContext"] = None
     throttling_classes: List[Type["BaseThrottle"]] = []
     throttling_init_kwargs: Optional[Dict[Any, Any]] = None
-
-    Ok = Ok  # TODO: remove soonest
-    Id = Id  # TODO: remove soonest
-    Detail = Detail  # TODO: remove soonest
-    bad_request = bad_request  # TODO: remove soonest
 
     @classmethod
     def get_api_controller(cls) -> "APIController":
@@ -409,13 +403,18 @@ class APIController:
         tags: Union[Optional[List[str]], str] = None,
         permissions: Optional[List[BasePermissionType]] = None,
         auto_import: bool = True,
+        urls_namespace: Optional[str] = None,
+        use_unique_op_id: bool = True,
     ) -> None:
         self.prefix = prefix
+        # Optional controller-level URL namespace. Applied to all route paths.
+        self.urls_namespace = urls_namespace or None
         # `auth` primarily defines APIController route function global authentication method.
         self.auth: Optional[AuthBase] = auth
 
         self.tags = tags  # type: ignore
         self.throttle = throttle
+        self.use_unique_op_id = use_unique_op_id
 
         self.auto_import: bool = auto_import  # set to false and it would be ignored when api.auto_discover is called
         # `controller_class` target class that the APIController wraps
@@ -497,12 +496,14 @@ class APIController:
                 item(**throttling_init_kwargs) for item in cls.throttling_classes
             ]
 
+        class_name = str(cls.__name__).lower().replace("controller", "")
         if not self.tags:
-            tag = str(cls.__name__).lower().replace("controller", "")
-            self.tags = [tag]
+            self.tags = [class_name]
 
         self._controller_class = cls
-
+        # if not self.urls_namespace:
+        #     # if urls_namespace is not provided, use the class name as the namespace
+        #     self.urls_namespace = class_name
         if issubclass(cls, ModelControllerBase):
             if cls.model_config:
                 assert cls.service_type is not None, (
@@ -520,8 +521,6 @@ class APIController:
                         DeprecationWarning,
                         stacklevel=2,
                     )
-                # if not hasattr(cls, "service"):
-                #     cls.service = ModelService(cls.model_config.model)
 
         compute_api_route_function(cls, self)
 
@@ -561,16 +560,34 @@ class APIController:
             get_function_name(route_function.route.view_func)
         ] = route_function
 
-    def urls_paths(self, prefix: str) -> Iterator[URLPattern]:
+    def urls_paths(self, prefix: str) -> Iterator[Union[URLPattern, URLResolver]]:
+        namespaced_patterns: List[URLPattern] = []
+
         for path, path_view in self.path_operations.items():
             path = path.replace("{", "<").replace("}", ">")
             route = "/".join([i for i in (prefix, path) if i])
             # to skip lot of checks we simply treat double slash as a mistake:
             route = normalize_path(route)
             route = route.lstrip("/")
+
             for op in path_view.operations:
                 op = cast(Operation, op)
-                yield django_path(route, path_view.get_view(), name=op.url_name)
+                view = path_view.get_view()
+                pattern = django_path(route, view, name=op.url_name)
+
+                if self.urls_namespace:
+                    namespaced_patterns.append(pattern)
+                else:
+                    yield pattern
+
+        if namespaced_patterns and self.urls_namespace:
+            yield django_path(
+                "",
+                include(
+                    (namespaced_patterns, self.urls_namespace),
+                    namespace=self.urls_namespace,
+                ),
+            )
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<controller - {self.controller_class.__name__}>"
@@ -584,7 +601,13 @@ class APIController:
             controller_name = (
                 str(self.controller_class.__name__).lower().replace("controller", "")
             )
-            route_function.route.route_params.operation_id = f"{controller_name}_{route_function.route.view_func.__name__}_{str(uuid.uuid4())[:8]}"
+            route_function.route.route_params.operation_id = (
+                f"{controller_name}_{route_function.route.view_func.__name__}"
+            )
+            if self.use_unique_op_id:
+                route_function.route.route_params.operation_id += (
+                    f"_{uuid.uuid4().hex[:8]}"
+                )
 
         if (
             self.auth
@@ -598,6 +621,8 @@ class APIController:
                 f"endpoint={get_function_name(route_function.route.view_func)}"
             )
         data = route_function.route.route_params.dict()
+        if not data.get("url_name"):
+            data["url_name"] = get_function_name(route_function.route.view_func)
         route_function.operation = self.add_api_operation(
             view_func=route_function.as_view, **data
         )
@@ -671,6 +696,8 @@ def api_controller(
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
+    urls_namespace: Optional[str] = None,
+    use_unique_op_id: bool = True,
 ) -> Callable[
     [Union[Type, Type[T]]], Union[Type[ControllerBase], Type[T]]
 ]:  # pragma: no cover
@@ -678,12 +705,14 @@ def api_controller(
 
 
 def api_controller(
-    prefix_or_class: Union[str, Union[ControllerClassType, Type]] = "",
+    prefix_or_class: Union[str, ControllerClassType] = "",
     auth: Any = NOT_SET,
     throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
     tags: Union[Optional[List[str]], str] = None,
     permissions: Optional[List[BasePermissionType]] = None,
     auto_import: bool = True,
+    urls_namespace: Optional[str] = None,
+    use_unique_op_id: bool = True,
 ) -> Union[ControllerClassType, Callable[[ControllerClassType], ControllerClassType]]:
     if isinstance(prefix_or_class, type):
         return APIController(
@@ -693,6 +722,8 @@ def api_controller(
             permissions=permissions,
             auto_import=auto_import,
             throttle=throttle,
+            use_unique_op_id=use_unique_op_id,
+            urls_namespace=urls_namespace,
         )(prefix_or_class)
 
     def _decorator(cls: ControllerClassType) -> ControllerClassType:
@@ -703,6 +734,8 @@ def api_controller(
             permissions=permissions,
             auto_import=auto_import,
             throttle=throttle,
+            use_unique_op_id=use_unique_op_id,
+            urls_namespace=urls_namespace,
         )(cls)
 
     return _decorator

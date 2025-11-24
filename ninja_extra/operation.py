@@ -20,7 +20,6 @@ from django.http import HttpRequest
 from django.http.response import HttpResponse, HttpResponseBase
 from django.utils.encoding import force_str
 from ninja.constants import NOT_SET, NOT_SET_TYPE
-from ninja.errors import AuthenticationError
 from ninja.operation import (
     AsyncOperation as NinjaAsyncOperation,
 )
@@ -33,7 +32,6 @@ from ninja.operation import (
 from ninja.signature import is_async
 from ninja.throttling import BaseThrottle
 from ninja.types import TCallable
-from ninja.utils import check_csrf
 
 from ninja_extra.compatible import asynccontextmanager
 from ninja_extra.constants import ROUTE_CONTEXT_VAR
@@ -254,45 +252,6 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             Callable,
             sync_to_async(super()._result_to_response),
         )
-
-    async def _run_checks(self, request: HttpRequest) -> Optional[HttpResponse]:  # type: ignore
-        """Runs security checks for each operation"""
-        # csrf:
-        if self.api.csrf:
-            error = check_csrf(request, self.view_func)
-            if error:
-                return error
-
-        # auth:
-        if self.auth_callbacks:
-            error = await self._run_authentication(request)  # type: ignore[assignment]
-            if error:
-                return error
-
-        # Throttling:
-        if self.throttle_objects:
-            error = self._check_throttles(request)  # type: ignore
-            if error:
-                return error
-
-        return None
-
-    async def _run_authentication(self, request: HttpRequest) -> Optional[HttpResponse]:  # type: ignore
-        for callback in self.auth_callbacks:
-            try:
-                is_coroutine = getattr(callback, "is_coroutine", False)
-                if is_coroutine:
-                    result = await callback(request)
-                else:
-                    result = callback(request)
-            except Exception as exc:
-                return self.api.on_exception(request, exc)
-
-            if result:
-                request.auth = result  # type: ignore
-                return None
-
-        return self.api.on_exception(request, AuthenticationError())
 
     @asynccontextmanager
     async def _prep_run(  # type:ignore

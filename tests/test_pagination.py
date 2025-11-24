@@ -3,7 +3,7 @@ import typing
 
 import django
 import pytest
-from ninja import NinjaAPI, Schema
+from ninja import FilterSchema, NinjaAPI, Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
 from ninja_extra.controllers import RouteFunction
@@ -35,6 +35,9 @@ class FakeQuerySet(typing.Sequence):
         for item in self.items:
             yield item
 
+    def filter(self, **kwargs):
+        return FakeQuerySet(self.items)
+
 
 class CustomPagination(PaginationBase):
     # only offset param, defaults to 5 per page
@@ -44,6 +47,28 @@ class CustomPagination(PaginationBase):
     def paginate_queryset(self, items, request, **params):
         skip = params["pagination"].skip
         return items[skip : skip + 5]
+
+
+# Mock data for filter testing
+class Book:
+    def __init__(self, id, name, author, price):
+        self.id = id
+        self.name = name
+        self.author = author
+        self.price = price
+
+
+BOOKS = [
+    Book(1, "Book One", "Author A", 10),
+    Book(2, "Book Two", "Author B", 20),
+    Book(3, "Book Three", "Author A", 15),
+    Book(4, "Book Four", "Author C", 25),
+]
+
+
+class BookFilterSchema(FilterSchema):
+    name: typing.Optional[str] = None
+    author: typing.Optional[str] = None
 
 
 @api_controller
@@ -83,6 +108,11 @@ class SomeAPIController:
     @paginate()
     def items_7(self):
         return (404, {"message": "Not Found"})
+
+    @route.get("/items_8")
+    @paginate(PageNumberPaginationExtra, filter_schema=BookFilterSchema, page_size=10)
+    def items_8_with_filter(self):
+        return FakeQuerySet(BOOKS)
 
 
 api = NinjaExtraAPI()
@@ -305,6 +335,25 @@ class TestPagination:
         response = client.get("/items_7?page=1")
         assert response.status_code == 404
         assert response.json() == {"message": "Not Found"}
+
+    def test_filter_schema_integration(self):
+        """Test that filter_schema is properly integrated with paginate decorator"""
+
+        # Test the paginate decorator directly with filter_schema
+        @paginate(
+            PageNumberPaginationExtra, filter_schema=BookFilterSchema, page_size=10
+        )
+        def test_view(request):
+            return ITEMS
+
+        # Check that the decorated function has paginator_operation attribute
+        assert hasattr(test_view, "paginator_operation")
+        paginator_operation = test_view.paginator_operation
+
+        # Verify filter_schema is stored correctly
+        assert isinstance(paginator_operation, PaginatorOperation)
+        assert paginator_operation.filter_schema == BookFilterSchema
+        assert paginator_operation.filter_kwargs_name == "filters"
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")

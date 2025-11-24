@@ -155,6 +155,9 @@ class ModelControllerBuilder:
             )
             if self._config.pagination.paginator_kwargs:  # pragma: no cover
                 paginate_kwargs.update(self._config.pagination.paginator_kwargs)
+            # Add filter_schema if provided
+            if self._config.pagination.filter_schema:
+                paginate_kwargs["filter_schema"] = self._config.pagination.filter_schema
 
         list_items = self._route_factory.list(
             path="/",

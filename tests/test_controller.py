@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import django
 import pytest
 from django.contrib.auth.models import Group
+from django.urls import reverse
 
 from ninja_extra import (
     NinjaExtraAPI,
@@ -65,6 +66,20 @@ class SomeControllerWithRoute:
 @api_controller("", tags=["new tag"])
 class DisableAutoImportController:
     auto_import = False  # disable auto_import of the controller
+
+
+@api_controller
+class SomeControllerWithSingleRoute:
+    @http_get("/example")
+    def example(self):
+        pass
+
+
+@api_controller(use_unique_op_id=False)
+class SomeControllerWithoutUniqueSuffix:
+    @http_get("/example")
+    def example(self):
+        pass
 
 
 class TestAPIController:
@@ -142,6 +157,43 @@ class TestAPIController:
         operation = path_view.operations[0]
         assert operation.methods == route_function.route.route_params.methods
         assert operation.operation_id == route_function.route.route_params.operation_id
+
+    def test_controller_should_append_unique_op_id_to_operation_id(self):
+        _api_controller = SomeControllerWithSingleRoute.get_api_controller()
+        controller_name = (
+            str(_api_controller.controller_class.__name__)
+            .lower()
+            .replace("controller", "")
+        )
+        route_view_func_name: RouteFunction = get_route_function(
+            SomeControllerWithRoute().example
+        ).route.view_func.__name__
+
+        operation_id = (
+            _api_controller._path_operations.get("/example").operations[0].operation_id
+        )
+        raw_operation_id = "_".join(operation_id.split("_")[:-1])
+        op_id_postfix = operation_id.split("_")[-1]
+
+        assert raw_operation_id == f"{controller_name}_{route_view_func_name}"
+        assert len(op_id_postfix) == 8
+
+    def test_controller_should_not_add_unique_suffix_following_params(self):
+        _api_controller = SomeControllerWithoutUniqueSuffix.get_api_controller()
+        controller_name = (
+            str(_api_controller.controller_class.__name__)
+            .lower()
+            .replace("controller", "")
+        )
+        route_view_func_name: RouteFunction = get_route_function(
+            SomeControllerWithRoute().example
+        ).route.view_func.__name__
+
+        operation_id = (
+            _api_controller._path_operations.get("/example").operations[0].operation_id
+        )
+
+        assert operation_id == f"{controller_name}_{route_view_func_name}"
 
     def test_get_route_function_should_return_instance_route_definitions(self):
         for route_definition in get_route_functions(SomeControllerWithRoute):
@@ -308,3 +360,24 @@ def test_async_controller():
         example_route_function.operation.auth_callbacks[0],
         AsyncFakeAuth,
     )
+
+
+def test_namespaced_controller_list(client):
+    response = client.get("/api/inventory-items")
+    assert response.status_code == 200
+    assert response.json() == [{"id": 1, "name": "sample"}]
+    assert reverse("api-1.0.0:inventory:inventory-item-list") == "/api/inventory-items"
+
+
+def test_namespaced_controller_detail(client):
+    response = client.get("/api/inventory-items/5")
+    assert response.status_code == 200
+    assert response.json() == {"id": 5, "name": "sample-5"}
+    assert (
+        reverse("api-1.0.0:inventory:inventory-item-detail", kwargs={"item_id": 5})
+        == "/api/inventory-items/5"
+    )
+
+
+def test_default_url_name(client):
+    assert reverse("api-1.0.0:get_event", kwargs={"id": 5}) == "/api/events/5"
