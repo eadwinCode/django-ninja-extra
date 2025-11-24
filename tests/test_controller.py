@@ -88,12 +88,12 @@ class ReportControllerBase(ControllerBase):
         return {"controller": type(self).__name__}
 
 
-@api_controller("/alpha")
+@api_controller("/alpha", urls_namespace="alpha")
 class AlphaReportController(ReportControllerBase):
     pass
 
 
-@api_controller("/beta")
+@api_controller("/beta", urls_namespace="beta")
 class BetaReportController(ReportControllerBase):
     pass
 

@@ -1,8 +1,9 @@
 from json import dumps as json_dumps
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Type, Union
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
+from django.urls import Resolver404
 from ninja import NinjaAPI, Router
 from ninja.responses import NinjaJSONEncoder
 from ninja.testing.client import NinjaClientBase, NinjaResponse
@@ -41,6 +42,20 @@ class NinjaExtraClientBase(NinjaClientBase):
             method, path, {} if data is None else data, request_params
         )
         return self._call(func, request, kwargs)  # type: ignore
+
+    def _resolve(
+        self, method: str, path: str, data: Dict, request_params: Any
+    ) -> Tuple[Callable, Mock, Dict]:
+        url_path = path.split("?")[0].lstrip("/")
+        for url in self.urls:
+            try:
+                match = url.resolve(url_path)
+            except Resolver404:
+                continue
+            if match:
+                request = self._build_request(method, path, data, request_params)
+                return match.func, request, match.kwargs
+        raise Exception(f'Cannot resolve "{path}"')
 
 
 class TestClient(NinjaExtraClientBase):
