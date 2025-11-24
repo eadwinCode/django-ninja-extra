@@ -82,6 +82,22 @@ class SomeControllerWithoutUniqueSuffix:
         pass
 
 
+class ReportControllerBase(ControllerBase):
+    @http_get("")
+    def report(self):
+        return {"controller": type(self).__name__}
+
+
+@api_controller("/alpha")
+class AlphaReportController(ReportControllerBase):
+    pass
+
+
+@api_controller("/beta")
+class BetaReportController(ReportControllerBase):
+    pass
+
+
 class TestAPIController:
     def test_api_controller_as_decorator(self):
         controller_type = api_controller("prefix", tags="new_tag", auth=FakeAuth())(
@@ -319,6 +335,49 @@ class TestAPIController:
             with patch.object(AllowAny, "has_object_permission", return_value=False):
                 await controller_object.aget_object_or_none(Group, id=group_instance.id)
                 assert isinstance(ex, exceptions.PermissionDenied)
+
+
+def test_controller_subclass_routes_remain_isolated():
+    api = NinjaExtraAPI()
+    api.register_controllers(AlphaReportController)
+    api.register_controllers(BetaReportController)
+    client = testing.TestClient(api)
+
+    alpha_response = client.get("/alpha")
+    beta_response = client.get("/beta")
+
+    assert alpha_response.status_code == 200
+    assert beta_response.status_code == 200
+    assert alpha_response.json() == {"controller": "AlphaReportController"}
+    assert beta_response.json() == {"controller": "BetaReportController"}
+
+
+def test_controller_multi_level_inheritance_routes_isolated():
+    """Test that route isolation works with multi-level inheritance."""
+    # Middle layer doesn't override the route
+    class MiddleReportController(ReportControllerBase):
+        pass
+
+    @api_controller("/gamma")
+    class GammaReportController(MiddleReportController):
+        pass
+
+    @api_controller("/delta")
+    class DeltaReportController(MiddleReportController):
+        pass
+
+    api = NinjaExtraAPI()
+    api.register_controllers(GammaReportController)
+    api.register_controllers(DeltaReportController)
+    client = testing.TestClient(api)
+
+    gamma_response = client.get("/gamma")
+    delta_response = client.get("/delta")
+
+    assert gamma_response.status_code == 200
+    assert delta_response.status_code == 200
+    assert gamma_response.json() == {"controller": "GammaReportController"}
+    assert delta_response.json() == {"controller": "DeltaReportController"}
 
 
 def test_controller_registration_through_string():
