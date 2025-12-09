@@ -41,9 +41,9 @@ class ModelPagination(PydanticModel):
     Model Controller Pagination Configuration
     """
 
-    klass: t.Optional[t.Type[PaginationBase]] = PageNumberPaginationExtra
+    klass: t.Type[PaginationBase] = PageNumberPaginationExtra
     paginator_kwargs: t.Optional[dict] = None
-    pagination_schema: t.Optional[t.Type[PydanticModel]] = PaginatedResponseSchema
+    pagination_schema: t.Type[PydanticModel] = PaginatedResponseSchema
     filter_schema: t.Optional[t.Type[FilterSchema]] = None
 
     @field_validator("pagination_schema", mode="before")
