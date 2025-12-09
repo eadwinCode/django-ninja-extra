@@ -65,20 +65,6 @@ class EventModelControllerDifferentPagination(ModelControllerBase):
     )
 
 
-@api_controller("/event-case-5")
-class EventModelControllerWithoutPagination(ModelControllerBase):
-    model_config = ModelConfig(
-        allowed_routes=[
-            "list",
-        ],
-        model=Event,
-        retrieve_schema=EventSchema,
-        pagination=ModelPagination(
-            klass=None,
-        ),
-    )
-
-
 @api_controller("/event-case-4")
 class EventModelControllerRetrieveAndList(ModelControllerBase):
     model_config = ModelConfig(
