@@ -5,7 +5,20 @@ from .samples import (
     EventModelControllerDifferentPagination,
     EventModelControllerRetrieveAndList,
     EventModelControllerWithDefinedSchema,
+    EventModelControllerWithoutPagination,
 )
+
+
+def test_event_model_open_api_schema_case_5():
+    api = NinjaExtraAPI()
+    api.register_controllers(EventModelControllerWithoutPagination)
+    schema = api.get_openapi_schema()
+
+    assert "get" in schema["paths"]["/api/event-case-5/"]
+    assert schema["paths"]["/api/event-case-5/"]["get"]["parameters"] == []
+    assert list(schema["components"]["schemas"].keys()) == [
+        "EventSchema",
+    ]
 
 
 def test_event_model_open_api_schema_case_3():
