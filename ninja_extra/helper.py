@@ -15,6 +15,17 @@ def get_function_name(func_class: t.Any) -> str:
 
 @t.no_type_check
 def get_route_function(func: t.Callable) -> t.Optional["RouteFunction"]:
-    if hasattr(func, ROUTE_FUNCTION):
-        return func.__dict__[ROUTE_FUNCTION]
-    return None  # pragma: no cover
+    controller_instance = getattr(func, "__self__", None)
+
+    if controller_instance is not None:
+        controller_class = controller_instance.__class__
+        api_controller = controller_class.get_api_controller()
+        return api_controller._controller_class_route_functions.get(func.__name__)
+
+    # Unbound function – return a clone of the template for introspection
+    underlying_func = getattr(func, "__func__", func)
+    route_template = getattr(underlying_func, ROUTE_FUNCTION, None)
+    if route_template is None:
+        return None  # pragma: no cover
+
+    return route_template.clone(underlying_func)
