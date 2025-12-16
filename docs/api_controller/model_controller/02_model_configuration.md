@@ -206,6 +206,64 @@ class EventModelController(ModelControllerBase):
 !!! info "Learn More About FilterSchema"
     For comprehensive documentation on FilterSchema features, custom expressions, combining filters, and advanced filtering techniques, visit: [https://django-ninja.dev/guides/input/filtering/](https://django-ninja.dev/guides/input/filtering/)
 
+### **Disabling Pagination**
+
+By default, Model Controllers apply pagination to the list endpoint. If you want to return all results without pagination, you can disable it by setting `pagination` to `None`:
+
+```python
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        pagination=None,  # Disables pagination
+    )
+```
+
+When pagination is disabled, the list endpoint will return all records in a single response:
+
+```python
+# Response structure without pagination
+[
+    {"id": 1, "title": "Event 1", ...},
+    {"id": 2, "title": "Event 2", ...},
+    {"id": 3, "title": "Event 3", ...},
+    # ... all records
+]
+```
+
+!!! warning "Performance Considerations"
+    Disabling pagination can lead to performance issues and large response payloads if your model has many records. Use this option only when:
+    
+    - You have a small, bounded dataset (e.g., less than 100 records)
+    - You need to return all records for client-side processing
+    - You're certain the dataset will remain small
+    
+    For large datasets, consider using pagination with a reasonable page size instead.
+
+You can also disable pagination while still using filtering:
+
+```python
+from typing import Optional
+from ninja import FilterSchema
+
+class EventFilterSchema(FilterSchema):
+    title: Optional[str] = None
+    category: Optional[str] = None
+
+@api_controller("/events")
+class EventModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Event,
+        pagination=None,  # No pagination, but filtering is still available
+    )
+    
+    # Override list method to apply filtering manually
+    def list(self, filters: EventFilterSchema):
+        queryset = self.model_config.model.objects.all()
+        queryset = filters.filter(queryset)
+        return [self.model_config.retrieve_schema.from_orm(obj) for obj in queryset]
+```
+
 ## **Route Configuration**
 
 You can customize individual route behavior using route info dictionaries. Each route type (`create_route_info`, `list_route_info`, `find_one_route_info`, `update_route_info`, `patch_route_info`, `delete_route_info`) accepts various configuration parameters.
