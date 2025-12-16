@@ -1,4 +1,3 @@
-import inspect
 import operator
 from typing import List
 
@@ -7,7 +6,9 @@ import pytest
 from ninja import Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
-from ninja_extra.constants import ROUTE_FUNCTION
+from ninja_extra.constants import SEARCH_OPERATOR_OBJECT
+from ninja_extra.controllers.utils import get_api_controller
+from ninja_extra.reflect import reflect
 from ninja_extra.searching import (
     AsyncSearcheratorOperation,
     SearcheratorOperation,
@@ -87,18 +88,21 @@ client = TestClient(SomeAPIController)
 @pytest.mark.django_db
 class TestSearch:
     def test_Search_operation_used(self):
-        some_api_route_functions = dict(
-            inspect.getmembers(
-                SomeAPIController, lambda member: hasattr(member, ROUTE_FUNCTION)
-            )
-        )
         has_kwargs = ("items_3", "items_4")
-        found_route_functions = False
+        api_controller_instance = get_api_controller(SomeAPIController)
 
-        for name, route_function in some_api_route_functions.items():
-            assert hasattr(route_function, "searcherator_operation")
-            searcherator_operation = route_function.searcherator_operation
+        found_route_functions = False
+        for (
+            name,
+            route_function,
+        ) in api_controller_instance._controller_class_route_functions.items():
+            assert reflect.has_metadata(SEARCH_OPERATOR_OBJECT, route_function.as_view)
+
+            searcherator_operation = reflect.get_metadata(
+                SEARCH_OPERATOR_OBJECT, route_function.as_view
+            )
             assert isinstance(searcherator_operation, SearcheratorOperation)
+
             if name in has_kwargs:
                 assert searcherator_operation.view_func_has_kwargs
             found_route_functions = True
@@ -269,18 +273,22 @@ class TestAsyncSearch:
         client = TestAsyncClient(AsyncSomeAPIController)
 
         async def test_Search_operation_used(self):
-            some_api_route_functions = dict(
-                inspect.getmembers(
-                    self.AsyncSomeAPIController,
-                    lambda member: hasattr(member, ROUTE_FUNCTION),
-                )
-            )
             has_kwargs = ("items_3", "items_4")
-            found_route_functions = False
 
-            for name, route_function in some_api_route_functions.items():
-                assert hasattr(route_function, "searcherator_operation")
-                searcherator_operation = route_function.searcherator_operation
+            api_controller_instance = get_api_controller(self.AsyncSomeAPIController)
+
+            found_route_functions = False
+            for (
+                name,
+                route_function,
+            ) in api_controller_instance._controller_class_route_functions.items():
+                assert reflect.has_metadata(
+                    SEARCH_OPERATOR_OBJECT, route_function.as_view
+                )
+
+                searcherator_operation = reflect.get_metadata(
+                    SEARCH_OPERATOR_OBJECT, route_function.as_view
+                )
                 assert isinstance(searcherator_operation, AsyncSearcheratorOperation)
                 if name in has_kwargs:
                     assert searcherator_operation.view_func_has_kwargs

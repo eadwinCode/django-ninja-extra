@@ -14,7 +14,9 @@ from django.http import HttpRequest
 from ninja import FilterSchema, Query
 from ninja.pagination import AsyncPaginationBase, PaginationBase
 
+from ninja_extra.constants import PAGINATOR_OBJECT
 from ninja_extra.context import RouteContext
+from ninja_extra.reflect import reflect
 from ninja_extra.shortcuts import add_ninja_contribute_args
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -58,7 +60,7 @@ class PaginatorOperation:
                     Query(...),
                 ),
             )
-        paginator_view.paginator_operation = self  # type:ignore[attr-defined]
+        reflect.define_metadata(PAGINATOR_OBJECT, self, paginator_view)
 
     @property
     def view_func_has_kwargs(self) -> bool:  # pragma: no cover
@@ -147,12 +149,15 @@ class AsyncPaginatorOperation(PaginatorOperation):
             params = dict(kw)
             params["request"] = request
             is_supported_async_orm = django.VERSION >= (4, 2)
-            paginate_queryset = (
-                self.paginator.apaginate_queryset
-                if isinstance(self.paginator, AsyncPaginationBase)
+            if (
+                isinstance(self.paginator, AsyncPaginationBase)
                 and is_supported_async_orm
-                else cast(Callable, sync_to_async(self.paginator.paginate_queryset))
-            )
+            ):
+                paginate_queryset = self.paginator.apaginate_queryset
+            else:
+                paginate_queryset = cast(
+                    Callable, sync_to_async(self.paginator.paginate_queryset)
+                )
             return await paginate_queryset(items, **params)
 
         return as_view

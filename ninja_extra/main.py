@@ -1,17 +1,6 @@
+import typing as t
 import warnings
 from importlib import import_module
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest, HttpResponse
@@ -27,12 +16,15 @@ from ninja.types import DictStrAny, TCallable
 
 from ninja_extra import exceptions, router
 from ninja_extra.compatible import NOT_SET_TYPE
+from ninja_extra.constants import API_CONTROLLER_INSTANCE
 from ninja_extra.controllers.base import APIController, ControllerBase
-from ninja_extra.controllers.registry import ControllerRegistry
+from ninja_extra.controllers.registry import controller_registry
 
 __all__ = [
     "NinjaExtraAPI",
 ]
+
+from ninja_extra.reflect import reflect
 
 
 class NinjaExtraAPI(NinjaAPI):
@@ -42,20 +34,22 @@ class NinjaExtraAPI(NinjaAPI):
         title: str = "NinjaExtraAPI",
         version: str = "1.0.0",
         description: str = "",
-        openapi_url: Optional[str] = "/openapi.json",
+        openapi_url: t.Optional[str] = "/openapi.json",
         docs: DocsBase = Swagger(),
-        docs_url: Optional[str] = "/docs",
-        docs_decorator: Optional[Callable[[TCallable], TCallable]] = None,
-        servers: Optional[List[DictStrAny]] = None,
-        urls_namespace: Optional[str] = None,
+        docs_url: t.Optional[str] = "/docs",
+        docs_decorator: t.Optional[t.Callable[[TCallable], TCallable]] = None,
+        servers: t.Optional[t.List[DictStrAny]] = None,
+        urls_namespace: t.Optional[str] = None,
         csrf: bool = False,
-        auth: Optional[Union[Sequence[Callable], Callable, NOT_SET_TYPE]] = NOT_SET,
-        throttle: Union[BaseThrottle, List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
-        renderer: Optional[BaseRenderer] = None,
-        parser: Optional[Parser] = None,
-        openapi_extra: Optional[Dict[str, Any]] = None,
+        auth: t.Optional[
+            t.Union[t.Sequence[t.Callable], t.Callable, NOT_SET_TYPE]
+        ] = NOT_SET,
+        throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
+        renderer: t.Optional[BaseRenderer] = None,
+        parser: t.Optional[Parser] = None,
+        openapi_extra: t.Optional[t.Dict[str, t.Any]] = None,
         app_name: str = "ninja",
-        **kwargs: Any,
+        **kwargs: t.Any,
     ) -> None:
         # add a warning if there csrf is True
         if csrf:
@@ -88,14 +82,14 @@ class NinjaExtraAPI(NinjaAPI):
         )
         self.app_name = app_name
         self.exception_handler(exceptions.APIException)(self.api_exception_handler)
-        self._routers: List[Tuple[str, router.Router]] = []  # type: ignore
+        self._routers: t.List[t.Tuple[str, router.Router]] = []  # type: ignore
         self.default_router = router.Router()
         self.add_router("", self.default_router)
 
     def api_exception_handler(
         self, request: HttpRequest, exc: exceptions.APIException
     ) -> HttpResponse:
-        headers: Dict = {}
+        headers: t.Dict = {}
         if isinstance(exc, exceptions.Throttled):
             headers["Retry-After"] = "%d" % float(exc.wait or 0.0)
 
@@ -111,7 +105,7 @@ class NinjaExtraAPI(NinjaAPI):
         return response
 
     @property
-    def urls(self) -> Tuple[List[Union[URLResolver, URLPattern]], str, str]:
+    def urls(self) -> t.Tuple[t.List[t.Union[URLResolver, URLPattern]], str, str]:
         _url_tuple = super().urls
         return (
             _url_tuple[0],
@@ -120,23 +114,27 @@ class NinjaExtraAPI(NinjaAPI):
         )
 
     def register_controllers(
-        self, *controllers: Union[Type[ControllerBase], Type, str]
+        self, *controllers: t.Union[t.Type[ControllerBase], t.Type, str]
     ) -> None:
         for controller in controllers:
             if isinstance(controller, str):
-                controller = cast(
-                    Union[Type[ControllerBase], Type], import_string(controller)
+                controller = t.cast(
+                    t.Union[t.Type[ControllerBase], t.Type], import_string(controller)
                 )
 
             if not issubclass(controller, ControllerBase):
                 raise ImproperlyConfigured(
                     f"{controller.__class__.__name__} class is not a controller"
                 )
-            api_controller: APIController = controller.get_api_controller()
-            if not api_controller.registered:
+            api_controller = t.cast(
+                APIController,
+                reflect.get_metadata_or_raise_exception(
+                    API_CONTROLLER_INSTANCE, controller
+                ),
+            )
+            if not api_controller.is_registered(self):
                 self._routers.extend(api_controller.build_routers())  # type: ignore
                 api_controller.set_api_instance(self)
-                api_controller.registered = True
 
     def auto_discover_controllers(self) -> None:
         from django.apps import apps
@@ -154,7 +152,7 @@ class NinjaExtraAPI(NinjaAPI):
                         mod_path = "%s.%s" % (app_module.name, module)
                         import_module(mod_path)
                 self.register_controllers(
-                    *ControllerRegistry.get_controllers().values()
+                    *controller_registry.get_controllers().values()
                 )
             except ImportError as ex:  # pragma: no cover
                 raise ex

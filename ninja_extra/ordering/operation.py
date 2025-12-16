@@ -5,7 +5,9 @@ from functools import wraps
 from asgiref.sync import sync_to_async
 from django.http import HttpRequest
 
+from ninja_extra.constants import ORDERATOR_OBJECT
 from ninja_extra.interfaces.ordering import OrderingBase
+from ninja_extra.reflect import reflect
 from ninja_extra.shortcuts import add_ninja_contribute_args
 
 logger = logging.getLogger()
@@ -36,7 +38,7 @@ class OrderatorOperation:
                 self.orderator.InputSource,
             ),
         )
-        orderator_view.orderator_operation = self  # type:ignore[attr-defined]
+        reflect.define_metadata(ORDERATOR_OBJECT, self, orderator_view)
 
     @property
     def view_func_has_kwargs(self) -> bool:  # pragma: no cover

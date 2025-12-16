@@ -5,7 +5,8 @@ from django.core.exceptions import ImproperlyConfigured
 from ninja.testing import TestClient
 
 from ninja_extra import NinjaExtraAPI, api_controller, http_get
-from ninja_extra.controllers.registry import ControllerRegistry
+from ninja_extra.controllers.registry import controller_registry
+from ninja_extra.controllers.utils import get_api_controller
 
 
 @api_controller
@@ -38,7 +39,7 @@ def test_api_instance():
 
 def test_api_auto_discover_controller():
     ninja_extra_api = NinjaExtraAPI()
-    assert str(SomeAPIController) in ControllerRegistry.get_controllers()
+    assert str(SomeAPIController) in controller_registry.get_controllers()
 
     with mock.patch.object(
         ninja_extra_api, "register_controllers"
@@ -48,17 +49,17 @@ def test_api_auto_discover_controller():
 
     assert (
         "<class 'ninja_extra.controllers.base.EventController'>"
-        in ControllerRegistry.get_controllers()
+        in controller_registry.get_controllers()
     )
 
     @api_controller
     class SomeAPI2Controller:
         auto_import = False
 
-    assert str(SomeAPI2Controller) not in ControllerRegistry.get_controllers()
+    assert str(SomeAPI2Controller) not in controller_registry.get_controllers()
 
 
-def test_api_register_controller_works():
+def test_api_register_controller_works(reflect_context):
     @api_controller("/another")
     class AnotherAPIController:
         @http_get("/example")
@@ -67,10 +68,10 @@ def test_api_register_controller_works():
 
     ninja_extra_api = NinjaExtraAPI()
     assert len(ninja_extra_api._routers) == 1
-    assert not AnotherAPIController.get_api_controller().registered
+    assert not get_api_controller(AnotherAPIController).is_registered(ninja_extra_api)
 
     ninja_extra_api.register_controllers(AnotherAPIController)
-    assert AnotherAPIController.get_api_controller().registered
+    assert get_api_controller(AnotherAPIController).is_registered(ninja_extra_api)
     assert len(ninja_extra_api._routers) == 2
 
     assert "/another" in dict(ninja_extra_api._routers)

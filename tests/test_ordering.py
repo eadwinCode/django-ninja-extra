@@ -1,4 +1,3 @@
-import inspect
 import operator
 from typing import List
 
@@ -7,13 +6,15 @@ import pytest
 from ninja import Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
-from ninja_extra.constants import ROUTE_FUNCTION
+from ninja_extra.constants import ORDERATOR_OBJECT
+from ninja_extra.controllers.utils import get_api_controller
 from ninja_extra.ordering import (
     OrderatorOperation,
     Ordering,
     OrderingBase,
     ordering,
 )
+from ninja_extra.reflect import reflect
 from ninja_extra.testing import TestAsyncClient, TestClient
 
 from .models import Category
@@ -106,16 +107,17 @@ client = TestClient(SomeAPIController)
 @pytest.mark.django_db
 class TestOrdering:
     def test_orderator_operation_used(self):
-        some_api_route_functions = dict(
-            inspect.getmembers(
-                SomeAPIController, lambda member: hasattr(member, ROUTE_FUNCTION)
-            )
-        )
+        api_controller_instance = get_api_controller(SomeAPIController)
         has_kwargs = ("items_3", "items_4")
         found_route_functions = False
-        for name, route_function in some_api_route_functions.items():
-            assert hasattr(route_function, "orderator_operation")
-            orderator_operation = route_function.orderator_operation
+        for (
+            name,
+            route_function,
+        ) in api_controller_instance._controller_class_route_functions.items():
+            assert reflect.has_metadata(ORDERATOR_OBJECT, route_function.as_view)
+            orderator_operation = reflect.get_metadata(
+                ORDERATOR_OBJECT, route_function.as_view
+            )
             assert isinstance(orderator_operation, OrderatorOperation)
             if name in has_kwargs:
                 assert orderator_operation.view_func_has_kwargs
@@ -303,17 +305,17 @@ class TestAsyncOrdering:
         client = TestAsyncClient(AsyncSomeAPIController)
 
         async def test_orderator_operation_used(self):
-            some_api_route_functions = dict(
-                inspect.getmembers(
-                    self.AsyncSomeAPIController,
-                    lambda member: hasattr(member, ROUTE_FUNCTION),
-                )
-            )
+            api_controller_instance = get_api_controller(self.AsyncSomeAPIController)
             has_kwargs = ("items_3", "items_4")
             found_route_functions = False
-            for name, route_function in some_api_route_functions.items():
-                assert hasattr(route_function, "orderator_operation")
-                orderator_operation = route_function.orderator_operation
+            for (
+                name,
+                route_function,
+            ) in api_controller_instance._controller_class_route_functions.items():
+                assert reflect.has_metadata(ORDERATOR_OBJECT, route_function.as_view)
+                orderator_operation = reflect.get_metadata(
+                    ORDERATOR_OBJECT, route_function.as_view
+                )
                 assert isinstance(orderator_operation, OrderatorOperation)
                 if name in has_kwargs:
                     assert orderator_operation.view_func_has_kwargs

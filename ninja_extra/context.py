@@ -59,6 +59,11 @@ class RouteContext(RouteContextBase):
         self._has_computed_route_parameters = False
 
     @property
+    def api(self) -> "NinjaExtraAPI":
+        assert self._api, "API instance is not set in RouteContext"
+        return self._api
+
+    @property
     def has_computed_route_parameters(self) -> bool:
         return self._has_computed_route_parameters
 

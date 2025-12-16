@@ -4,6 +4,7 @@ import pytest
 from ninja.constants import NOT_SET
 
 from ninja_extra import ControllerBase, api_controller, http_get
+from ninja_extra.controllers.utils import get_api_controller
 from ninja_extra.testing import TestClient
 from ninja_extra.throttling import (
     AnonRateThrottle,
@@ -48,7 +49,7 @@ class TestThrottlingControllerSample:
         cloned_controller = api_controller(
             "/throttled-controller", throttle=DynamicRateThrottle(rate="5/min")
         )(type("ThrottlingControllerSample", (ThrottlingControllerSample,), {}))
-        api_controller_instance = cloned_controller.get_api_controller()
+        api_controller_instance = get_api_controller(cloned_controller)
         for (
             _,
             func,
