@@ -73,23 +73,31 @@ class MissingAPIControllerDecoratorException(Exception):
 
 def get_route_functions(cls: Type) -> Iterable[RouteFunction]:
     """
-    Get all route functions from a controller class.
-    This function will recursively search for route functions in the base classes of the controller class
-    in order that they are defined.
+    Return fresh RouteFunction instances for a controller class.
 
-    Args:
-        cls (Type): The controller class.
-
-    Returns:
-        Iterable[RouteFunction]: An iterable of route functions.
+    Each call yields a clone of the RouteFunction template stored on the
+    controller method, ensuring metadata is not shared across subclasses.
     """
 
-    bases = inspect.getmro(cls)
-    for base_cls in reversed(bases):
-        if base_cls not in [ControllerBase, ABC, object]:
-            for method in base_cls.__dict__.values():
-                if hasattr(method, ROUTE_FUNCTION):
-                    yield getattr(method, ROUTE_FUNCTION)
+    for _, method, template in _iter_route_templates(cls):
+        yield template.clone(method)
+
+
+def _iter_route_templates(
+    cls: Type,
+) -> Iterable[Tuple[str, Callable[..., Any], RouteFunction]]:
+    seen: set[str] = set()
+    for base_cls in inspect.getmro(cls):
+        if base_cls in (ControllerBase, ABC, object):
+            continue
+        for attr_name, method in base_cls.__dict__.items():
+            if attr_name in seen:
+                continue
+            route_template = getattr(method, ROUTE_FUNCTION, None)
+            if route_template is None:
+                continue
+            seen.add(attr_name)
+            yield attr_name, method, route_template
 
 
 def get_all_controller_route_function(

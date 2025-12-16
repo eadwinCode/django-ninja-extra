@@ -51,7 +51,8 @@ class ModelControllerBuilder:
         )
 
     def _add_to_controller(self, func: t.Callable) -> None:
-        route_function = getattr(func, ROUTE_FUNCTION)
+        route_template = getattr(func, ROUTE_FUNCTION)
+        route_function = route_template.clone(func)
         route_function.api_controller = self._api_controller_instance
         self._api_controller_instance.add_controller_route_function(route_function)
 

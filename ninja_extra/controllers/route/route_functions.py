@@ -2,7 +2,18 @@ import inspect
 import warnings
 from contextlib import contextmanager
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from django.http import HttpRequest, HttpResponse
 
@@ -16,6 +27,11 @@ if TYPE_CHECKING:  # pragma: no cover
     from ninja_extra.controllers.base import APIController, ControllerBase
     from ninja_extra.controllers.route import Route
     from ninja_extra.operation import Operation
+    from ninja_extra.permissions import BasePermission
+
+RoutePermissions = Optional[
+    List[Union[Type["BasePermission"], "BasePermission", Any]]
+]
 
 
 class RouteFunctionContext:
@@ -103,6 +119,28 @@ class RouteFunction(object):
 
         as_view.get_route_function = lambda: self  # type:ignore
         return as_view
+
+    def clone(self, view_func: Callable[..., Any]) -> "RouteFunction":
+        from ninja_extra.controllers.route import Route
+
+        route_params = self.route.route_params.dict()
+        permissions: RoutePermissions
+        if self.route.permissions is None:
+            permissions = None
+        else:
+            permissions = cast(RoutePermissions, list(self.route.permissions))
+
+        if route_params["tags"] is not None:
+            route_params["tags"] = list(route_params["tags"])
+        route_params["methods"] = list(route_params["methods"])
+
+        cloned_route = Route(
+            view_func,
+            **route_params,
+            permissions=permissions,
+        )
+
+        return type(self)(route=cloned_route)
 
     def _process_view_function_result(self, result: Any) -> Any:
         """
