@@ -24,6 +24,22 @@ from ninja_extra.permissions.common import AllowAny
 from .utils import AsyncFakeAuth, FakeAuth
 
 
+class ReportControllerBase(ControllerBase):
+    @http_get("")
+    def report(self):
+        return {"controller": type(self).__name__}
+
+
+@api_controller("/alpha", urls_namespace="alpha")
+class AlphaReportController(ReportControllerBase):
+    pass
+
+
+@api_controller("/beta", urls_namespace="beta")
+class BetaReportController(ReportControllerBase):
+    pass
+
+
 @api_controller
 class SomeController:
     pass
@@ -384,3 +400,46 @@ def test_namespaced_controller_detail(client):
 
 def test_default_url_name(client):
     assert reverse("api-1.0.0:get_event", kwargs={"id": 5}) == "/api/events/5"
+
+
+def test_controller_subclass_routes_remain_isolated():
+    api = NinjaExtraAPI()
+    api.register_controllers(AlphaReportController, BetaReportController)
+    client = testing.TestClient(api)
+
+    alpha_response = client.get("/alpha")
+    beta_response = client.get("/beta")
+
+    assert alpha_response.status_code == 200
+    assert beta_response.status_code == 200
+    assert alpha_response.json() == {"controller": "AlphaReportController"}
+    assert beta_response.json() == {"controller": "BetaReportController"}
+
+
+def test_controller_multi_level_inheritance_routes_isolated():
+    """Test that route isolation works with multi-level inheritance."""
+
+    # Middle layer doesn't override the route
+    class MiddleReportController(ReportControllerBase):
+        pass
+
+    @api_controller("/gamma")
+    class GammaReportController(MiddleReportController):
+        pass
+
+    @api_controller("/delta")
+    class DeltaReportController(MiddleReportController):
+        pass
+
+    api = NinjaExtraAPI()
+    api.register_controllers(GammaReportController)
+    api.register_controllers(DeltaReportController)
+    client = testing.TestClient(api)
+
+    gamma_response = client.get("/gamma")
+    delta_response = client.get("/delta")
+
+    assert gamma_response.status_code == 200
+    assert delta_response.status_code == 200
+    assert gamma_response.json() == {"controller": "GammaReportController"}
+    assert delta_response.json() == {"controller": "DeltaReportController"}
