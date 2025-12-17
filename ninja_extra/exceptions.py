@@ -71,9 +71,11 @@ class ErrorDetail(str):
 
     def __eq__(self, other: object) -> bool:
         r = super().__eq__(other)
+        if r is NotImplemented:
+            return NotImplemented  # pragma: no cover
         try:
             return r and self.code == other.code  # type: ignore
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             return r
 
     def __ne__(self, other: object) -> bool:

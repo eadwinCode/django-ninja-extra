@@ -9,7 +9,6 @@ from ninja.constants import NOT_SET
 from ninja_extra import api_controller, permissions, route
 from ninja_extra.constants import ROUTE_OBJECT
 from ninja_extra.context import (
-    RouteContext,
     get_route_execution_context,
 )
 from ninja_extra.controllers import (
@@ -20,7 +19,6 @@ from ninja_extra.controllers import (
 from ninja_extra.controllers.base import get_route_functions
 from ninja_extra.controllers.utils import get_api_controller
 from ninja_extra.exceptions import PermissionDenied
-from ninja_extra.permissions import AllowAny
 from ninja_extra.reflect import reflect
 
 from .schemas import UserSchema
@@ -320,22 +318,6 @@ class TestRouteFunction:
         assert len(sig_parameter) == 1
         assert str(sig_parameter[0]).replace(" ", "") == "example_id:str"
 
-    def test_get_route_execution_context(self):
-        route.get("")(self.api_func)
-        route_object = reflect.get_metadata_or_raise_exception(
-            ROUTE_OBJECT, self.api_func
-        )
-        route_function = RouteFunction(route_object, Mock())
-        route_function.api_controller.permission_classes = [AllowAny]
-
-        route_context = route_function.get_route_execution_context(
-            anonymous_request, "arg1", "arg2", extra="extra"
-        )
-        assert isinstance(route_context, RouteContext)
-        expected_keywords = ("permission_classes", "request", "args", "kwargs")
-        for key in expected_keywords:
-            assert getattr(route_context, key)
-
     def test_get_controller_instance_return_controller_instance(
         self, get_route_function
     ):
@@ -347,19 +329,6 @@ class TestRouteFunction:
         assert isinstance(controller_instance, SomeTestController)
         assert isinstance(controller_instance, SomeTestController)
         assert controller_instance.context is None
-
-    def test_process_view_function_result_return_tuple_or_input(
-        self, get_route_function
-    ):
-        route_function: RouteFunction = get_route_function(SomeTestController().example)
-        mock_result = {"detail": "Some Message", "status_code": 302}
-        response = route_function._process_view_function_result(mock_result)
-        assert response == mock_result
-
-        mock_result = {"status": 302, "message": "Some Message"}
-        response = route_function._process_view_function_result(mock_result)
-        assert not isinstance(response, tuple)
-        assert response == mock_result
 
 
 @pytest.mark.django_db

@@ -1,5 +1,4 @@
 import inspect
-import warnings
 from contextlib import contextmanager
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Iterator, Optional, Tuple, cast
@@ -114,23 +113,6 @@ class RouteFunction(object):
         as_view.get_route_function = lambda: self  # type:ignore
         return as_view
 
-    def _process_view_function_result(self, result: Any) -> Any:
-        """
-        This process any a returned value from view_func
-        and creates an api response if a result is ControllerResponseSchema
-
-        deprecated:: 0.21.5
-           This method is deprecated and will be removed in a future version.
-           The result processing should be handled by the response handlers.
-        """
-        warnings.warn(
-            "_process_view_function_result() is deprecated and will be removed in a future version. "
-            "The result processing should be handled by the response handlers.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return result
-
     def _get_controller_instance(self) -> "ControllerBase":
         from ninja_extra.controllers.base import ModelControllerBase
 
@@ -154,26 +136,6 @@ class RouteFunction(object):
         )
 
         return controller_instance
-
-    def get_route_execution_context(
-        self, request: HttpRequest, *args: Any, **kwargs: Any
-    ) -> RouteContext:
-        warnings.warn(
-            "get_route_execution_context() is deprecated in favor of "
-            "ninja_extra.controllers.route.context.get_route_execution_context()",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        init_kwargs = {
-            "permission_classes": self.route.permissions
-            or self.api_controller.permission_classes,
-            "request": request,
-            "kwargs": kwargs,
-            "args": args,
-        }
-        context = RouteContext(**init_kwargs)  # type:ignore[arg-type]
-        return context
 
     @contextmanager
     def _prep_controller_route_execution(
