@@ -1,6 +1,6 @@
 """Django Ninja Extra - Class Based Utility and more for Django Ninja(Fast Django REST framework)"""
 
-__version__ = "0.30.6"
+__version__ = "0.30.8"
 
 import django
 
