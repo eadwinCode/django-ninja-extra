@@ -1,37 +1,56 @@
-from typing import TYPE_CHECKING, Dict, Optional, Type
+from typing import TYPE_CHECKING, Dict, Optional, Type, cast
+
+from ninja_extra.constants import API_CONTROLLER_INSTANCE
+from ninja_extra.reflect import reflect
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ninja_extra.controllers.base import ControllerBase  # pragma: no cover
+    from ninja_extra.controllers.base import (
+        APIController,
+        ControllerBase,
+    )  # pragma: no cover
 
 
-class ControllerBorg:
-    _shared_state_: Dict[str, Dict[str, Type["ControllerBase"]]] = {"controllers": {}}
+class ControllerRegistry:
+    KEY = "CONTROLLER_REGISTRY"
 
     def __init__(self) -> None:
-        self.__dict__ = self._shared_state_
+        reflect.define_metadata(self.KEY, {}, self.__class__)
 
     def add_controller(self, controller: Type["ControllerBase"]) -> None:
-        if (
-            hasattr(controller, "get_api_controller")
-            and controller.get_api_controller().auto_import
-        ):
-            self._shared_state_["controllers"].update({str(controller): controller})
+        api_controller_raw = reflect.get_metadata(API_CONTROLLER_INSTANCE, controller)
+        if not api_controller_raw:
+            return
+        api_controller: "APIController" = cast("APIController", api_controller_raw)
+        if not api_controller.auto_import:
+            return
+        reflect.define_metadata(self.KEY, {str(controller): controller}, self.__class__)
 
     def remove_controller(
         self, controller: Type["ControllerBase"]
     ) -> Optional[Type["ControllerBase"]]:
-        if str(controller) in self._shared_state_["controllers"]:
-            return self._shared_state_["controllers"].pop(str(controller))
+        controllers = reflect.get_metadata(self.KEY, self.__class__)
+
+        if controllers and str(controller) in controllers:
+            removed_controller: Type["ControllerBase"] = cast(
+                Type["ControllerBase"], controllers[str(controller)]
+            )
+            del controllers[str(controller)]
+
+            reflect.delete_metadata(self.KEY, self.__class__)
+            reflect.define_metadata(self.KEY, controllers, self.__class__)
+
+            return removed_controller
         return None
 
     def clear_controller(self) -> None:
-        self._shared_state_["controllers"] = {}
+        reflect.delete_metadata(self.KEY, self.__class__)
+        reflect.define_metadata(self.KEY, {}, self.__class__)
 
-    @classmethod
-    def get_controllers(cls) -> Dict[str, Type["ControllerBase"]]:
-        return cls._shared_state_.get("controllers", {})
+    def get_controllers(self) -> Dict[str, Type["ControllerBase"]]:
+        controllers = reflect.get_metadata(self.KEY, self.__class__)
+        return (
+            cast(Dict[str, Type["ControllerBase"]], controllers) if controllers else {}
+        )
 
 
-class ControllerRegistry(ControllerBorg):
-    def __init__(self) -> None:
-        ControllerBorg.__init__(self)
+controller_registry = ControllerRegistry()

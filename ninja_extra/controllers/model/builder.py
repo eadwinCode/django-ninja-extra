@@ -2,7 +2,12 @@ import typing as t
 
 from ninja.orm.fields import TYPES
 
-from ninja_extra.constants import ROUTE_FUNCTION
+from ninja_extra.constants import ROUTE_OBJECT
+from ninja_extra.controllers.route.route_functions import (
+    AsyncRouteFunction,
+    RouteFunction,
+)
+from ninja_extra.reflect import reflect
 
 from .endpoints import (
     ModelAsyncEndpointFactory,
@@ -13,6 +18,7 @@ from .schemas import ModelConfig
 
 if t.TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController, ModelControllerBase
+    from ninja_extra.controllers.route import Route
 
 
 class ModelControllerBuilder:
@@ -51,8 +57,18 @@ class ModelControllerBuilder:
         )
 
     def _add_to_controller(self, func: t.Callable) -> None:
-        route_function = getattr(func, ROUTE_FUNCTION)
-        route_function.api_controller = self._api_controller_instance
+        route_obj: "Route" = t.cast(
+            "Route", reflect.get_metadata_or_raise_exception(ROUTE_OBJECT, func)
+        )
+        route_function: t.Union[RouteFunction, AsyncRouteFunction]
+        if route_obj.is_async:
+            route_function = AsyncRouteFunction(
+                route_obj, api_controller=self._api_controller_instance
+            )
+        else:
+            route_function = RouteFunction(
+                route_obj, api_controller=self._api_controller_instance
+            )
         self._api_controller_instance.add_controller_route_function(route_function)
 
     def _register_create_endpoint(self) -> None:

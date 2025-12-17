@@ -12,35 +12,51 @@ class AutoImportTrueControllerSample(ControllerBase):
     auto_import = True
 
 
-def test_can_not_add_controller_for_auto_false():
+def test_can_not_add_controller_for_auto_false(reflect_context):
     registry = ControllerRegistry()
     registry.clear_controller()
+
     registry.add_controller(AutoImportFalseControllerSample)
-    assert str(AutoImportFalseControllerSample) not in registry.controllers
+    controllers = registry.get_controllers()
+
+    assert str(AutoImportFalseControllerSample) not in controllers
 
 
-def test_can_add_controller_for_auto_true():
-    registry = ControllerRegistry()
-    registry.clear_controller()
-    registry.add_controller(AutoImportTrueControllerSample)
-    assert str(AutoImportTrueControllerSample) in registry.controllers
-
-
-def test_remove_controller_works():
+def test_can_add_controller_for_auto_true(reflect_context):
     registry = ControllerRegistry()
     registry.clear_controller()
 
     registry.add_controller(AutoImportTrueControllerSample)
-    assert str(AutoImportTrueControllerSample) in registry.controllers
+
+    controllers = registry.get_controllers()
+    assert str(AutoImportTrueControllerSample) in controllers
+
+
+def test_remove_controller_works(reflect_context):
+    registry = ControllerRegistry()
+    registry.clear_controller()
+
+    registry.add_controller(AutoImportTrueControllerSample)
+    controllers = registry.get_controllers()
+
+    assert str(AutoImportTrueControllerSample) in controllers
     result = registry.remove_controller(AutoImportTrueControllerSample)
+
     assert result
-    assert str(AutoImportTrueControllerSample) not in registry.controllers
+    controllers = registry.get_controllers()
+
+    assert str(AutoImportTrueControllerSample) not in controllers
     assert registry.remove_controller(AutoImportTrueControllerSample) is None
 
 
-def test_clear_registry_works():
+def test_clear_registry_works(reflect_context):
     registry = ControllerRegistry()
     registry.add_controller(AutoImportTrueControllerSample)
-    assert str(AutoImportTrueControllerSample) in registry.controllers
+
+    controllers = registry.get_controllers()
+    assert str(AutoImportTrueControllerSample) in controllers
+
     registry.clear_controller()
-    assert len(registry.controllers) == 0
+    controllers = registry.get_controllers()
+
+    assert len(controllers) == 0

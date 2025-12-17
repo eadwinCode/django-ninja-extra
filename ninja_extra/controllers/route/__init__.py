@@ -8,16 +8,16 @@ from ninja.types import TCallable
 from ninja_extra.constants import (
     DELETE,
     GET,
+    OPERATION_ENDPOINT_KEY,
     PATCH,
     POST,
     PUT,
-    ROUTE_FUNCTION,
     ROUTE_METHODS,
+    ROUTE_OBJECT,
 )
 from ninja_extra.permissions import BasePermission
+from ninja_extra.reflect import reflect
 from ninja_extra.schemas import RouteParameter
-
-from .route_functions import AsyncRouteFunction, RouteFunction
 
 
 class RouteInvalidParameterException(Exception):
@@ -170,11 +170,9 @@ class Route(object):
             openapi_extra=openapi_extra,
             throttle=throttle,
         )
-        route_function_class = RouteFunction
-        if route_obj.is_async:
-            route_function_class = AsyncRouteFunction
 
-        setattr(view_func, ROUTE_FUNCTION, route_function_class(route=route_obj))
+        reflect.define_metadata(ROUTE_OBJECT, route_obj, view_func)
+        setattr(view_func, OPERATION_ENDPOINT_KEY, True)
         return view_func
 
     @classmethod

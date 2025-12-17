@@ -6,6 +6,7 @@ import pytest
 from ninja import FilterSchema, NinjaAPI, Schema
 
 from ninja_extra import NinjaExtraAPI, api_controller, route
+from ninja_extra.constants import PAGINATOR_OBJECT
 from ninja_extra.controllers import RouteFunction
 from ninja_extra.pagination import (
     AsyncPaginatorOperation,
@@ -336,7 +337,7 @@ class TestPagination:
         assert response.status_code == 404
         assert response.json() == {"message": "Not Found"}
 
-    def test_filter_schema_integration(self):
+    def test_filter_schema_integration(self, reflect_context):
         """Test that filter_schema is properly integrated with paginate decorator"""
 
         # Test the paginate decorator directly with filter_schema
@@ -347,8 +348,8 @@ class TestPagination:
             return ITEMS
 
         # Check that the decorated function has paginator_operation attribute
-        assert hasattr(test_view, "paginator_operation")
-        paginator_operation = test_view.paginator_operation
+        assert reflect_context.has_metadata(PAGINATOR_OBJECT, test_view)
+        paginator_operation = reflect_context.get_metadata(PAGINATOR_OBJECT, test_view)
 
         # Verify filter_schema is stored correctly
         assert isinstance(paginator_operation, PaginatorOperation)

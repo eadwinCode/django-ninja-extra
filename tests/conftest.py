@@ -1,6 +1,9 @@
 import os
+import typing as t
+from uuid import uuid4
 
 import django
+import pytest
 
 
 def pytest_configure(config):
@@ -61,3 +64,31 @@ def pytest_configure(config):
     )
 
     django.setup()
+
+
+@pytest.fixture
+def reflect_context():
+    from ninja_extra.reflect import reflect
+
+    with reflect.context():
+        yield reflect
+
+
+@pytest.fixture
+def random_type():
+    return type(f"Random{uuid4().hex[:6]}", (), {})
+
+
+@pytest.fixture
+def get_route_function():
+    from ninja_extra.controllers.route.route_functions import RouteFunction
+    from ninja_extra.reflect import reflect
+
+    def _wrap(func: t.Callable) -> RouteFunction:
+        route_object = reflect.get_metadata_or_raise_exception("ROUTE_OBJECT", func)
+        route_function = reflect.get_metadata_or_raise_exception(
+            "ROUTE_OBJECT_FUNCTION", route_object
+        )
+        return route_function
+
+    return _wrap

@@ -17,6 +17,7 @@ from ninja_extra.controllers.model.path_resolver import (
     PathResolverOperation,
 )
 from ninja_extra.controllers.route import route
+from ninja_extra.controllers.utils import get_api_controller
 from ninja_extra.exceptions import NotFound
 from ninja_extra.pagination import (
     PageNumberPaginationExtra,
@@ -123,7 +124,8 @@ class ModelEndpointFactory:
         """
 
         def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
-            api_controller = model_controller_type.get_api_controller()
+            api_controller = get_api_controller(model_controller_type)
+            assert api_controller is not None, "API controller is required"
 
             working_path = cls._clean_path(path)
 
@@ -191,7 +193,8 @@ class ModelEndpointFactory:
         """
 
         def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
-            api_controller = model_controller_type.get_api_controller()
+            api_controller = get_api_controller(model_controller_type)
+            assert api_controller is not None, "API controller is required"
             working_path = cls._clean_path(path)
             update_item = _path_resolver(
                 path,
@@ -261,7 +264,8 @@ class ModelEndpointFactory:
         """
 
         def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
-            api_controller = model_controller_type.get_api_controller()
+            api_controller = get_api_controller(model_controller_type)
+            assert api_controller is not None, "API controller is required"
             working_path = cls._clean_path(path)
             patch_item = _path_resolver(
                 path,
@@ -329,7 +333,8 @@ class ModelEndpointFactory:
         """
 
         def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
-            api_controller = model_controller_type.get_api_controller()
+            api_controller = get_api_controller(model_controller_type)
+            assert api_controller is not None, "API controller is required"
             working_path = cls._clean_path(path)
             get_item = _path_resolver(
                 path,
@@ -401,7 +406,8 @@ class ModelEndpointFactory:
         """
 
         def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
-            api_controller = model_controller_type.get_api_controller()
+            api_controller = get_api_controller(model_controller_type)
+            assert api_controller is not None, "API controller is required"
             working_path = cls._clean_path(path)
             list_items = _path_resolver(
                 path,
@@ -493,7 +499,8 @@ class ModelEndpointFactory:
         """
 
         def _setup(model_controller_type: t.Type["ModelControllerBase"]) -> t.Callable:
-            api_controller = model_controller_type.get_api_controller()
+            api_controller = get_api_controller(model_controller_type)
+            assert api_controller is not None, "API controller is required"
             working_path = cls._clean_path(path)
             delete_item = _path_resolver(
                 path,

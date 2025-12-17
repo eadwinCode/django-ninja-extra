@@ -12,16 +12,32 @@ from ninja_extra import (
     http_get,
     testing,
 )
-from ninja_extra.controllers import ControllerBase, RouteContext, RouteFunction
+from ninja_extra.context import RouteContext
+from ninja_extra.controllers import ControllerBase, RouteFunction
 from ninja_extra.controllers.base import (
     APIController,
-    MissingAPIControllerDecoratorException,
     get_route_functions,
 )
-from ninja_extra.helper import get_route_function
+from ninja_extra.controllers.utils import get_api_controller
 from ninja_extra.permissions.common import AllowAny
 
 from .utils import AsyncFakeAuth, FakeAuth
+
+
+class ReportControllerBase(ControllerBase):
+    @http_get("")
+    def report(self):
+        return {"controller": type(self).__name__}
+
+
+@api_controller("/alpha", urls_namespace="alpha")
+class AlphaReportController(ReportControllerBase):
+    pass
+
+
+@api_controller("/beta", urls_namespace="beta")
+class BetaReportController(ReportControllerBase):
+    pass
 
 
 @api_controller
@@ -87,7 +103,7 @@ class TestAPIController:
         controller_type = api_controller("prefix", tags="new_tag", auth=FakeAuth())(
             type("Any", (), {})
         )
-        api_controller_instance = controller_type.get_api_controller()
+        api_controller_instance = get_api_controller(controller_type)
 
         assert not api_controller_instance.has_auth_async
         assert not api_controller_instance._prefix_has_route_param
@@ -95,29 +111,28 @@ class TestAPIController:
         assert api_controller_instance.tags == ["new_tag"]
         assert api_controller_instance.permission_classes == [AllowAny]
 
-        controller_type = api_controller()(controller_type)
-        api_controller_instance = controller_type.get_api_controller()
+        controller_type = api_controller()(type("Any2", (), {}))
+        api_controller_instance = get_api_controller(controller_type)
         assert api_controller_instance.prefix == ""
-        assert api_controller_instance.tags == ["any"]
+        assert api_controller_instance.tags == ["any2"]
         assert "ninja_extra.controllers.base" in SomeController.__module__
         assert "tests.test_controller" in Some2Controller.__module__
-        assert Some2Controller.get_api_controller()
+        assert get_api_controller(Some2Controller)
 
     def test_controller_get_api_controller_raise_exception(self):
         class BController(ControllerBase):
             pass
 
-        with pytest.raises(MissingAPIControllerDecoratorException):
-            BController.get_api_controller()
+        assert get_api_controller(BController) is None
 
-    def test_api_controller_prefix_with_parameter(self):
+    def test_api_controller_prefix_with_parameter(self, reflect_context):
         @api_controller("/{int:organisation_id}")
         class UsersController:
             @http_get("")
             def example_with_id_response(self, organisation_id: int):
                 return {"organisation_id": organisation_id}
 
-        _api_controller: APIController = UsersController.get_api_controller()
+        _api_controller: APIController = get_api_controller(UsersController)
         assert _api_controller._prefix_has_route_param
 
         client = testing.TestClient(UsersController)
@@ -128,27 +143,26 @@ class TestAPIController:
 
     def test_controller_should_have_preset_properties(self):
         api = NinjaExtraAPI()
-        _api_controller = SomeController.get_api_controller()
+        _api_controller = get_api_controller(SomeController)
         assert _api_controller.tags == ["some"]
         assert _api_controller._path_operations == {}
         assert _api_controller.permission_classes == [AllowAny]
-        assert SomeController.api is None
-        assert _api_controller.registered is False
+        assert _api_controller.is_registered(api) is False
         assert ControllerBase in SomeController.__bases__
 
         api.register_controllers(SomeController)
-        assert _api_controller.registered
+        assert _api_controller.is_registered(api)
 
     def test_controller_should_wrap_with_inject(self):
         assert not hasattr(SomeController.__init__, "__bindings__")
         assert hasattr(SomeControllerWithInject.__init__, "__bindings__")
 
     def test_controller_should_have_path_operation_list(self):
-        _api_controller = SomeControllerWithRoute.get_api_controller()
+        _api_controller = get_api_controller(SomeControllerWithRoute)
         assert len(_api_controller._path_operations) == 5
 
-        route_function: RouteFunction = get_route_function(
-            SomeControllerWithRoute().example
+        route_function: RouteFunction = (
+            _api_controller._controller_class_route_functions.get("example")
         )
         path_view = _api_controller._path_operations.get(str(route_function))
         assert path_view, "route doesn't exist in controller"
@@ -159,15 +173,16 @@ class TestAPIController:
         assert operation.operation_id == route_function.route.route_params.operation_id
 
     def test_controller_should_append_unique_op_id_to_operation_id(self):
-        _api_controller = SomeControllerWithSingleRoute.get_api_controller()
+        _api_controller = get_api_controller(SomeControllerWithSingleRoute)
         controller_name = (
             str(_api_controller.controller_class.__name__)
             .lower()
             .replace("controller", "")
         )
-        route_view_func_name: RouteFunction = get_route_function(
-            SomeControllerWithRoute().example
-        ).route.view_func.__name__
+        route_function: RouteFunction = (
+            _api_controller._controller_class_route_functions.get("example")
+        )
+        route_view_func_name: RouteFunction = route_function.route.view_func.__name__
 
         operation_id = (
             _api_controller._path_operations.get("/example").operations[0].operation_id
@@ -179,15 +194,16 @@ class TestAPIController:
         assert len(op_id_postfix) == 8
 
     def test_controller_should_not_add_unique_suffix_following_params(self):
-        _api_controller = SomeControllerWithoutUniqueSuffix.get_api_controller()
+        _api_controller = get_api_controller(SomeControllerWithoutUniqueSuffix)
         controller_name = (
             str(_api_controller.controller_class.__name__)
             .lower()
             .replace("controller", "")
         )
-        route_view_func_name: RouteFunction = get_route_function(
-            SomeControllerWithRoute().example
-        ).route.view_func.__name__
+        route_function: RouteFunction = (
+            _api_controller._controller_class_route_functions.get("example")
+        )
+        route_view_func_name: RouteFunction = route_function.route.view_func.__name__
 
         operation_id = (
             _api_controller._path_operations.get("/example").operations[0].operation_id
@@ -196,19 +212,21 @@ class TestAPIController:
         assert operation_id == f"{controller_name}_{route_view_func_name}"
 
     def test_get_route_function_should_return_instance_route_definitions(self):
-        for route_definition in get_route_functions(SomeControllerWithRoute):
+        for route_definition in get_route_functions(SomeControllerWithRoute, Mock()):
             assert isinstance(route_definition, RouteFunction)
 
-    def test_compute_api_route_function_works(self):
+    def test_compute_api_route_function_works(self, reflect_context):
         @api_controller()
         class AnyClassTypeWithRoute:
             @http_get("/example")
             def example(self):
                 pass
 
-        api_controller_instance = AnyClassTypeWithRoute.get_api_controller()
+        api_controller_instance = get_api_controller(AnyClassTypeWithRoute)
         assert len(api_controller_instance.path_operations) == 1
-        route_function = get_route_function(AnyClassTypeWithRoute().example)
+        route_function: RouteFunction = (
+            api_controller_instance._controller_class_route_functions.get("example")
+        )
         path_view = api_controller_instance.path_operations.get(str(route_function))
         assert path_view
 
@@ -322,12 +340,11 @@ class TestAPIController:
 
 
 def test_controller_registration_through_string():
-    assert DisableAutoImportController.get_api_controller().registered is False
-
     api = NinjaExtraAPI()
+    assert get_api_controller(DisableAutoImportController).is_registered(api) is False
     api.register_controllers("tests.test_controller.DisableAutoImportController")
 
-    assert DisableAutoImportController.get_api_controller().registered
+    assert get_api_controller(DisableAutoImportController).is_registered(api)
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
@@ -352,10 +369,12 @@ def test_async_controller():
         async def example(self):
             pass
 
-    example_route_function = get_route_function(
-        AsyncRouteInControllerWithAsyncAuth().example
+    api_controller_instance = get_api_controller(AsyncRouteInControllerWithAsyncAuth)
+    example_route_function = (
+        api_controller_instance._controller_class_route_functions.get("example")
     )
-    assert AsyncRouteInControllerWithAsyncAuth.get_api_controller().has_auth_async
+
+    assert api_controller_instance.has_auth_async
     assert isinstance(
         example_route_function.operation.auth_callbacks[0],
         AsyncFakeAuth,
@@ -381,3 +400,46 @@ def test_namespaced_controller_detail(client):
 
 def test_default_url_name(client):
     assert reverse("api-1.0.0:get_event", kwargs={"id": 5}) == "/api/events/5"
+
+
+def test_controller_subclass_routes_remain_isolated():
+    api = NinjaExtraAPI()
+    api.register_controllers(AlphaReportController, BetaReportController)
+    client = testing.TestClient(api)
+
+    alpha_response = client.get("/alpha")
+    beta_response = client.get("/beta")
+
+    assert alpha_response.status_code == 200
+    assert beta_response.status_code == 200
+    assert alpha_response.json() == {"controller": "AlphaReportController"}
+    assert beta_response.json() == {"controller": "BetaReportController"}
+
+
+def test_controller_multi_level_inheritance_routes_isolated():
+    """Test that route isolation works with multi-level inheritance."""
+
+    # Middle layer doesn't override the route
+    class MiddleReportController(ReportControllerBase):
+        pass
+
+    @api_controller("/gamma")
+    class GammaReportController(MiddleReportController):
+        pass
+
+    @api_controller("/delta")
+    class DeltaReportController(MiddleReportController):
+        pass
+
+    api = NinjaExtraAPI()
+    api.register_controllers(GammaReportController)
+    api.register_controllers(DeltaReportController)
+    client = testing.TestClient(api)
+
+    gamma_response = client.get("/gamma")
+    delta_response = client.get("/delta")
+
+    assert gamma_response.status_code == 200
+    assert delta_response.status_code == 200
+    assert gamma_response.json() == {"controller": "GammaReportController"}
+    assert delta_response.json() == {"controller": "DeltaReportController"}

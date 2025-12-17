@@ -3,7 +3,9 @@ from functools import wraps
 
 from asgiref.sync import sync_to_async
 
+from ninja_extra.constants import SEARCH_OPERATOR_OBJECT
 from ninja_extra.interfaces.searching import SearchingBase
+from ninja_extra.reflect import reflect
 from ninja_extra.shortcuts import add_ninja_contribute_args
 
 if t.TYPE_CHECKING:  # pragma: no cover
@@ -32,7 +34,7 @@ class SearcheratorOperation:
                 self.searcherator.InputSource,
             ),
         )
-        searcherator_view.searcherator_operation = self  # type:ignore[attr-defined]
+        reflect.define_metadata(SEARCH_OPERATOR_OBJECT, self, searcherator_view)
 
     @property
     def view_func_has_kwargs(self) -> bool:  # pragma: no cover

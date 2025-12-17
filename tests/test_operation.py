@@ -5,9 +5,11 @@ import pytest
 from ninja import Body, Schema
 
 from ninja_extra import api_controller, http_delete, http_get, http_post, route, status
+from ninja_extra.constants import ROUTE_OBJECT
 from ninja_extra.controllers import AsyncRouteFunction, RouteFunction
-from ninja_extra.helper import get_route_function
+from ninja_extra.controllers.utils import get_api_controller
 from ninja_extra.operation import AsyncOperation, Operation
+from ninja_extra.reflect import reflect
 from ninja_extra.testing import TestAsyncClient, TestClient
 
 from .utils import AsyncFakeAuth, FakeAuth, mock_log_call
@@ -46,12 +48,12 @@ class TestOperation:
 
 
 @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
-def test_operation_auth_configs():
+def test_operation_auth_configs(reflect_context):
     @api_controller("prefix", tags="any_Tag")
     class AController:
         pass
 
-    api_controller_instance = AController.get_api_controller()
+    api_controller_instance = get_api_controller(AController)
 
     async def async_endpoint(self, request):
         pass
@@ -63,7 +65,10 @@ def test_operation_auth_configs():
     async_auth_http_get = route.get("/example/async", auth=[AsyncFakeAuth()])
 
     sync_auth_http_get(async_endpoint)
-    async_route_function = get_route_function(async_endpoint)
+    route_obj = reflect.get_metadata_or_raise_exception(ROUTE_OBJECT, async_endpoint)
+    async_route_function = AsyncRouteFunction(
+        route_obj, api_controller=api_controller_instance
+    )
     assert isinstance(async_route_function, AsyncRouteFunction)
 
     api_controller_instance._add_operation_from_route_function(async_route_function)
@@ -72,14 +77,24 @@ def test_operation_auth_configs():
     assert isinstance(async_route_function.operation, AsyncOperation)
 
     sync_auth_http_get(sync_endpoint)
-    sync_route_function = get_route_function(sync_endpoint)
+    sync_route_obj = reflect.get_metadata_or_raise_exception(
+        ROUTE_OBJECT, sync_endpoint
+    )
+    sync_route_function = RouteFunction(
+        sync_route_obj, api_controller=api_controller_instance
+    )
     api_controller_instance._add_operation_from_route_function(sync_route_function)
     assert isinstance(sync_route_function.operation, Operation)
     assert isinstance(sync_route_function, RouteFunction)
 
     with pytest.raises(Exception) as ex:
         new_sync_endpoint = async_auth_http_get(sync_endpoint)
-        new_sync_route_function = get_route_function(new_sync_endpoint)
+        new_sync_route_obj = reflect.get_metadata_or_raise_exception(
+            ROUTE_OBJECT, new_sync_endpoint
+        )
+        new_sync_route_function = RouteFunction(
+            new_sync_route_obj, api_controller=api_controller_instance
+        )
         api_controller_instance._add_operation_from_route_function(
             new_sync_route_function
         )
@@ -118,7 +133,7 @@ class TestAsyncOperations:
                 await client.get("/example_exception")
 
 
-def test_controller_operation_order():
+def test_controller_operation_order(reflect_context):
     class InputSchema(Schema):
         name: str
         age: int

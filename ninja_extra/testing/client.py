@@ -1,27 +1,50 @@
 from json import dumps as json_dumps
-from typing import Any, Callable, Dict, Optional, Type, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Type, Union, cast
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
+from django.urls import Resolver404
 from ninja import NinjaAPI, Router
 from ninja.responses import NinjaJSONEncoder
 from ninja.testing.client import NinjaClientBase, NinjaResponse
 
 from ninja_extra import ControllerBase, NinjaExtraAPI
+from ninja_extra.constants import CONTROLLER_WATERMARK
+from ninja_extra.controllers.utils import get_api_controller
+from ninja_extra.reflect import reflect
 
 
 class NinjaExtraClientBase(NinjaClientBase):
     def __init__(
         self, router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]], **kw: Any
     ) -> None:
-        if hasattr(router_or_app, "get_api_controller"):
+        if reflect.has_metadata(CONTROLLER_WATERMARK, cast(Any, router_or_app)):
             api = NinjaExtraAPI(**kw)
-            controller_ninja_api_controller = router_or_app.get_api_controller()
+            controller_type = cast(Type[ControllerBase], router_or_app)
+            controller_ninja_api_controller = get_api_controller(controller_type)
             assert controller_ninja_api_controller
+
             controller_ninja_api_controller.set_api_instance(api)
             self._urls_cache = list(controller_ninja_api_controller.urls_paths(""))
+
             router_or_app = api
-        super(NinjaExtraClientBase, self).__init__(router_or_app)
+        super(NinjaExtraClientBase, self).__init__(
+            cast(Union[NinjaAPI, Router], router_or_app)
+        )
+
+    def _resolve(
+        self, method: str, path: str, data: Dict, request_params: Any
+    ) -> Tuple[Callable, Mock, Dict]:
+        url_path = path.split("?")[0].lstrip("/")
+        for url in self.urls:
+            try:
+                match = url.resolve(url_path)
+            except Resolver404:
+                continue
+            if match:
+                request = self._build_request(method, path, data, request_params)
+                return match.func, request, match.kwargs
+        raise Exception(f'Cannot resolve "{path}"')
 
     def request(
         self,

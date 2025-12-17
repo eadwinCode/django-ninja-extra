@@ -1,10 +1,8 @@
 import inspect
 import typing as t
 
-from ninja_extra.constants import ROUTE_FUNCTION
-
 if t.TYPE_CHECKING:  # pragma: no cover
-    from ninja_extra.controllers import RouteFunction
+    pass
 
 
 def get_function_name(func_class: t.Any) -> str:
@@ -13,8 +11,9 @@ def get_function_name(func_class: t.Any) -> str:
     return str(func_class.__class__.__name__)
 
 
-@t.no_type_check
-def get_route_function(func: t.Callable) -> t.Optional["RouteFunction"]:
-    if hasattr(func, ROUTE_FUNCTION):
-        return func.__dict__[ROUTE_FUNCTION]
-    return None  # pragma: no cover
+# TODO: Add deprecation warning
+# @t.no_type_check
+# def get_route_function(func: t.Callable) -> t.Optional["RouteFunction"]:
+#     if hasattr(func, ROUTE_FUNCTION):
+#         return func.__dict__[ROUTE_FUNCTION]
+#     return None  # pragma: no cover

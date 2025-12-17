@@ -2,6 +2,7 @@ import pytest
 from asgiref.sync import sync_to_async
 
 from ninja_extra.controllers.base import APIController
+from ninja_extra.controllers.utils import get_api_controller
 from ninja_extra.testing import TestAsyncClient
 
 from ..models import Event
@@ -288,8 +289,8 @@ async def test_api_controller_prefix_with_parameter():
         "end_date": "2020-01-02",
         "title": "test-prefix",
     }
-    _api_controller: APIController = (
-        AsyncEventModelControllerWithPrefix.get_api_controller()
+    _api_controller: APIController = get_api_controller(
+        AsyncEventModelControllerWithPrefix
     )
     assert _api_controller._prefix_has_route_param
 
