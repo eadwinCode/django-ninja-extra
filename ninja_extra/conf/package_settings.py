@@ -4,7 +4,7 @@ from django.conf import settings as django_settings
 from django.core.signals import setting_changed
 from ninja.pagination import PaginationBase
 from ninja.throttling import BaseThrottle
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated
 
 from ninja_extra.conf.decorator import AllowTypeOfSource
@@ -61,9 +61,10 @@ USER_SETTINGS = UserDefinedSettingsMapper(
 
 
 class NinjaExtraSettings(BaseModel):
-    class Config:
-        from_attributes = True
-        validate_assignment = True
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_assignment=True,
+    )
 
     PAGINATION_CLASS: PaginationClassHandlerType = Field(  # type: ignore[assignment]
         "ninja.pagination.LimitOffsetPagination",
