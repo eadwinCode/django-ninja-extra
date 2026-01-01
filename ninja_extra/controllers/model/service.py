@@ -22,8 +22,12 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
         self.model = model
 
     def get_one(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
+        lookup_field = kwargs.pop("lookup_field", "pk")
         obj = get_object_or_exception(
-            klass=self.model, error_message=None, exception=NotFound, pk=pk
+            klass=self.model,
+            error_message=None,
+            exception=NotFound,
+            **{lookup_field: pk},
         )
         return obj
 
