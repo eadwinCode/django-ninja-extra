@@ -166,6 +166,7 @@ class ModelEndpointFactory:
         lookup_param: str,
         schema_in: t.Type[PydanticModel],
         schema_out: t.Type[PydanticModel],
+        lookup_field: str = "pk",
         status_code: int = status.HTTP_200_OK,
         auth: t.Any = NOT_SET,
         throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
@@ -202,6 +203,7 @@ class ModelEndpointFactory:
                     schema_in=schema_in,
                     object_getter=object_getter,
                     lookup_param=lookup_param,
+                    lookup_field=lookup_field,
                     custom_handler=custom_handler,
                 ),
                 prefix_route_params=api_controller.prefix_route_params,
@@ -237,6 +239,7 @@ class ModelEndpointFactory:
         lookup_param: str,
         schema_in: t.Type[PydanticModel],
         schema_out: t.Type[PydanticModel],
+        lookup_field: str = "pk",
         status_code: int = status.HTTP_200_OK,
         auth: t.Any = NOT_SET,
         throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
@@ -273,6 +276,7 @@ class ModelEndpointFactory:
                     object_getter=object_getter,
                     custom_handler=custom_handler,
                     lookup_param=lookup_param,
+                    lookup_field=lookup_field,
                     schema_in=schema_in,
                 ),
                 prefix_route_params=api_controller.prefix_route_params,
@@ -307,6 +311,7 @@ class ModelEndpointFactory:
         path: str,
         lookup_param: str,
         schema_out: t.Type[PydanticModel],
+        lookup_field: str = "pk",
         status_code: int = status.HTTP_200_OK,
         auth: t.Any = NOT_SET,
         throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
@@ -339,7 +344,9 @@ class ModelEndpointFactory:
             get_item = _path_resolver(
                 path,
                 cls._find_one_handler(
-                    object_getter=object_getter, lookup_param=lookup_param
+                    object_getter=object_getter,
+                    lookup_param=lookup_param,
+                    lookup_field=lookup_field,
                 ),
                 prefix_route_params=api_controller.prefix_route_params,
             )
@@ -472,6 +479,7 @@ class ModelEndpointFactory:
         cls,
         path: str,
         lookup_param: str,
+        lookup_field: str = "pk",
         status_code: int = status.HTTP_204_NO_CONTENT,
         auth: t.Any = NOT_SET,
         throttle: t.Union[BaseThrottle, t.List[BaseThrottle], NOT_SET_TYPE] = NOT_SET,
@@ -507,6 +515,7 @@ class ModelEndpointFactory:
                 cls._delete_handler(
                     object_getter=object_getter,
                     lookup_param=lookup_param,
+                    lookup_field=lookup_field,
                     custom_handler=custom_handler,
                     status_code=status_code,
                 ),
@@ -553,6 +562,7 @@ class ModelEndpointFactory:
         *,
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
         custom_handler: t.Optional[t.Callable[..., t.Any]],
         status_code: int,
     ) -> t.Callable:
@@ -561,7 +571,7 @@ class ModelEndpointFactory:
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one(pk=pk, **kwargs)
+                else self.service.get_one(pk=pk, lookup_field=lookup_field, **kwargs)
             )
             if not obj:  # pragma: no cover
                 raise NotFound()
@@ -580,13 +590,14 @@ class ModelEndpointFactory:
         *,
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
     ) -> t.Callable:
         def get_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
             pk = kwargs.pop(lookup_param)
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one(pk=pk, **kwargs)
+                else self.service.get_one(pk=pk, lookup_field=lookup_field, **kwargs)
             )
             if not obj:  # pragma: no cover
                 raise NotFound()
@@ -603,6 +614,7 @@ class ModelEndpointFactory:
         schema_in: t.Type[PydanticModel],
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
         custom_handler: t.Optional[t.Callable[..., t.Any]],
     ) -> t.Callable:
         def patch_item(
@@ -614,7 +626,7 @@ class ModelEndpointFactory:
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one(pk=pk, **kwargs)
+                else self.service.get_one(pk=pk, lookup_field=lookup_field, **kwargs)
             )
             if not obj:  # pragma: no cover
                 raise NotFound()
@@ -637,6 +649,7 @@ class ModelEndpointFactory:
         schema_in: t.Type[PydanticModel],
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
         custom_handler: t.Optional[t.Callable[..., t.Any]],
     ) -> t.Callable:
         def update_item(
@@ -648,7 +661,7 @@ class ModelEndpointFactory:
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one(pk=pk, **kwargs)
+                else self.service.get_one(pk=pk, lookup_field=lookup_field, **kwargs)
             )
 
             if not obj:  # pragma: no cover
@@ -734,6 +747,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
         *,
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
         custom_handler: t.Optional[t.Callable[..., t.Any]],
         status_code: int,
     ) -> t.Callable:
@@ -742,7 +756,9 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one_async(pk=pk, **kwargs)
+                else self.service.get_one_async(
+                    pk=pk, lookup_field=lookup_field, **kwargs
+                )
             )
             obj = await _check_if_coroutine(obj)
             if not obj:  # pragma: no cover
@@ -767,13 +783,16 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
         *,
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
     ) -> t.Callable:
         async def get_item(self: "ModelControllerBase", **kwargs: t.Any) -> t.Any:
             pk = kwargs.pop(lookup_param)
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one_async(pk=pk, **kwargs)
+                else self.service.get_one_async(
+                    pk=pk, lookup_field=lookup_field, **kwargs
+                )
             )
             obj = await _check_if_coroutine(obj)
 
@@ -793,6 +812,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
         schema_in: t.Type[PydanticModel],
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
         custom_handler: t.Optional[t.Callable[..., t.Any]],
     ) -> t.Callable:
         async def patch_item(
@@ -804,7 +824,9 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one_async(pk=pk, **kwargs)
+                else self.service.get_one_async(
+                    pk=pk, lookup_field=lookup_field, **kwargs
+                )
             )
             obj = await _check_if_coroutine(obj)
 
@@ -834,6 +856,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
         schema_in: t.Type[PydanticModel],
         object_getter: t.Optional[t.Callable[..., DjangoModel]],
         lookup_param: str,
+        lookup_field: str = "pk",
         custom_handler: t.Optional[t.Callable[..., t.Any]],
     ) -> t.Callable:
         async def update_item(
@@ -845,7 +868,9 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             obj = (
                 object_getter(self, pk=pk, **kwargs)
                 if object_getter
-                else self.service.get_one_async(pk=pk, **kwargs)
+                else self.service.get_one_async(
+                    pk=pk, lookup_field=lookup_field, **kwargs
+                )
             )
             obj = await _check_if_coroutine(obj)
 

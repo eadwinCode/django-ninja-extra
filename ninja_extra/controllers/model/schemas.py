@@ -90,6 +90,10 @@ class ModelConfig(PydanticModel):
         ]
     )
     async_routes: bool = False
+    lookup_field: str = Field(
+        default="pk",
+        description="The model field that should be used for performing object lookup of individual model instances. Defaults to 'pk'.",
+    )
     create_schema: t.Optional[t.Type[PydanticModel]] = None
     retrieve_schema: t.Optional[t.Type[PydanticModel]] = None
     update_schema: t.Optional[t.Type[PydanticModel]] = None

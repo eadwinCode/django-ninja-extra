@@ -11,7 +11,7 @@ from ninja_extra import (
 )
 from ninja_extra.schemas import NinjaPaginationResponseSchema
 
-from ..models import Event
+from ..models import Client, Event
 
 
 class CreateEventSchema(ModelSchema):
@@ -128,4 +128,35 @@ class EventController(ModelControllerBase):
         lookup_param="event_id",
         object_getter=lambda self, pk, **kw: Event.objects.filter(id=pk).first(),
         custom_handler=lambda self, **kw: self.service.delete(**kw),
+    )
+
+
+# Schema for Client model
+class ClientSchema(ModelSchema):
+    class Config:
+        model = Client
+        include = ["id", "key"]
+
+
+class CreateClientSchema(ModelSchema):
+    class Config:
+        model = Client
+        include = ["key"]
+
+
+@api_controller("/client")
+class ClientModelControllerWithLookupField(ModelControllerBase):
+    """
+    Model Controller that uses 'key' as lookup_field instead of 'pk'.
+    This allows retrieving, updating, patching, and deleting clients by their key.
+    """
+
+    model_config = ModelConfig(
+        model=Client,
+        lookup_field="key",  # Use 'key' field for lookups instead of 'pk'
+        create_schema=CreateClientSchema,
+        retrieve_schema=ClientSchema,
+        update_schema=CreateClientSchema,
+        patch_schema=CreateClientSchema,
+        pagination=None,
     )
