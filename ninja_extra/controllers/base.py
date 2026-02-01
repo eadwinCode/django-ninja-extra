@@ -75,24 +75,30 @@ def get_route_functions(
     :return: An iterator of RouteFunction instances
     """
 
-    for _, method in inspect.getmembers(klass, predicate=inspect.isfunction):
-        if hasattr(method, OPERATION_ENDPOINT_KEY):
-            route_obj: "Route" = reflect.get_metadata_or_raise_exception(
-                ROUTE_OBJECT, method
-            )
-            if route_obj.is_async:
-                yield AsyncRouteFunction(
-                    route_obj, api_controller=api_controller_instance
-                )
-            else:
-                yield RouteFunction(route_obj, api_controller=api_controller_instance)
+    # Collect methods in definition order, respecting inheritance
+    # Use dict to preserve order and allow child overrides
+    methods: t.Dict[str, t.Callable[..., t.Any]] = {}
+    # Traverse MRO in reverse (base classes first) to get definition order
+    for cls in reversed(klass.__mro__):
+        for name, method in cls.__dict__.items():
+            if callable(method) and hasattr(method, OPERATION_ENDPOINT_KEY):
+                methods[name] = method  # Child overrides replace parent
+
+    for method in methods.values():
+        route_obj: "Route" = reflect.get_metadata_or_raise_exception(
+            ROUTE_OBJECT, method
+        )
+        if route_obj.is_async:
+            yield AsyncRouteFunction(route_obj, api_controller=api_controller_instance)
+        else:
+            yield RouteFunction(route_obj, api_controller=api_controller_instance)
 
 
 def compute_api_route_function(
     base_cls: t.Type, api_controller_instance: "APIController"
 ) -> None:
     controller_routes = list(get_route_functions(base_cls, api_controller_instance))
-    controller_routes.reverse()
+    # controller_routes.reverse()
     for cls_route_function in controller_routes:
         api_controller_instance.add_controller_route_function(cls_route_function)
 
