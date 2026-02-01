@@ -1,0 +1,2088 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Django Ninja Extra - Adds more power to Django Ninja RESTful api library">
+      
+      
+      
+        <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/api_controller/api_controller_async_permission/">
+      
+      
+        <link rel="prev" href="../api_controller_permission/">
+      
+      
+        <link rel="next" href="../model_controller/01_getting_started/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Controller Async Permissions - Django Ninja Extra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deeppurple" data-md-color-accent="deeppurple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#async-permissions-in-django-ninja-extra" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Django Ninja Extra" class="md-header__button md-logo" aria-label="Django Ninja Extra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Django Ninja Extra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Controller Async Permissions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deeppurple" data-md-color-accent="deeppurple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eadwinCode/django-ninja-extra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    eadwinCode/django-ninja
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Django Ninja Extra" class="md-nav__button md-logo" aria-label="Django Ninja Extra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Django Ninja Extra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eadwinCode/django-ninja-extra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    eadwinCode/django-ninja
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIController
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    APIController
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_controller_route/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controller Routes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_controller_permission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controller Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controller Async Permissions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controller Async Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-async-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating Async Permissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating Async Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-async-permission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Async Permission
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-built-in-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Built-in Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-permissions-with-logical-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Permissions with Logical Operators
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Combining Permissions with Logical Operators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-permission-operators-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Permission Operators Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mixing-sync-and-async-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mixing Sync and Async Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-level-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object-Level Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-dependency-injection-with-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Dependency Injection with Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-permission-resolution-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the Permission Resolution Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrating-from-sync-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating from Sync Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-async-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing Async Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Controller
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model Controller
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_controller/01_getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_controller/02_model_configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_controller/03_model_service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_controller/04_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/path/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Path Parameter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Query Request
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/body_request/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Body Request
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/form/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Form Request
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/pagination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pagination
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filtering
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Filtering
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/ordering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ordering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/searching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Searching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/custom_exception/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/throttling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Throttling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../route_context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RouteContext
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dependency Injection
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dependency-injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dependency-injection/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing with Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-async-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating Async Permissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating Async Permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-async-permission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Async Permission
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-built-in-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Built-in Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#combining-permissions-with-logical-operators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Combining Permissions with Logical Operators
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Combining Permissions with Logical Operators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-permission-operators-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Permission Operators Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mixing-sync-and-async-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mixing Sync and Async Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-level-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object-Level Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-dependency-injection-with-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Dependency Injection with Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-permission-resolution-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the Permission Resolution Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migrating-from-sync-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrating from Sync Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-async-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing Async Permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="async-permissions-in-django-ninja-extra">Async Permissions in Django Ninja Extra</h1>
+<p>This guide explains how to use the asynchronous permissions system in Django Ninja Extra for efficient permission handling with async views and models.</p>
+<h2 id="introduction">Introduction</h2>
+<p>Django Ninja Extra provides an asynchronous permissions system that builds upon the existing permissions framework, adding support for async/await syntax. This is particularly useful when:</p>
+<ul>
+<li>Working with async views and controllers</li>
+<li>Performing permission checks that involve database queries</li>
+<li>Building efficient APIs that don't block the event loop</li>
+</ul>
+<p>The permission system in Django Ninja Extra has been redesigned to seamlessly integrate both synchronous and asynchronous permissions, making it easy to:</p>
+<ul>
+<li>Create async-first permission classes</li>
+<li>Mix sync and async permissions with logical operators</li>
+<li>Use dependency injection with permissions</li>
+<li>Easily migrate from sync to async permissions</li>
+</ul>
+<h2 id="creating-async-permissions">Creating Async Permissions</h2>
+<h3 id="basic-async-permission">Basic Async Permission</h3>
+<p>To create a custom async permission, inherit from <code>AsyncBasePermission</code> and implement the <code>has_permission_async</code> method:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncBasePermission</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IsUserPremiumAsync</span><span class="p">(</span><span class="n">AsyncBasePermission</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+        <span class="c1"># You can perform async database operations here</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+
+        <span class="c1"># Async check (example using Django&#39;s async ORM methods)</span>
+        <span class="n">subscription</span> <span class="o">=</span> <span class="k">await</span> <span class="n">user</span><span class="o">.</span><span class="n">subscription</span><span class="o">.</span><span class="n">aget</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">subscription</span> <span class="ow">and</span> <span class="n">subscription</span><span class="o">.</span><span class="n">is_premium</span>
+
+    <span class="c1"># The sync version is automatically handled for you</span>
+    <span class="c1"># through async_to_sync conversion</span>
+</code></pre></div>
+<h3 id="using-built-in-permissions">Using Built-in Permissions</h3>
+<p>Django Ninja Extra's permission system automatically handles both sync and async operations for built-in permissions:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_get</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsAuthenticated</span><span class="p">,</span> <span class="n">IsAdminUser</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">])</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UserController</span><span class="p">:</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/profile&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsAdminUser</span><span class="p">])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_admin_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="c1"># Only accessible to admin users</span>
+        <span class="c1"># IsAdminUser works with async views automatically</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Admin profile&quot;</span><span class="p">}</span>
+</code></pre></div>
+<h2 id="combining-permissions-with-logical-operators">Combining Permissions with Logical Operators</h2>
+<p>The permission system supports combining permissions using logical operators (<code>&amp;</code>, <code>|</code>, <code>~</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_get</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsAuthenticated</span><span class="p">,</span> <span class="n">IsAdminUser</span><span class="p">,</span> <span class="n">AsyncBasePermission</span>
+
+<span class="c1"># Custom async permission</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HasPremiumSubscriptionAsync</span><span class="p">(</span><span class="n">AsyncBasePermission</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+        <span class="c1"># Async check</span>
+        <span class="n">user_profile</span> <span class="o">=</span> <span class="k">await</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">aget</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">user_profile</span><span class="o">.</span><span class="n">has_premium_subscription</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/content&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ContentController</span><span class="p">:</span>
+    <span class="c1"># User must be authenticated AND have premium subscription</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/premium&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">HasPremiumSubscriptionAsync</span><span class="p">()])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">premium_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Premium content&quot;</span><span class="p">}</span>
+
+    <span class="c1"># User must be authenticated OR an admin</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/special&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">()</span> <span class="o">|</span> <span class="n">IsAdminUser</span><span class="p">()])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">special_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Special content&quot;</span><span class="p">}</span>
+
+    <span class="c1"># User must be authenticated but NOT an admin</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/regular&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">()</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">IsAdminUser</span><span class="p">()])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">regular_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Regular user content&quot;</span><span class="p">}</span>
+</code></pre></div>
+<h3 id="how-permission-operators-work">How Permission Operators Work</h3>
+<p>When permissions are combined with logical operators, they create instances of <code>AND</code>, <code>OR</code>, or <code>NOT</code> classes that automatically handle both sync and async permissions:</p>
+<ul>
+<li><strong>AND</strong>: Both permissions must return <code>True</code> (short-circuits on first <code>False</code>)</li>
+<li><strong>OR</strong>: At least one permission must return <code>True</code> (short-circuits on first <code>True</code>)</li>
+<li><strong>NOT</strong>: Inverts the result of the permission</li>
+</ul>
+<p>The operators intelligently dispatch to either <code>has_permission</code>/<code>has_object_permission</code> or <code>has_permission_async</code>/<code>has_object_permission_async</code> depending on the context and permission types.</p>
+<h2 id="mixing-sync-and-async-permissions">Mixing Sync and Async Permissions</h2>
+<p>You can seamlessly mix regular permissions with async permissions:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_get</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsAuthenticated</span><span class="p">,</span> <span class="n">IsAdminUser</span><span class="p">,</span> <span class="n">AsyncBasePermission</span>
+
+<span class="c1"># Custom async permission</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IsProjectMemberAsync</span><span class="p">(</span><span class="n">AsyncBasePermission</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+        <span class="n">project_id</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_id&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">project_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Async database query</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">is_member_of_project</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">project_id</span><span class="p">)</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/projects&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectController</span><span class="p">:</span>
+    <span class="c1"># Mixing sync and async permissions</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{project_id}</span><span class="s2">/details&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">IsProjectMemberAsync</span><span class="p">()])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">project_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">project_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># The framework automatically handles the conversion between sync and async</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_project_by_id</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">project</span>
+</code></pre></div>
+<p>The permission system automatically handles conversions between sync and async:</p>
+<ul>
+<li>When an async view calls a sync permission, it's wrapped with <code>sync_to_async</code></li>
+<li>When a sync view calls an async permission, it's wrapped with <code>async_to_sync</code></li>
+<li>Logical operators (<code>AND</code>, <code>OR</code>, <code>NOT</code>) intelligently handle mixed permission types</li>
+</ul>
+<h2 id="object-level-permissions">Object-Level Permissions</h2>
+<p>For object-level permissions, implement the <code>has_object_permission_async</code> method:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">IsOwnerAsync</span><span class="p">(</span><span class="n">AsyncBasePermission</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_object_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="c1"># Async check on the object</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">owner_id</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/posts&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PostController</span><span class="p">:</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{post_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">post_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># The async_check_object_permissions method will be called automatically</span>
+        <span class="c1"># when using aget_object_or_exception or aget_object_or_none</span>
+        <span class="n">post</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">aget_object_or_exception</span><span class="p">(</span><span class="n">Post</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">post_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">post</span><span class="o">.</span><span class="n">content</span><span class="p">}</span>
+</code></pre></div>
+<h2 id="using-dependency-injection-with-permissions">Using Dependency Injection with Permissions</h2>
+<p>Django Ninja Extra's permission system now integrates with dependency injection:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">injector</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_get</span><span class="p">,</span> <span class="n">service_resolver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncBasePermission</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FeatureService</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_feature_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">feature</span><span class="p">):</span>
+        <span class="c1"># Check if user has access to a specific feature</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;has_</span><span class="si">{</span><span class="n">feature</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FeaturePermission</span><span class="p">(</span><span class="n">AsyncBasePermission</span><span class="p">):</span>
+    <span class="n">__features__</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">feature</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;basic&quot;</span>
+
+    <span class="nd">@inject</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_service</span><span class="p">:</span> <span class="n">FeatureService</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_service</span> <span class="o">=</span> <span class="n">feature_service</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Must have access to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">feature</span><span class="si">}</span><span class="s2"> feature&quot;</span>
+
+    <span class="c1"># Async version of permission check</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_service</span><span class="o">.</span><span class="n">has_feature_access</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_as</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">feature</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">FeaturePermission</span><span class="p">]:</span>
+        <span class="c1"># Create a new permission class with the same attributes</span>
+        <span class="k">if</span> <span class="n">feature</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__features__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__features__</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span>
+        <span class="n">permission_type</span> <span class="o">=</span>  <span class="nb">type</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">feature</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">cls</span><span class="p">,),</span> <span class="p">{</span><span class="s2">&quot;feature&quot;</span><span class="p">:</span> <span class="n">feature</span><span class="p">})</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">__features__</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span> <span class="o">=</span> <span class="n">permission_type</span>
+        <span class="k">return</span> <span class="n">permission_type</span>
+
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s1">&#39;features&#39;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FeatureController</span><span class="p">(</span><span class="n">ControllerBase</span><span class="p">):</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;basic/&#39;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">FeaturePermission</span><span class="o">.</span><span class="n">create_as</span><span class="p">(</span><span class="s2">&quot;basic&quot;</span><span class="p">)])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">basic_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;feature&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">}</span>
+
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;premium/&#39;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">FeaturePermission</span><span class="o">.</span><span class="n">create_as</span><span class="p">(</span><span class="s2">&quot;premium&quot;</span><span class="p">)])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">premium_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;feature&quot;</span><span class="p">:</span> <span class="s2">&quot;premium&quot;</span><span class="p">}</span>
+
+    <span class="c1"># You can even combine injected permissions with operators</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s1">&#39;both/&#39;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">FeaturePermission</span><span class="o">.</span><span class="n">create_as</span><span class="p">(</span><span class="s2">&quot;basic&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">FeaturePermission</span><span class="o">.</span><span class="n">create_as</span><span class="p">(</span><span class="s2">&quot;premium&quot;</span><span class="p">)])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">both_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;feature&quot;</span><span class="p">:</span> <span class="s2">&quot;both&quot;</span><span class="p">}</span>
+</code></pre></div>
+<p>The permission system automatically resolves the dependencies for injected permissions.</p>
+<h2 id="how-the-permission-resolution-works">How the Permission Resolution Works</h2>
+<p>The permission system uses a sophisticated resolution mechanism:</p>
+<ol>
+<li><strong>Class vs Instance</strong>: Permissions can be specified as either classes (<code>IsAuthenticated</code>) or instances (<code>IsAuthenticated()</code>).</li>
+<li><strong>Dependency Injection</strong>: Classes decorated with <code>@inject</code> are resolved using the dependency injector.</li>
+<li><strong>Operator Handling</strong>: When permissions are combined with operators, the resolution happens lazily, only when the permission is actually checked.</li>
+</ol>
+<p>This resolution process is handled by the <code>_get_permission_object</code> method in the operation classes (<code>AND</code>, <code>OR</code>, <code>NOT</code>).</p>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<ul>
+<li>Use <code>AsyncBasePermission</code> for async-first permission classes</li>
+<li>For optimal performance with database queries, use async methods like <code>aget()</code>, <code>afilter()</code>, etc.</li>
+<li>The permission system automatically handles conversion between sync and async contexts using <code>asgiref.sync</code></li>
+<li>Logical operators implement short-circuiting for efficiency</li>
+</ul>
+<h2 id="complete-example">Complete Example</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">asgiref.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">sync_to_async</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">api_controller</span><span class="p">,</span> <span class="n">http_get</span><span class="p">,</span> <span class="n">http_post</span><span class="p">,</span> <span class="n">ControllerBase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncBasePermission</span><span class="p">,</span> <span class="n">IsAuthenticated</span><span class="p">,</span> <span class="n">AllowAny</span>
+
+<span class="c1"># Custom async permission</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IsStaffOrOwnerAsync</span><span class="p">(</span><span class="n">AsyncBasePermission</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_object_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="c1"># Either the user is staff or owns the object</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_staff</span> <span class="ow">or</span> <span class="n">obj</span><span class="o">.</span><span class="n">owner_id</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span>
+
+<span class="c1"># Controller using mixed permissions</span>
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/users&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">])</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UserController</span><span class="p">(</span><span class="n">ControllerBase</span><span class="p">):</span>
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">AllowAny</span><span class="p">])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">list_users</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="c1"># Public endpoint</span>
+        <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">sync_to_async</span><span class="p">(</span><span class="nb">list</span><span class="p">)(</span><span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;username&#39;</span><span class="p">)[:</span><span class="mi">10</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">users</span>
+
+    <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Protected by IsAuthenticated from the controller</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">aget_object_or_exception</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">}</span>
+
+    <span class="nd">@http_post</span><span class="p">(</span><span class="s2">&quot;/update/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">IsStaffOrOwnerAsync</span><span class="p">()])</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">update_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="c1"># Protected by custom async permission</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">aget_object_or_exception</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="c1"># Update user data</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;success&quot;</span><span class="p">}</span>
+</code></pre></div>
+<h2 id="migrating-from-sync-permissions">Migrating from Sync Permissions</h2>
+<p>If you already have sync permission classes that you want to make async, follow these steps:</p>
+<ol>
+<li>Change the base class from <code>BasePermission</code> to <code>AsyncBasePermission</code></li>
+<li>Implement the async methods (<code>has_permission_async</code> and <code>has_object_permission_async</code>)</li>
+<li>Convert any blocking operations to their async equivalents</li>
+<li>Update your controller to use these permissions</li>
+</ol>
+<p>The framework will automatically handle the interoperability between sync and async permissions.</p>
+<h2 id="testing-async-permissions">Testing Async Permissions</h2>
+<p>Testing async permissions is straightforward using pytest-asyncio:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">unittest.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mock</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnonymousUser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncBasePermission</span><span class="p">,</span> <span class="n">IsAdminUser</span>
+
+<span class="c1"># Custom async permission for testing</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomAsyncPermission</span><span class="p">(</span><span class="n">AsyncBasePermission</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">has_permission_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_async_permission</span><span class="p">():</span>
+    <span class="c1"># Create a mock request</span>
+    <span class="n">authenticated_request</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">Mock</span><span class="p">(</span><span class="n">is_authenticated</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">anonymous_request</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">AnonymousUser</span><span class="p">())</span>
+
+    <span class="c1"># Test the permission</span>
+    <span class="n">permission</span> <span class="o">=</span> <span class="n">CustomAsyncPermission</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="k">await</span> <span class="n">permission</span><span class="o">.</span><span class="n">has_permission_async</span><span class="p">(</span><span class="n">authenticated_request</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+    <span class="k">assert</span> <span class="k">await</span> <span class="n">permission</span><span class="o">.</span><span class="n">has_permission_async</span><span class="p">(</span><span class="n">anonymous_request</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span>
+
+    <span class="c1"># Test with operators</span>
+    <span class="n">combined</span> <span class="o">=</span> <span class="n">CustomAsyncPermission</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">IsAdminUser</span><span class="p">()</span>
+
+    <span class="n">admin_request</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">Mock</span><span class="p">(</span><span class="n">is_authenticated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">is_staff</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="k">await</span> <span class="n">combined</span><span class="o">.</span><span class="n">has_permission_async</span><span class="p">(</span><span class="n">admin_request</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+    <span class="k">assert</span> <span class="k">await</span> <span class="n">combined</span><span class="o">.</span><span class="n">has_permission_async</span><span class="p">(</span><span class="n">authenticated_request</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span>
+
+    <span class="k">assert</span> <span class="n">combined</span><span class="o">.</span><span class="n">has_permission</span><span class="p">(</span><span class="n">admin_request</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+    <span class="k">assert</span> <span class="n">combined</span><span class="o">.</span><span class="n">has_permission</span><span class="p">(</span><span class="n">authenticated_request</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span>
+</code></pre></div>
+<p>For controller integration tests:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_controller_with_permissions</span><span class="p">():</span>
+    <span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/test&quot;</span><span class="p">)</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">TestController</span><span class="p">(</span><span class="n">ControllerBase</span><span class="p">):</span>
+        <span class="nd">@http_get</span><span class="p">(</span><span class="s2">&quot;/protected&quot;</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="p">[</span><span class="n">CustomAsyncPermission</span><span class="p">()])</span>
+        <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">protected_route</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+    <span class="c1"># Create async test client</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">TestAsyncClient</span><span class="p">(</span><span class="n">TestController</span><span class="p">)</span>
+
+    <span class="c1"># Test with anonymous user</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/protected&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">AnonymousUser</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span>
+
+    <span class="c1"># Test with authenticated user</span>
+    <span class="n">auth_user</span> <span class="o">=</span> <span class="n">Mock</span><span class="p">(</span><span class="n">is_authenticated</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/protected&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">auth_user</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span>
+    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

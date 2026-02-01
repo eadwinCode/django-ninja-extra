@@ -1,0 +1,2466 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Django Ninja Extra - Adds more power to Django Ninja RESTful api library">
+      
+      
+      
+        <link rel="canonical" href="https://eadwincode.github.io/django-ninja-extra/api_controller/model_controller/02_model_configuration/">
+      
+      
+        <link rel="prev" href="../01_getting_started/">
+      
+      
+        <link rel="next" href="../03_model_service/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Model Configuration - Django Ninja Extra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deeppurple" data-md-color-accent="deeppurple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#model-configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Django Ninja Extra" class="md-header__button md-logo" aria-label="Django Ninja Extra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Django Ninja Extra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Model Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deeppurple" data-md-color-accent="deeppurple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eadwinCode/django-ninja-extra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    eadwinCode/django-ninja
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Django Ninja Extra" class="md-nav__button md-logo" aria-label="Django Ninja Extra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Django Ninja Extra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eadwinCode/django-ninja-extra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    eadwinCode/django-ninja
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    APIController
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    APIController
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_controller_route/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controller Routes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_controller_permission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controller Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api_controller_async_permission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Controller Async Permissions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Controller
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model Controller
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Schemas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pagination-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pagination Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pagination-with-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination with Filtering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-filtering-with-custom-lookups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Filtering with Custom Lookups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disabling-pagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disabling Pagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#route-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Route Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Route Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-route-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Route Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#route-specific-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Route-Specific Parameters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Route-Specific Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-route-create_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create Route (create_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updatepatch-routes-update_route_info-patch_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update/Patch Routes (update_route_info, patch_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-one-route-find_one_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find One Route (find_one_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-route-delete_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete Route (delete_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-route-list_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        List Route (list_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-configuration-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Configuration Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-routes-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Routes Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-inheritance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Inheritance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_model_service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/path/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Path Parameter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Query Request
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/body_request/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Body Request
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/form/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Form Request
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/pagination/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pagination
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filtering
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Filtering
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/ordering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ordering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/searching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Searching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/custom_exception/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/throttling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Throttling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorial/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../route_context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RouteContext
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dependency Injection
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dependency-injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dependency-injection/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing with Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Schemas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pagination-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pagination Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pagination-with-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination with Filtering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-filtering-with-custom-lookups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Filtering with Custom Lookups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disabling-pagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disabling Pagination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#route-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Route Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Route Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-route-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Route Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#route-specific-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Route-Specific Parameters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Route-Specific Parameters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-route-create_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create Route (create_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updatepatch-routes-update_route_info-patch_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update/Patch Routes (update_route_info, patch_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find-one-route-find_one_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find One Route (find_one_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-route-delete_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete Route (delete_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list-route-list_route_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        List Route (list_route_info)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basic-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-configuration-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Configuration Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-routes-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Routes Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-inheritance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Inheritance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="model-configuration">Model Configuration</h1>
+<p>The <code>ModelConfig</code> class in Ninja Extra provides extensive configuration options for Model Controllers. It allows you to customize schema generation, route behavior, and pagination settings.</p>
+<h2 id="basic-configuration"><strong>Basic Configuration</strong></h2>
+<p>Here's a comprehensive example of <code>ModelConfig</code> usage:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ModelConfig</span><span class="p">,</span>
+    <span class="n">ModelControllerBase</span><span class="p">,</span>
+    <span class="n">ModelSchemaConfig</span><span class="p">,</span>
+    <span class="n">api_controller</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">schema_config</span><span class="o">=</span><span class="n">ModelSchemaConfig</span><span class="p">(</span>
+            <span class="n">read_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;created_at&quot;</span><span class="p">],</span>
+            <span class="n">write_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span>
+            <span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="s2">&quot;start_date&quot;</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">,</span> <span class="s2">&quot;category&quot;</span><span class="p">],</span>
+            <span class="n">exclude</span><span class="o">=</span><span class="nb">set</span><span class="p">(),</span>  <span class="c1"># Fields to exclude</span>
+            <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Nesting depth for related fields</span>
+        <span class="p">),</span>
+        <span class="n">async_routes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># Enable/disable async routes</span>
+        <span class="n">allowed_routes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;create&quot;</span><span class="p">,</span> <span class="s2">&quot;find_one&quot;</span><span class="p">,</span> <span class="s2">&quot;update&quot;</span><span class="p">,</span> <span class="s2">&quot;patch&quot;</span><span class="p">,</span> <span class="s2">&quot;delete&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h2 id="schema-configuration"><strong>Schema Configuration</strong></h2>
+<p>The <code>ModelSchemaConfig</code> class controls how Pydantic schemas are generated from your Django models:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">ModelSchemaConfig</span>
+
+<span class="c1"># Detailed schema configuration</span>
+<span class="n">schema_config</span> <span class="o">=</span> <span class="n">ModelSchemaConfig</span><span class="p">(</span>
+    <span class="c1"># Include specific fields (use &quot;__all__&quot; for all fields)</span>
+    <span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;start_date&quot;</span><span class="p">],</span>
+
+    <span class="c1"># Exclude specific fields</span>
+    <span class="n">exclude</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;internal_notes&quot;</span><span class="p">,</span> <span class="s2">&quot;secret_key&quot;</span><span class="p">},</span>
+
+    <span class="c1"># Fields that should be read-only (excluded from create/update schemas)</span>
+    <span class="n">read_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;created_at&quot;</span><span class="p">,</span> <span class="s2">&quot;updated_at&quot;</span><span class="p">],</span>
+
+    <span class="c1"># Fields that should be write-only (excluded from retrieve schemas)</span>
+    <span class="n">write_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span>
+
+    <span class="c1"># Depth of relationship traversal</span>
+    <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+
+    <span class="c1"># Additional Pydantic config options</span>
+    <span class="n">extra_config_dict</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;EventSchema&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Schema for Event model&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;populate_by_name&quot;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+    <span class="n">schema_config</span><span class="o">=</span><span class="n">schema_config</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="custom-schemas"><strong>Custom Schemas</strong></h2>
+<p>You can provide your own Pydantic schemas instead of using auto-generated ones:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EventCreateSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">start_date</span><span class="p">:</span> <span class="n">date</span>
+    <span class="n">end_date</span><span class="p">:</span> <span class="n">date</span>
+    <span class="n">category_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EventRetrieveSchema</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">start_date</span><span class="p">:</span> <span class="n">date</span>
+    <span class="n">end_date</span><span class="p">:</span> <span class="n">date</span>
+    <span class="n">category_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">create_schema</span><span class="o">=</span><span class="n">EventCreateSchema</span><span class="p">,</span>
+        <span class="n">retrieve_schema</span><span class="o">=</span><span class="n">EventRetrieveSchema</span><span class="p">,</span>
+        <span class="n">update_schema</span><span class="o">=</span><span class="n">EventCreateSchema</span><span class="p">,</span>  <span class="c1"># Reuse create schema for updates</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h2 id="pagination-configuration"><strong>Pagination Configuration</strong></h2>
+<p>Model Controllers support customizable pagination for list endpoints:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">LimitOffsetPagination</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ModelConfig</span><span class="p">,</span>
+    <span class="n">ModelPagination</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">NinjaPaginationResponseSchema</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="c1"># Configure pagination</span>
+        <span class="n">pagination</span><span class="o">=</span><span class="n">ModelPagination</span><span class="p">(</span>
+            <span class="n">klass</span><span class="o">=</span><span class="n">LimitOffsetPagination</span><span class="p">,</span>
+            <span class="n">pagination_schema</span><span class="o">=</span><span class="n">NinjaPaginationResponseSchema</span><span class="p">,</span>
+            <span class="n">paginator_kwargs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="mi">100</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h3 id="pagination-with-filtering"><strong>Pagination with Filtering</strong></h3>
+<p>You can combine pagination with Django Ninja's <code>FilterSchema</code> to automatically add filtering capabilities to your Model Controller's list endpoint:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterSchema</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">ModelPagination</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">PageNumberPaginationExtra</span>
+
+<span class="c1"># Define a FilterSchema for your model</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventFilterSchema</span><span class="p">(</span><span class="n">FilterSchema</span><span class="p">):</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">category</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">start_date__gte</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">pagination</span><span class="o">=</span><span class="n">ModelPagination</span><span class="p">(</span>
+            <span class="n">klass</span><span class="o">=</span><span class="n">PageNumberPaginationExtra</span><span class="p">,</span>
+            <span class="n">filter_schema</span><span class="o">=</span><span class="n">EventFilterSchema</span><span class="p">,</span>  <span class="c1"># Add filtering support</span>
+            <span class="n">paginator_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;page_size&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">}</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>This configuration automatically applies the <code>FilterSchema</code> to the list endpoint, allowing users to filter results:</p>
+<div class="highlight"><pre><span></span><code>GET /api/events/?title=Conference&amp;category=Tech&amp;page=1&amp;page_size=25
+</code></pre></div>
+<h3 id="advanced-filtering-with-custom-lookups"><strong>Advanced Filtering with Custom Lookups</strong></h3>
+<p>Use Django Ninja's <code>FilterLookup</code> annotation for more sophisticated filtering:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterSchema</span><span class="p">,</span> <span class="n">FilterLookup</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AdvancedEventFilterSchema</span><span class="p">(</span><span class="n">FilterSchema</span><span class="p">):</span>
+    <span class="c1"># Case-insensitive search</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">FilterLookup</span><span class="p">(</span><span class="s2">&quot;title__icontains&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Date range filtering</span>
+    <span class="n">start_date_after</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">FilterLookup</span><span class="p">(</span><span class="s2">&quot;start_date__gte&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">start_date_before</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">FilterLookup</span><span class="p">(</span><span class="s2">&quot;start_date__lte&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Related field filtering</span>
+    <span class="n">category</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">FilterLookup</span><span class="p">(</span><span class="s2">&quot;category__name__iexact&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Multiple field search</span>
+    <span class="n">search</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span>
+        <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">FilterLookup</span><span class="p">([</span>
+            <span class="s2">&quot;title__icontains&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description__icontains&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;location__icontains&quot;</span>
+        <span class="p">])</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">pagination</span><span class="o">=</span><span class="n">ModelPagination</span><span class="p">(</span>
+            <span class="n">klass</span><span class="o">=</span><span class="n">PageNumberPaginationExtra</span><span class="p">,</span>
+            <span class="n">filter_schema</span><span class="o">=</span><span class="n">AdvancedEventFilterSchema</span><span class="p">,</span>
+            <span class="n">paginator_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;page_size&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">}</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Learn More About FilterSchema</p>
+<p>For comprehensive documentation on FilterSchema features, custom expressions, combining filters, and advanced filtering techniques, visit: <a href="https://django-ninja.dev/guides/input/filtering/">https://django-ninja.dev/guides/input/filtering/</a></p>
+</div>
+<h3 id="disabling-pagination"><strong>Disabling Pagination</strong></h3>
+<p>By default, Model Controllers apply pagination to the list endpoint. If you want to return all results without pagination, you can disable it by setting <code>pagination</code> to <code>None</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">pagination</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Disables pagination</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>When pagination is disabled, the list endpoint will return all records in a single response:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Response structure without pagination</span>
+<span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Event 1&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Event 2&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Event 3&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span>
+    <span class="c1"># ... all records</span>
+<span class="p">]</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Performance Considerations</p>
+<p>Disabling pagination can lead to performance issues and large response payloads if your model has many records. Use this option only when:</p>
+<ul>
+<li>You have a small, bounded dataset (e.g., less than 100 records)</li>
+<li>You need to return all records for client-side processing</li>
+<li>You're certain the dataset will remain small</li>
+</ul>
+<p>For large datasets, consider using pagination with a reasonable page size instead.</p>
+</div>
+<p>You can also disable pagination while still using filtering:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterSchema</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EventFilterSchema</span><span class="p">(</span><span class="n">FilterSchema</span><span class="p">):</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">category</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">pagination</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># No pagination, but filtering is still available</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Override list method to apply filtering manually</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filters</span><span class="p">:</span> <span class="n">EventFilterSchema</span><span class="p">):</span>
+        <span class="n">queryset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="n">queryset</span> <span class="o">=</span> <span class="n">filters</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">queryset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="o">.</span><span class="n">retrieve_schema</span><span class="o">.</span><span class="n">from_orm</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">queryset</span><span class="p">]</span>
+</code></pre></div>
+<h2 id="route-configuration"><strong>Route Configuration</strong></h2>
+<p>You can customize individual route behavior using route info dictionaries. Each route type (<code>create_route_info</code>, <code>list_route_info</code>, <code>find_one_route_info</code>, <code>update_route_info</code>, <code>patch_route_info</code>, <code>delete_route_info</code>) accepts various configuration parameters.</p>
+<h3 id="common-route-parameters"><strong>Common Route Parameters</strong></h3>
+<p>All route types support these common parameters:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>path</code></td>
+<td><code>str</code></td>
+<td>varies by route</td>
+<td>Custom path for the route</td>
+</tr>
+<tr>
+<td><code>status_code</code></td>
+<td><code>int</code></td>
+<td>varies by route</td>
+<td>HTTP status code for successful responses</td>
+</tr>
+<tr>
+<td><code>auth</code></td>
+<td><code>Any</code></td>
+<td>NOT_SET</td>
+<td>Authentication class or instance</td>
+</tr>
+<tr>
+<td><code>throttle</code></td>
+<td><code>BaseThrottle \| List[BaseThrottle]</code></td>
+<td>NOT_SET</td>
+<td>Throttle class(es) for rate limiting</td>
+</tr>
+<tr>
+<td><code>response</code></td>
+<td><code>Any</code></td>
+<td>NOT_SET</td>
+<td>Custom response configuration</td>
+</tr>
+<tr>
+<td><code>url_name</code></td>
+<td><code>str \| None</code></td>
+<td>None</td>
+<td>Django URL name for the route</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>str \| None</code></td>
+<td>None</td>
+<td>Detailed description for OpenAPI docs</td>
+</tr>
+<tr>
+<td><code>operation_id</code></td>
+<td><code>str \| None</code></td>
+<td>None</td>
+<td>Custom operation ID for OpenAPI</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td><code>str \| None</code></td>
+<td>varies by route</td>
+<td>Short summary for OpenAPI docs</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code>List[str] \| None</code></td>
+<td>None</td>
+<td>Tags for grouping in OpenAPI docs</td>
+</tr>
+<tr>
+<td><code>deprecated</code></td>
+<td><code>bool \| None</code></td>
+<td>None</td>
+<td>Mark route as deprecated in OpenAPI</td>
+</tr>
+<tr>
+<td><code>by_alias</code></td>
+<td><code>bool</code></td>
+<td>False</td>
+<td>Use schema field aliases in response</td>
+</tr>
+<tr>
+<td><code>exclude_unset</code></td>
+<td><code>bool</code></td>
+<td>False</td>
+<td>Exclude unset fields from response</td>
+</tr>
+<tr>
+<td><code>exclude_defaults</code></td>
+<td><code>bool</code></td>
+<td>False</td>
+<td>Exclude fields with default values</td>
+</tr>
+<tr>
+<td><code>exclude_none</code></td>
+<td><code>bool</code></td>
+<td>False</td>
+<td>Exclude None fields from response</td>
+</tr>
+<tr>
+<td><code>include_in_schema</code></td>
+<td><code>bool</code></td>
+<td>True</td>
+<td>Include route in OpenAPI schema</td>
+</tr>
+<tr>
+<td><code>permissions</code></td>
+<td><code>List[BasePermission]</code></td>
+<td>None</td>
+<td>Permission classes for the route</td>
+</tr>
+<tr>
+<td><code>openapi_extra</code></td>
+<td><code>Dict[str, Any] \| None</code></td>
+<td>None</td>
+<td>Extra OpenAPI schema properties</td>
+</tr>
+</tbody>
+</table>
+<h3 id="route-specific-parameters"><strong>Route-Specific Parameters</strong></h3>
+<h4 id="create-route-create_route_info"><strong>Create Route (<code>create_route_info</code>)</strong></h4>
+<ul>
+<li><code>custom_handler</code>: Custom handler function to override default create logic</li>
+</ul>
+<h4 id="updatepatch-routes-update_route_info-patch_route_info"><strong>Update/Patch Routes (<code>update_route_info</code>, <code>patch_route_info</code>)</strong></h4>
+<ul>
+<li><code>object_getter</code>: Custom function to retrieve the object</li>
+<li><code>custom_handler</code>: Custom handler function to override default update/patch logic</li>
+</ul>
+<h4 id="find-one-route-find_one_route_info"><strong>Find One Route (<code>find_one_route_info</code>)</strong></h4>
+<ul>
+<li><code>object_getter</code>: Custom function to retrieve the object</li>
+</ul>
+<h4 id="delete-route-delete_route_info"><strong>Delete Route (<code>delete_route_info</code>)</strong></h4>
+<ul>
+<li><code>object_getter</code>: Custom function to retrieve the object</li>
+<li><code>custom_handler</code>: Custom handler function to override default delete logic</li>
+</ul>
+<h4 id="list-route-list_route_info"><strong>List Route (<code>list_route_info</code>)</strong></h4>
+<ul>
+<li><code>queryset_getter</code>: Custom function to retrieve the queryset</li>
+<li><code>pagination_response_schema</code>: Custom pagination response schema</li>
+</ul>
+<h3 id="basic-example"><strong>Basic Example</strong></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="c1"># Customize specific route configurations</span>
+        <span class="n">create_route_info</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Create a new event&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Creates a new event with the provided data&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;events&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;deprecated&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">list_route_info</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;List all events&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Retrieves a paginated list of all events&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;events&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
+        <span class="n">find_one_route_info</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Get event details&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Retrieves details of a specific event&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;events&quot;</span><span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h3 id="advanced-configuration-example"><strong>Advanced Configuration Example</strong></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra</span><span class="w"> </span><span class="kn">import</span> <span class="n">status</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsAuthenticated</span><span class="p">,</span> <span class="n">IsAdminUser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.throttling</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnonRateThrottle</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="n">create_route_info</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Create a new event&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Creates a new event with the provided data&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;events&quot;</span><span class="p">,</span> <span class="s2">&quot;management&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;status_code&quot;</span><span class="p">:</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">,</span>
+            <span class="s2">&quot;permissions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">],</span>
+            <span class="s2">&quot;throttle&quot;</span><span class="p">:</span> <span class="n">AnonRateThrottle</span><span class="p">(),</span>
+            <span class="s2">&quot;exclude_none&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;openapi_extra&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;requestBody&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;application/json&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;examples&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s2">&quot;example1&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                    <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Conference event&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Tech Conference 2024&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-06-01&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-06-03&quot;</span>
+                                    <span class="p">}</span>
+                                <span class="p">}</span>
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="n">update_route_info</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Update event&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;permissions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">,</span> <span class="n">IsAdminUser</span><span class="p">],</span>
+            <span class="s2">&quot;exclude_unset&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">delete_route_info</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Delete an event&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;permissions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">IsAdminUser</span><span class="p">],</span>
+            <span class="s2">&quot;status_code&quot;</span><span class="p">:</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h2 id="async-routes-configuration"><strong>Async Routes Configuration</strong></h2>
+<p>Enable async routes and configure async behavior:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AsyncEventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="c1"># Async-specific configurations</span>
+        <span class="n">async_routes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">schema_config</span><span class="o">=</span><span class="n">ModelSchemaConfig</span><span class="p">(</span>
+            <span class="n">read_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+            <span class="n">depth</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Custom async service implementation</span>
+    <span class="n">service</span> <span class="o">=</span> <span class="n">AsyncEventModelService</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="configuration-inheritance"><strong>Configuration Inheritance</strong></h2>
+<p>ModelConfig also support configuration inheritance:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">ninja_extra.controllers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseModelConfig</span><span class="p">(</span><span class="n">ModelConfig</span><span class="p">):</span>
+    <span class="n">async_routes</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">schema_config</span> <span class="o">=</span> <span class="n">ModelSchemaConfig</span><span class="p">(</span>
+        <span class="n">read_only_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;created_at&quot;</span><span class="p">,</span> <span class="s2">&quot;updated_at&quot;</span><span class="p">],</span>
+        <span class="n">depth</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+
+<span class="nd">@api_controller</span><span class="p">(</span><span class="s2">&quot;/events&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EventModelController</span><span class="p">(</span><span class="n">ModelControllerBase</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">BaseModelConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">Event</span><span class="p">,</span>
+        <span class="c1"># Override or extend base configuration</span>
+        <span class="n">allowed_routes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;find_one&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+</code></pre></div>
+<h2 id="best-practices"><strong>Best Practices</strong></h2>
+<ol>
+<li>
+<p><strong>Schema Configuration</strong>:</p>
+<ul>
+<li>Always specify <code>read_only_fields</code> for auto-generated fields</li>
+<li>Use <code>depth</code> carefully as it can impact performance</li>
+<li>Consider using <code>exclude</code> for sensitive fields</li>
+</ul>
+</li>
+<li>
+<p><strong>Route Configuration</strong>:</p>
+<ul>
+<li>Limit <code>allowed_routes</code> to only necessary endpoints</li>
+<li>Provide meaningful summaries and descriptions</li>
+<li>Use tags for API organization</li>
+</ul>
+</li>
+<li>
+<p><strong>Pagination</strong>:</p>
+<ul>
+<li>Always set reasonable limits</li>
+<li>Consider your data size when choosing pagination class</li>
+<li>Use appropriate page sizes for your use case</li>
+</ul>
+</li>
+<li>
+<p><strong>Filtering</strong>:</p>
+<ul>
+<li>Use <code>FilterSchema</code> to provide flexible filtering on list endpoints</li>
+<li>Leverage <code>FilterLookup</code> for complex database lookups (e.g., <code>__icontains</code>, <code>__gte</code>)</li>
+<li>Consider indexing filtered fields in your database for performance</li>
+<li>Document available filters in your API documentation</li>
+</ul>
+</li>
+<li>
+<p><strong>Async Support</strong>:</p>
+<ul>
+<li>Enable <code>async_routes</code> when using async database operations</li>
+<li>Implement custom async services for complex operations</li>
+<li>Consider performance implications of async operations </li>
+</ul>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": [], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
