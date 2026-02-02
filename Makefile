@@ -39,3 +39,4 @@ doc-deploy:clean ## Run Deploy Documentation
 
 doc-serve: ## Launch doc local server
 	mkdocs serve
+
