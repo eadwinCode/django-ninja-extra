@@ -114,7 +114,7 @@ class Operation(NinjaOperation):
             )
             route_function = self._get_route_function()
             if route_function:
-                api_controller = route_function.get_api_controller()
+                api_controller = route_function.api_controller
 
                 msg = (
                     f'"{request.method.upper() if request.method else "METHOD NOT FOUND"} - '
@@ -143,7 +143,7 @@ class Operation(NinjaOperation):
         if hasattr(self.view_func, "get_route_function"):
             route_function: "RouteFunction" = self.view_func.get_route_function()
 
-            _api_controller = route_function.get_api_controller()
+            _api_controller = route_function.api_controller
             permission_classes = (
                 route_function.route.permissions or _api_controller.permission_classes  # type: ignore[assignment]
             )
