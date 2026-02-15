@@ -31,7 +31,7 @@ class ViewSignature(NinjaViewSignature):
                     route_function: "RouteFunction" = (
                         self.view_func.get_route_function()
                     )
-                    api_controller = route_function.get_api_controller()
+                    api_controller = route_function.api_controller
 
                     view_func = route_function.route.view_func
 
