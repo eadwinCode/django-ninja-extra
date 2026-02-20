@@ -46,7 +46,7 @@ class RouteFunction(object):
         *args: Any,
         **kwargs: Any,
     ) -> Any:
-        _api_controller = self.get_api_controller()
+        _api_controller = self.api_controller
         context = get_route_execution_context(
             request,
             temporal_response,
