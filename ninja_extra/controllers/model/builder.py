@@ -35,14 +35,31 @@ class ModelControllerBuilder:
         self._config: ModelConfig = base_cls.model_config
         self._base_cls = base_cls
         self._api_controller_instance = api_controller_instance
-        model_pk = getattr(
-            self._config.model._meta.pk,
-            "name",
-            self._config.model._meta.pk.attname,
-        )
-        internal_type = self._config.model._meta.pk.get_internal_type()
+
+        # Get lookup field configuration (defaults to 'pk')
+        lookup_field = self._config.lookup_field
+
+        if lookup_field == "pk":
+            # Use primary key field (default behavior)
+            lookup_field_name = getattr(
+                self._config.model._meta.pk,
+                "name",
+                self._config.model._meta.pk.attname,
+            )
+            internal_type = self._config.model._meta.pk.get_internal_type()
+        else:
+            # Use specified lookup field
+            lookup_field_name = lookup_field
+            try:
+                field = self._config.model._meta.get_field(lookup_field)
+                internal_type = field.get_internal_type()  # type: ignore[union-attr]
+            except Exception:
+                # Fallback to string type if field not found
+                internal_type = "CharField"
+
         self._pk_type: t.Type = TYPES.get(internal_type, str)  # type: ignore[assignment]
-        self._model_pk_name = model_pk
+        self._model_pk_name = lookup_field_name
+        self._lookup_field = lookup_field
         self._model_name = self._config.model.__name__.replace("Model", "")
 
         self._retrieve_schema = self._config.retrieve_schema
@@ -101,6 +118,7 @@ class ModelControllerBuilder:
         update_item = self._route_factory.update(
             path=_path,
             lookup_param=self._model_pk_name,
+            lookup_field=self._lookup_field,
             schema_in=self._update_schema,  # type:ignore[arg-type]
             schema_out=kw.pop("schema_out", self._retrieve_schema),  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
@@ -125,6 +143,7 @@ class ModelControllerBuilder:
         patch_item = self._route_factory.patch(
             path=_path,
             lookup_param=self._model_pk_name,
+            lookup_field=self._lookup_field,
             schema_out=kw.pop("schema_out", self._retrieve_schema),  # type:ignore[arg-type]
             schema_in=self._patch_schema,  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
@@ -147,6 +166,7 @@ class ModelControllerBuilder:
         get_item = self._route_factory.find_one(
             path=_path,
             lookup_param=self._model_pk_name,
+            lookup_field=self._lookup_field,
             schema_out=self._retrieve_schema,  # type:ignore[arg-type]
             **kw,  # type:ignore[arg-type]
         )
@@ -199,6 +219,7 @@ class ModelControllerBuilder:
         delete_item = self._route_factory.delete(
             path=_path,
             lookup_param=self._model_pk_name,
+            lookup_field=self._lookup_field,
             **kw,  # type:ignore[arg-type]
         )
 
