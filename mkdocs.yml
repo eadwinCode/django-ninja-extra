@@ -43,6 +43,7 @@ nav:
     - Model Configuration: api_controller/model_controller/02_model_configuration.md
     - Model Service: api_controller/model_controller/03_model_service.md
     - Parameters: api_controller/model_controller/04_parameters.md
+    - Mixins: api_controller/model_controller/05_mixins.md
 - Usage:
   - Quick Tutorial: tutorial/index.md
   - Authentication: tutorial/authentication.md
