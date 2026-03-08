@@ -75,6 +75,7 @@ The `ModelConfig` is a Pydantic schema designed for validating and configuring t
 - **model**: A mandatory field representing the Django model type associated with the Model Controller.
 - **async_routes**: Indicates if controller **routes** should be created as **`asynchronous`** route functions
 - **allowed_routes**: A list specifying the API actions permissible for generation in the Model Controller. The default value is `["create", "find_one", "update", "patch", "delete", "list"]`.
+- **lookup_field**: The model field that should be used for performing object lookup of individual model instances. Defaults to `'pk'`. This is similar to Django REST Framework's `lookup_field` option.
 - **create_schema**: An optional Pydantic schema outlining the data input types for a `create` or `POST` operation in the Model Controller. The default is `None`. If not provided, the `ModelController` will generate a new schema based on the `schema_config` option.
 - **update_schema**: An optional Pydantic schema detailing the data input types for an `update` or `PUT` operation in the Model Controller. The default is `None`. If not provided, the `create_schema` will be used if available, or a new schema will be generated based on the `schema_config` option.
 - **retrieve_schema**: An optional Pydantic schema output defining the data output types for various operations. The default is `None`. If not provided, the `ModelController` will generate a schema based on the `schema_config` option.
@@ -114,6 +115,138 @@ The `ModelConfig` is a Pydantic schema designed for validating and configuring t
             ),
         )
     ```
+
+## **Custom Lookup Field**
+
+By default, Model Controllers use the primary key (`pk`) for object lookups in operations like 
+`find_one`, `update`, `patch`, and `delete`. You can change this behavior using the `lookup_field` option,
+which is similar to Django REST Framework's `lookup_field`.
+
+This is useful when you want to expose a different field in your URLs, such as a `slug`, `uuid`, or any other unique field.
+
+### **Basic Example**
+
+Consider a `Client` model with a unique `key` field:
+
+```python
+from django.db import models
+
+class Client(models.Model):
+    key = models.CharField(max_length=20, unique=True)
+```
+
+You can create a Model Controller that uses `key` for lookups instead of `id`:
+
+```python
+from ninja_extra import (
+    ModelConfig,
+    ModelControllerBase,
+    api_controller,
+)
+from .models import Client
+
+@api_controller("/clients")
+class ClientModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Client,
+        lookup_field="key",  # Use 'key' field for lookups instead of 'pk'
+    )
+```
+
+This will generate the following endpoints:
+
+| Method | URL | Description |
+|--------|-----|-------------|
+| POST | `/clients/` | Create a new client |
+| GET | `/clients/` | List all clients |
+| GET | `/clients/{key}` | Get a client by key |
+| PUT | `/clients/{key}` | Update a client by key |
+| PATCH | `/clients/{key}` | Partial update a client by key |
+| DELETE | `/clients/{key}` | Delete a client by key |
+
+Notice that the URL parameter is `{key}` (string) instead of `{id}` (integer).
+
+### **Using UUID as Lookup Field**
+
+A common use case is using UUID for lookups:
+
+```python
+import uuid
+from django.db import models
+
+class Article(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+```
+
+```python
+from ninja_extra import (
+    ModelConfig,
+    ModelControllerBase,
+    api_controller,
+)
+from .models import Article
+
+@api_controller("/articles")
+class ArticleModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Article,
+        lookup_field="uuid",
+    )
+```
+
+Now you can access articles using their UUID:
+```
+GET /articles/550e8400-e29b-41d4-a716-446655440000
+```
+
+### **Using Slug as Lookup Field**
+
+Another common pattern is using slugs for SEO-friendly URLs:
+
+```python
+from django.db import models
+
+class Post(models.Model):
+    slug = models.SlugField(max_length=100, unique=True)
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+```
+
+```python
+from ninja_extra import (
+    ModelConfig,
+    ModelControllerBase,
+    api_controller,
+)
+from .models import Post
+
+@api_controller("/posts")
+class PostModelController(ModelControllerBase):
+    model_config = ModelConfig(
+        model=Post,
+        lookup_field="slug",
+    )
+```
+
+Now you can access posts using their slug:
+```
+GET /posts/my-awesome-post
+PUT /posts/my-awesome-post
+DELETE /posts/my-awesome-post
+```
+
+### **Important Notes**
+
+1. **Unique Fields**: The `lookup_field` should be a unique field to ensure reliable lookups. Using a non-unique field may return unexpected results.
+
+2. **URL Parameter Type**: The URL parameter type is automatically inferred from the field type:
+   - `CharField`, `SlugField`, `UUIDField` → `str`
+   - `IntegerField`, `AutoField` → `int`
+   - etc.
+
+3. **Custom Model Service**: If you're using a custom `ModelService`, make sure it handles the `lookup_field` parameter correctly. The default `ModelService` automatically supports custom lookup fields.
 
 ## **More on Model Controller Operations**
 In NinjaExtra Model Controller, the controller's behavior can be controlled by what is provided in the `allowed_routes` 
