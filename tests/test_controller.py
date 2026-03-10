@@ -139,7 +139,10 @@ class TestAPIController:
         response = client.get("452")
 
         assert response.json() == {"organisation_id": 452}
-        assert [("", _api_controller)] == _api_controller.build_routers()
+        built = _api_controller.build_routers(api=None)
+        assert len(built) == 1
+        assert built[0].prefix == ""
+        assert built[0].controller is _api_controller
 
     def test_controller_should_have_preset_properties(self):
         api = NinjaExtraAPI()

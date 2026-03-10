@@ -101,8 +101,9 @@ class TestControllerRoute:
             )
             operations = list(
                 filter(
-                    lambda n: n.operation_id
-                    == route_func.route.route_params.operation_id,
+                    lambda n: (
+                        n.operation_id == route_func.route.route_params.operation_id
+                    ),
                     path_view.operations,
                 )
             )

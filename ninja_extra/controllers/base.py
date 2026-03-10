@@ -13,7 +13,6 @@ from django.http import HttpResponse
 from django.urls import URLPattern, URLResolver, include
 from django.urls import path as django_path
 from injector import inject, is_decorated_with_inject
-from ninja import Router
 from ninja.constants import NOT_SET, NOT_SET_TYPE
 from ninja.security.base import AuthBase
 from ninja.signature import is_async
@@ -56,6 +55,14 @@ if t.TYPE_CHECKING:  # pragma: no cover
     from ninja_extra import NinjaExtraAPI
     from ninja_extra.controllers.model import ModelConfig
     from ninja_extra.controllers.route import Route
+
+__all__ = [
+    "ControllerBase",
+    "ModelControllerBase",
+    "APIController",
+    "ControllerBoundRouter",
+    "api_controller",
+]
 
 T = t.TypeVar("T")
 
@@ -335,6 +342,27 @@ ControllerClassType = t.TypeVar(
 )
 
 
+class ControllerBoundRouter:
+    """Adapter that makes APIController compatible with BoundRouter interface.
+
+    Used by both URL generation (with namespace support via urls_paths)
+    and OpenAPI schema generation (via path_operations).
+    """
+
+    def __init__(self, prefix: str, controller: "APIController", api: t.Any) -> None:
+        self.prefix = prefix
+        self.controller = controller
+        self.api = api
+        self.url_name_prefix: t.Optional[str] = None
+
+    @property
+    def path_operations(self) -> t.Dict[str, PathView]:
+        return self.controller.path_operations
+
+    def urls_paths(self, prefix: str) -> t.Iterator[t.Union[URLPattern, URLResolver]]:
+        return self.controller.urls_paths(prefix)
+
+
 class APIController:
     _PATH_PARAMETER_COMPONENT_RE = r"{(?:(?P<converter>[^>:]+):)?(?P<parameter>[^>]+)}"
 
@@ -530,7 +558,8 @@ class APIController:
             NINJA_EXTRA_API_CONTROLLER_REGISTERED_KEY, {id(api)}, self
         )
         for path_view in self.path_operations.values():
-            path_view.set_api_instance(api, t.cast(Router, self))
+            for operation in path_view.operations:
+                operation.api = api
 
     def is_registered(self, api: "NinjaExtraAPI") -> bool:
         keys = (
@@ -541,11 +570,11 @@ class APIController:
             return True
         return False
 
-    def build_routers(self) -> t.List[t.Tuple[str, "APIController"]]:
+    def build_routers(self, api: t.Any) -> t.List["ControllerBoundRouter"]:
         prefix = self.prefix
         if self._prefix_has_route_param:
             prefix = ""
-        return [(prefix, self)]
+        return [ControllerBoundRouter(prefix, self, api)]
 
     def add_controller_route_function(self, route_function: RouteFunction) -> None:
         self._controller_class_route_functions[

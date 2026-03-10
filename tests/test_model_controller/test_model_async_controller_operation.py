@@ -306,6 +306,9 @@ async def test_api_controller_prefix_with_parameter():
         },
         "organization": 452,
     }
-    assert [("", _api_controller)] == _api_controller.build_routers()
+    built = _api_controller.build_routers(api=None)
+    assert len(built) == 1
+    assert built[0].prefix == ""
+    assert built[0].controller is _api_controller
     res = await client.delete(f"/event/452/{data['event']['id']}")
     assert res.status_code == 204

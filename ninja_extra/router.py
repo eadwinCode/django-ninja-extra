@@ -71,7 +71,3 @@ class Router(NinjaRouter):
             include_in_schema=include_in_schema,
             openapi_extra=openapi_extra,
         )
-        if self.api:
-            path_view.set_api_instance(self.api, self)
-
-        return None
