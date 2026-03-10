@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from django.db.models import Model, QuerySet
 from pydantic import BaseModel as PydanticModel
 
-from ninja_extra.exceptions import NotFound
+from ninja_extra.exceptions import APIException, NotFound
 from ninja_extra.shortcuts import get_object_or_exception
 
 from .interfaces import AsyncModelServiceBase, ModelServiceBase
@@ -21,14 +21,37 @@ class ModelService(ModelServiceBase, AsyncModelServiceBase):
     def __init__(self, model: t.Type[Model]) -> None:
         self.model = model
 
-    def get_one(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
+    def get_one(
+        self,
+        pk: t.Any,
+        queryset: t.Optional[QuerySet] = None,
+        error_message: t.Optional[str] = None,
+        exception: t.Type[APIException] = NotFound,
+        **kwargs: t.Any,
+    ) -> t.Any:
         obj = get_object_or_exception(
-            klass=self.model, error_message=None, exception=NotFound, pk=pk
+            klass=self.model if queryset is None else queryset,
+            error_message=error_message,
+            exception=exception,
+            pk=pk,
         )
         return obj
 
-    async def get_one_async(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
-        return await sync_to_async(self.get_one, thread_sensitive=True)(pk, **kwargs)
+    async def get_one_async(
+        self,
+        pk: t.Any,
+        queryset: t.Optional[QuerySet] = None,
+        error_message: t.Optional[str] = None,
+        exception: t.Type[APIException] = NotFound,
+        **kwargs: t.Any,
+    ) -> t.Any:
+        return await sync_to_async(self.get_one, thread_sensitive=True)(
+            pk,
+            queryset=queryset,
+            error_message=error_message,
+            exception=exception,
+            **kwargs,
+        )
 
     def get_all(self, **kwargs: t.Any) -> t.Union[QuerySet, t.List[t.Any]]:
         return self.model.objects.all()
