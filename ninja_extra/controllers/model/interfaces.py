@@ -5,10 +5,19 @@ from django.db.models import Model as DjangoModel
 from django.db.models import QuerySet
 from pydantic import BaseModel as PydanticModel
 
+from ninja_extra.exceptions import APIException, NotFound
+
 
 class AsyncModelServiceBase(ABC):
     @abstractmethod
-    async def get_one_async(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
+    async def get_one_async(
+        self,
+        pk: t.Any,
+        queryset: t.Optional[QuerySet] = None,
+        error_message: t.Optional[str] = None,
+        exception: t.Type[APIException] = NotFound,
+        **kwargs: t.Any,
+    ) -> t.Any:
         pass
 
     @abstractmethod
@@ -42,7 +51,14 @@ class ModelServiceBase(ABC):
     """
 
     @abstractmethod
-    def get_one(self, pk: t.Any, **kwargs: t.Any) -> t.Any:
+    def get_one(
+        self,
+        pk: t.Any,
+        queryset: t.Optional[QuerySet] = None,
+        error_message: t.Optional[str] = None,
+        exception: t.Type[APIException] = NotFound,
+        **kwargs: t.Any,
+    ) -> t.Any:
         pass
 
     @abstractmethod
