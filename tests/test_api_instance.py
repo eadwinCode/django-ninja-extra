@@ -31,11 +31,13 @@ def global_op(request):
 
 
 def test_api_instance():
-    assert len(api._routers) == 2  # default + extra
-    for _path, rtr in api._routers:
-        for path_ops in rtr.path_operations.values():
-            for op in path_ops.operations:
+    bound_routers = api._get_bound_routers()
+    assert len(bound_routers) >= 2  # default router + controller(s)
+    for br in bound_routers:
+        for path_view in br.path_operations.values():
+            for op in path_view.operations:
                 assert op.api is api
+    assert len(api._routers) == 2  # backward compat: default + controller
 
 
 def test_api_auto_discover_controller():

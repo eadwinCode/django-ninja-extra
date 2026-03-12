@@ -243,16 +243,6 @@ class Operation(NinjaOperation):
 
 
 class AsyncOperation(Operation, NinjaAsyncOperation):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        from asgiref.sync import sync_to_async
-
-        self._get_values = cast(Callable, sync_to_async(super()._get_values))  # type: ignore
-        self._result_to_response = cast(  # type: ignore
-            Callable,
-            sync_to_async(super()._result_to_response),
-        )
-
     @asynccontextmanager
     async def _prep_run(  # type:ignore
         self, request: HttpRequest, **kw: Any
@@ -285,6 +275,8 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
             ROUTE_CONTEXT_VAR.set(None)
 
     async def run(self, request: HttpRequest, **kw: Any) -> HttpResponseBase:  # type: ignore
+        from asgiref.sync import sync_to_async
+
         try:
             async with self._prep_run(
                 request,
@@ -306,11 +298,11 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
                 result = await self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 assert ctx.response is not None
-                _processed_results = await self._result_to_response(
+                _processed_results = await sync_to_async(self._result_to_response)(
                     request, result, ctx.response
                 )
 
-                return cast(HttpResponseBase, _processed_results)
+                return _processed_results
         except Exception as e:
             return self.api.on_exception(request, e)
 
@@ -323,6 +315,13 @@ class PathView(NinjaPathView):
 
     def _sync_view(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:  # type: ignore
         return super(PathView, self)._sync_view(request, *args, **kwargs)
+
+    def clone(self) -> "PathView":
+        cloned = PathView()
+        cloned.is_async = self.is_async
+        cloned.url_name = self.url_name
+        cloned.operations = [op.clone() for op in self.operations]
+        return cloned
 
     def add_operation(
         self,

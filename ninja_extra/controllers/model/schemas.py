@@ -6,6 +6,10 @@ from ninja import FilterSchema
 from ninja.pagination import PaginationBase
 from pydantic import BaseModel as PydanticModel
 from pydantic import Field, field_validator
+from typing_extensions import Annotated
+
+from ninja_extra.conf.decorator import AllowTypeOfSource
+from ninja_extra.lazy import LazyStrImport
 
 try:
     from ninja_schema import __version__ as ninja_schema_version
@@ -27,6 +31,7 @@ except Exception:  # pragma: no cover
     NINJA_SCHEMA_VERSION: t.Tuple[int, int, int] = (0, 0, 0)  # type: ignore[no-redef]
 
 
+from ninja_extra.controllers.model.endpoints import ModelEndpointFactory
 from ninja_extra.pagination import PageNumberPaginationExtra, PaginatedResponseSchema
 
 
@@ -34,6 +39,20 @@ def _is_ninja_schema_version_supported() -> bool:
     if NINJA_SCHEMA_VERSION[1] >= 14 and NINJA_SCHEMA_VERSION[2] >= 1:
         return True
     raise ImproperlyConfigured("ninja-schema version 0.14.1 or higher is required")
+
+
+_GenericModelValidator = AllowTypeOfSource(
+    validator=lambda source, value: (
+        isinstance(value, LazyStrImport)
+        or isinstance(value, type)
+        and issubclass(value, source)
+    ),
+    error_message=lambda source, value: (
+        f"Expected type of {source.__name__}, received: {type(value)}"
+    ),
+)
+
+ModelEndpointFactoryType = Annotated[ModelEndpointFactory, _GenericModelValidator]
 
 
 class ModelPagination(PydanticModel):
@@ -106,6 +125,14 @@ class ModelConfig(PydanticModel):
     patch_route_info: t.Dict = {}  # extra @patch() information
     list_route_info: t.Dict = {}  # extra @get('/') information
     delete_route_info: t.Dict = {}  # extra @delete() information
+
+    # Route Endpoint Factory
+    endpoint_factory: ModelEndpointFactoryType = Field(  # type: ignore[assignment]
+        "ninja_extra.controllers.model.endpoints.ModelEndpointFactory"
+    )
+    async_endpoint_factory: ModelEndpointFactoryType = Field(  # type: ignore[assignment]
+        "ninja_extra.controllers.model.endpoints.ModelAsyncEndpointFactory"
+    )
 
     @field_validator("allowed_routes", mode="before")
     def validate_allow_routes(cls, value: t.List[t.Any]) -> t.Any:

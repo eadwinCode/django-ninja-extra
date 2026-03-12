@@ -17,14 +17,17 @@ from ninja.types import DictStrAny, TCallable
 from ninja_extra import exceptions, router
 from ninja_extra.compatible import NOT_SET_TYPE
 from ninja_extra.constants import API_CONTROLLER_INSTANCE
-from ninja_extra.controllers.base import APIController, ControllerBase
+from ninja_extra.controllers.base import (
+    APIController,
+    ControllerBase,
+    ControllerBoundRouter,
+)
 from ninja_extra.controllers.registry import controller_registry
+from ninja_extra.reflect import reflect
 
 __all__ = [
     "NinjaExtraAPI",
 ]
-
-from ninja_extra.reflect import reflect
 
 
 class NinjaExtraAPI(NinjaAPI):
@@ -78,13 +81,13 @@ class NinjaExtraAPI(NinjaAPI):
             docs=docs,
             docs_decorator=docs_decorator,
             throttle=throttle,
+            default_router=router.Router(),
             **kwargs,
         )
         self.app_name = app_name
         self.exception_handler(exceptions.APIException)(self.api_exception_handler)
-        self._routers: t.List[t.Tuple[str, router.Router]] = []  # type: ignore
-        self.default_router = router.Router()
-        self.add_router("", self.default_router)
+        self._controller_routers: t.List[ControllerBoundRouter] = []
+        self._controller_routers_merged = False
 
     def api_exception_handler(
         self, request: HttpRequest, exc: exceptions.APIException
@@ -113,6 +116,15 @@ class NinjaExtraAPI(NinjaAPI):
             str(_url_tuple[len(_url_tuple) - 1]),
         )
 
+    def _get_bound_routers(self) -> t.List:
+        bound_routers = super()._get_bound_routers()
+        if not self._controller_routers_merged:
+            bound_routers.extend(self._controller_routers)  # type: ignore[arg-type]
+            for br in self._controller_routers:
+                self._routers.append((br.prefix, br.controller))  # type: ignore[arg-type]
+            self._controller_routers_merged = True
+        return bound_routers
+
     def register_controllers(
         self, *controllers: t.Union[t.Type[ControllerBase], t.Type, str]
     ) -> None:
@@ -133,8 +145,12 @@ class NinjaExtraAPI(NinjaAPI):
                 ),
             )
             if not api_controller.is_registered(self):
-                self._routers.extend(api_controller.build_routers())  # type: ignore
                 api_controller.set_api_instance(self)
+                bound_routers = api_controller.build_routers(self)
+                self._controller_routers.extend(bound_routers)
+                self._routers.extend(
+                    [(br.prefix, br.controller) for br in bound_routers]
+                )
 
     def auto_discover_controllers(self) -> None:
         from django.apps import apps

@@ -19,8 +19,9 @@ _GenericModelValidator = AllowTypeOfSource(
         or isinstance(value, type)
         and issubclass(value, source)
     ),
-    error_message=lambda source,
-    value: f"Expected type of {source.__name__}, received: {type(value)}",
+    error_message=lambda source, value: (
+        f"Expected type of {source.__name__}, received: {type(value)}"
+    ),
 )
 
 PaginationClassHandlerType = Annotated[PaginationBase, _GenericModelValidator]
@@ -31,8 +32,9 @@ RouteContextHandlerType = Annotated[RouteContextBase, _GenericModelValidator]
 
 _InjectorModuleValidator = AllowTypeOfSource(
     validator=lambda source, value: value is not None,
-    error_message=lambda source,
-    value: f"Expected PaginationBase object, received: {type(value)}",
+    error_message=lambda source, value: (
+        f"Expected PaginationBase object, received: {type(value)}"
+    ),
 )
 InjectorModuleHandlerType = Annotated[Any, _InjectorModuleValidator]
 

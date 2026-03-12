@@ -1,5 +1,6 @@
 import typing as t
 
+from django.utils.module_loading import import_string
 from ninja.orm.fields import TYPES
 
 from ninja_extra.constants import ROUTE_OBJECT
@@ -10,11 +11,18 @@ from ninja_extra.controllers.route.route_functions import (
 from ninja_extra.reflect import reflect
 
 from .endpoints import (
-    ModelAsyncEndpointFactory,
     ModelEndpointFactory,
     ModelEndpointFunction,
 )
 from .schemas import ModelConfig
+
+
+def _resolve_factory(value: t.Any) -> t.Any:
+    """Resolve string factory references that Pydantic may not have validated."""
+    if isinstance(value, str):
+        return import_string(value)
+    return value
+
 
 if t.TYPE_CHECKING:
     from ninja_extra.controllers.base import APIController, ModelControllerBase
@@ -50,10 +58,10 @@ class ModelControllerBuilder:
         self._update_schema = self._config.update_schema
         self._patch_schema = self._config.patch_schema
 
+        async_factory = _resolve_factory(self._config.async_endpoint_factory)
+        sync_factory = _resolve_factory(self._config.endpoint_factory)
         self._route_factory: ModelEndpointFactory = (
-            ModelAsyncEndpointFactory()
-            if base_cls.model_config.async_routes
-            else ModelEndpointFactory()
+            async_factory() if self._config.async_routes else sync_factory()
         )
 
     def _add_to_controller(self, func: t.Callable) -> None:
