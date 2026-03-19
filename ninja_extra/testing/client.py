@@ -1,11 +1,9 @@
-from json import dumps as json_dumps
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union, cast
 from unittest.mock import Mock
 from urllib.parse import urlencode
 
 from django.urls import Resolver404
 from ninja import NinjaAPI, Router
-from ninja.responses import NinjaJSONEncoder
 from ninja.testing.client import NinjaClientBase, NinjaResponse
 
 from ninja_extra import ControllerBase, NinjaExtraAPI
@@ -16,7 +14,11 @@ from ninja_extra.reflect import reflect
 
 class NinjaExtraClientBase(NinjaClientBase):
     def __init__(
-        self, router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]], **kw: Any
+            self,
+            router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]],
+            headers: Optional[Dict[str, str]] = None,
+            COOKIES: Optional[Dict[str, str]] = None, # noqa: N806
+            **kw: Any
     ) -> None:
         if reflect.has_metadata(CONTROLLER_WATERMARK, cast(Any, router_or_app)):
             api = NinjaExtraAPI(**kw)
@@ -29,7 +31,9 @@ class NinjaExtraClientBase(NinjaClientBase):
 
             router_or_app = api
         super(NinjaExtraClientBase, self).__init__(
-            cast(Union[NinjaAPI, Router], router_or_app)
+            cast(Union[NinjaAPI, Router], router_or_app),
+            headers=headers,
+            COOKIES=COOKIES,
         )
 
     def _resolve(
@@ -54,16 +58,11 @@ class NinjaExtraClientBase(NinjaClientBase):
         json: Any = None,
         **request_params: Any,
     ) -> "NinjaResponse":
-        if json is not None:
-            request_params["body"] = json_dumps(json, cls=NinjaJSONEncoder)
         if "query" in request_params and isinstance(request_params["query"], dict):
             query = request_params.pop("query")
             url_encode = urlencode(query)
             path = f"{path}?{url_encode}"
-        func, request, kwargs = self._resolve(
-            method, path, {} if data is None else data, request_params
-        )
-        return self._call(func, request, kwargs)  # type: ignore
+        return super(NinjaExtraClientBase, self).request(method, path, data, json, **request_params)
 
 
 class TestClient(NinjaExtraClientBase):
