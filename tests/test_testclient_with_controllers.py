@@ -105,6 +105,26 @@ class OrgUsersController:
         return {"id": str(uuid.uuid4()), "org_id": org_id, "username": user.username}
 
 
+@api_controller("/headers-cookies", tags=["Test"])
+class HeaderCookieController:
+    @route.get("/check")
+    def check_headers_cookies(self, request):
+        return {
+            "headers": {k.lower(): v for k, v in request.headers.items()},
+            "cookies": dict(request.COOKIES),
+        }
+
+
+@api_controller("/headers-cookies-async", tags=["Test"])
+class AsyncHeaderCookieController:
+    @route.get("/check")
+    async def check_headers_cookies(self, request):
+        return {
+            "headers": {k.lower(): v for k, v in request.headers.items()},
+            "cookies": dict(request.COOKIES),
+        }
+
+
 class TestClientWithParamPrefixedController:
     def test_create_user_under_param_prefix(self):
         client = TestClient(OrgUsersController)
@@ -116,3 +136,30 @@ class TestClientWithParamPrefixedController:
         assert body["org_id"] == 123
         assert body["username"] == "jane"
         assert "id" in body
+
+
+class TestClientWithHeadersAndCookies:
+    def test_headers_and_cookies_passed_to_controller(self):
+        headers = {"X-Test-Header": "test-value"}
+        cookies = {"test-cookie": "cookie-value"}
+        client = TestClient(HeaderCookieController, headers=headers, COOKIES=cookies)
+        response = client.get("/check")
+        assert response.status_code == 200
+        data = response.json()
+        # Django headers are usually capitalized and prefixed with HTTP_ in META,
+        # but request.headers (HttpHeaders) allows case-insensitive access.
+        # Ninja's TestClient puts them in META as HTTP_X_TEST_HEADER.
+        assert data["headers"]["x-test-header"] == "test-value"
+        assert data["cookies"]["test-cookie"] == "cookie-value"
+
+    @pytest.mark.skipif(django.VERSION < (3, 1), reason="requires django 3.1 or higher")
+    @pytest.mark.asyncio
+    async def test_async_headers_and_cookies_passed_to_controller(self):
+        headers = {"X-Async-Test-Header": "async-test-value"}
+        cookies = {"async-test-cookie": "async-cookie-value"}
+        client = TestAsyncClient(AsyncHeaderCookieController, headers=headers, COOKIES=cookies)
+        response = await client.get("/check")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["headers"]["x-async-test-header"] == "async-test-value"
+        assert data["cookies"]["async-test-cookie"] == "async-cookie-value"
