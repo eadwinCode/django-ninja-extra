@@ -570,6 +570,12 @@ class APIController:
                 ):
                     operation._set_auth(api.auth)
 
+                if operation.throttle_param == NOT_SET and api.throttle != NOT_SET:
+                    throttle = api.throttle
+                    operation.throttle_objects = (
+                        isinstance(throttle, BaseThrottle) and [throttle] or throttle  # type: ignore[assignment]
+                    )
+
     def is_registered(self, api: "NinjaExtraAPI") -> bool:
         keys = (
             reflect.get_metadata(NINJA_EXTRA_API_CONTROLLER_REGISTERED_KEY, self)
