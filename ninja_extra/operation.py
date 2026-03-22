@@ -88,6 +88,11 @@ class Operation(NinjaOperation):
                         f"N:B - {get_function_name(callback)} can only be used on Asynchronous view functions"
                     )
 
+    def clone(self) -> "Operation":
+        cloned = super().clone()
+        cloned.is_coroutine = self.is_coroutine  # type: ignore[attr-defined]
+        return cast("Operation", cloned)
+
     def _get_route_function(
         self,
     ) -> Optional[Union["RouteFunction", "AsyncRouteFunction"]]:
