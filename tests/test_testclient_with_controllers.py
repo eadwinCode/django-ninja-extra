@@ -157,7 +157,9 @@ class TestClientWithHeadersAndCookies:
     async def test_async_headers_and_cookies_passed_to_controller(self):
         headers = {"X-Async-Test-Header": "async-test-value"}
         cookies = {"async-test-cookie": "async-cookie-value"}
-        client = TestAsyncClient(AsyncHeaderCookieController, headers=headers, COOKIES=cookies)
+        client = TestAsyncClient(
+            AsyncHeaderCookieController, headers=headers, COOKIES=cookies
+        )
         response = await client.get("/check")
         assert response.status_code == 200
         data = response.json()

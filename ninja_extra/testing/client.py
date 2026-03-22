@@ -14,11 +14,11 @@ from ninja_extra.reflect import reflect
 
 class NinjaExtraClientBase(NinjaClientBase):
     def __init__(
-            self,
-            router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]],
-            headers: Optional[Dict[str, str]] = None,
-            COOKIES: Optional[Dict[str, str]] = None, # noqa: N806
-            **kw: Any
+        self,
+        router_or_app: Union[NinjaAPI, Router, Type[ControllerBase]],
+        headers: Optional[Dict[str, str]] = None,
+        COOKIES: Optional[Dict[str, str]] = None,
+        **kw: Any,
     ) -> None:
         if reflect.has_metadata(CONTROLLER_WATERMARK, cast(Any, router_or_app)):
             api = NinjaExtraAPI(**kw)
@@ -62,7 +62,9 @@ class NinjaExtraClientBase(NinjaClientBase):
             query = request_params.pop("query")
             url_encode = urlencode(query)
             path = f"{path}?{url_encode}"
-        return super(NinjaExtraClientBase, self).request(method, path, data, json, **request_params)
+        return super(NinjaExtraClientBase, self).request(
+            method, path, data, json, **request_params
+        )
 
 
 class TestClient(NinjaExtraClientBase):
