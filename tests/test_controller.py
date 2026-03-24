@@ -419,6 +419,36 @@ def test_controller_subclass_routes_remain_isolated():
     assert beta_response.json() == {"controller": "BetaReportController"}
 
 
+def test_controller_tags_inherited_by_operations():
+    """Test that operations inherit controller tags when they don't have their own."""
+
+    @api_controller("/tagged", tags=["controller-tag"])
+    class TaggedController:
+        @http_get("/no-tags")
+        def no_tags(self):
+            return {"message": "no tags"}
+
+        @http_get("/with-tags", tags=["operation-tag"])
+        def with_tags(self):
+            return {"message": "with tags"}
+
+    api = NinjaExtraAPI()
+    api.register_controllers(TaggedController)
+
+    controller_instance = get_api_controller(TaggedController)
+    path_operations = controller_instance.path_operations
+
+    # Operation without tags should inherit controller tags
+    no_tags_path_view = path_operations.get("/no-tags")
+    no_tags_operation = no_tags_path_view.operations[0]
+    assert no_tags_operation.tags == ["controller-tag"]
+
+    # Operation with tags should keep its own tags
+    with_tags_path_view = path_operations.get("/with-tags")
+    with_tags_operation = with_tags_path_view.operations[0]
+    assert with_tags_operation.tags == ["operation-tag"]
+
+
 def test_controller_multi_level_inheritance_routes_isolated():
     """Test that route isolation works with multi-level inheritance."""
 
