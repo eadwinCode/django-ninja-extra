@@ -576,6 +576,9 @@ class APIController:
                         isinstance(throttle, BaseThrottle) and [throttle] or throttle  # type: ignore[assignment]
                     )
 
+                if operation.tags is None and self.tags is not None:
+                    operation.tags = self.tags
+
     def is_registered(self, api: "NinjaExtraAPI") -> bool:
         keys = (
             reflect.get_metadata(NINJA_EXTRA_API_CONTROLLER_REGISTERED_KEY, self)
