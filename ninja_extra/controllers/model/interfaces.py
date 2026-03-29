@@ -7,8 +7,10 @@ from pydantic import BaseModel as PydanticModel
 
 from ninja_extra.exceptions import APIException, NotFound
 
+ModelType = t.TypeVar("ModelType", bound=DjangoModel)
 
-class AsyncModelServiceBase(ABC):
+
+class AsyncModelServiceBase(ABC, t.Generic[ModelType]):
     @abstractmethod
     async def get_one_async(
         self,
@@ -30,22 +32,22 @@ class AsyncModelServiceBase(ABC):
 
     @abstractmethod
     async def update_async(
-        self, instance: DjangoModel, schema: PydanticModel, **kwargs: t.Any
+        self, instance: ModelType, schema: PydanticModel, **kwargs: t.Any
     ) -> t.Any:
         pass
 
     @abstractmethod
     async def patch_async(
-        self, instance: DjangoModel, schema: PydanticModel, **kwargs: t.Any
+        self, instance: ModelType, schema: PydanticModel, **kwargs: t.Any
     ) -> t.Any:
         pass
 
     @abstractmethod
-    async def delete_async(self, instance: DjangoModel, **kwargs: t.Any) -> t.Any:
+    async def delete_async(self, instance: ModelType, **kwargs: t.Any) -> t.Any:
         pass
 
 
-class ModelServiceBase(ABC):
+class ModelServiceBase(ABC, t.Generic[ModelType]):
     """
     Abstract service that handles Model Controller model CRUD operations
     """
@@ -71,16 +73,16 @@ class ModelServiceBase(ABC):
 
     @abstractmethod
     def update(
-        self, instance: DjangoModel, schema: PydanticModel, **kwargs: t.Any
+        self, instance: ModelType, schema: PydanticModel, **kwargs: t.Any
     ) -> t.Any:
         pass
 
     @abstractmethod
     def patch(
-        self, instance: DjangoModel, schema: PydanticModel, **kwargs: t.Any
+        self, instance: ModelType, schema: PydanticModel, **kwargs: t.Any
     ) -> t.Any:
         pass
 
     @abstractmethod
-    def delete(self, instance: DjangoModel, **kwargs: t.Any) -> t.Any:
+    def delete(self, instance: ModelType, **kwargs: t.Any) -> t.Any:
         pass

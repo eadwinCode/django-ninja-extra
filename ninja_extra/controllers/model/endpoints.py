@@ -752,7 +752,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             res = (
                 custom_handler(self, instance=obj, **kwargs)
                 if custom_handler
-                else self.service.delete_async(instance=obj, **kwargs)  # type:ignore[arg-type]
+                else self.service.delete_async(instance=obj, **kwargs)
             )
 
             await _check_if_coroutine(res)
@@ -815,7 +815,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             instance = (
                 custom_handler(self, instance=obj, schema=data, **kwargs)
                 if custom_handler
-                else self.service.patch_async(instance=obj, schema=data, **kwargs)  # type:ignore[arg-type]
+                else self.service.patch_async(instance=obj, schema=data, **kwargs)
             )
             instance = await _check_if_coroutine(instance)
 
@@ -856,7 +856,7 @@ class ModelAsyncEndpointFactory(ModelEndpointFactory):
             instance = (
                 custom_handler(self, instance=obj, schema=data, **kwargs)
                 if custom_handler
-                else self.service.update_async(instance=obj, schema=data, **kwargs)  # type:ignore[arg-type]
+                else self.service.update_async(instance=obj, schema=data, **kwargs)
             )
             instance = await _check_if_coroutine(instance)
 
