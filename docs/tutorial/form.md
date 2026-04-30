@@ -1,6 +1,6 @@
 
 If you are not sure how to make a form post request like `application/x-www-form-urlencode` or `multipart/form-data` in django-ninja-extra, then this guide would be useful for you.
-Django-Ninja already covers most of the use cases [here](https://django-ninja.rest-framework.com/tutorial/form-params/), but I will give you a quick summary here.
+Django-Ninja already covers most of the use cases [here](https://django-ninja.dev/guides/input/form-params/), but I will give you a quick summary here.
 
 ### Form Data as Params
 
@@ -22,4 +22,4 @@ Two things to note here:
 
 
 !!! info
-    For more information on this, visit [Django-Ninja Form tutorial](https://django-ninja.rest-framework.com/tutorial/form-params/)
+    For more information on this, visit [Django-Ninja Form tutorial](https://django-ninja.dev/guides/input/form-params/)
