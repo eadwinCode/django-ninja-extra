@@ -8,7 +8,7 @@ But if you want complete DRF Serializer replacement then **Ninja-Schema** is wha
 
 Ninja Schema converts your Django ORM models to Pydantic schemas with more Pydantic features supported.
 
-**Inspired by**: [django-ninja](https://django-ninja.rest-framework.com/) and [djantic](https://jordaneremieff.github.io/djantic/)
+**Inspired by**: [django-ninja](https://django-ninja.dev/) and [djantic](https://jordaneremieff.github.io/djantic/)
 
 **Key features:**
 

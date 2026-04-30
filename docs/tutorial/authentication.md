@@ -46,7 +46,7 @@ class GlobalAuth(HttpBearer):
 api = NinjaExtraAPI(auth=GlobalAuth())
 
 ```
-Read more on django-ninja [authentication](https://django-ninja.rest-framework.com/tutorial/authentication/)
+Read more on django-ninja [authentication](https://django-ninja.dev/guides/authentication)
 
 ## Asynchronous Auth Classes
 

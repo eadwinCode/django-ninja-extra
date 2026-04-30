@@ -17,4 +17,4 @@ class MyAPIController:
 The value of the path parameter `user_id` will be passed to your function as the argument `user_id`.
 
 !!! info
-    Read [more](https://django-ninja.rest-framework.com/tutorial/path-params/)
+    Read [more](https://django-ninja.dev/guides/input/path-params/)
