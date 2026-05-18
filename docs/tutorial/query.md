@@ -23,4 +23,4 @@ To query this operation, you use a URL like:
 ```
 
 !!! info
-    Read [more](https://django-ninja.rest-framework.com/tutorial/query-params/)
+    Read [more](https://django-ninja.dev/guides/input/query-params/)

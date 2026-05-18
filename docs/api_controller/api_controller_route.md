@@ -83,4 +83,4 @@ In this illustration, the `say_after` endpoint is defined as an asynchronous fun
 keyword, allowing for asynchronous operations within the endpoint.
 
 !!! info
-    Read more on Django-Ninja [Async Support](https://django-ninja.rest-framework.com/async-support/#quick-example)
+    Read more on Django-Ninja [Async Support](https://django-ninja.dev/guides/async-support/#quick-example)
