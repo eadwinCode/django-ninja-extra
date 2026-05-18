@@ -14,9 +14,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Install Flit
-        run: pip install flit "django>=5.2"
+        run: pip install flit "django>=6.0,<7"
       - name: Install Dependencies
         run: make install
       - name: Test
