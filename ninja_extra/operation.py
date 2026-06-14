@@ -302,7 +302,7 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
                 route_function = self._get_route_function()
                 if route_function:
                     if hasattr(route_function, "async_run_check_permissions"):
-                        await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
+                        await route_function.async_run_check_permissions(ctx)
                     else:
                         route_function.run_permission_check(ctx)
 
@@ -313,7 +313,9 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
                 if getattr(self, "stream_format", None):
                     result = self.view_func(request, **ctx.kwargs["view_func_kwargs"])
-                    return await self._async_stream_response(request, result, ctx.response)
+                    return await self._async_stream_response(
+                        request, result, ctx.response
+                    )
 
                 result = await self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 _processed_results = await sync_to_async(self._result_to_response)(
@@ -330,7 +332,9 @@ class PathView(NinjaPathView):
         if not self.is_async:
             for op in self.operations:
                 real_func = get_real_view_func(op.view_func)
-                if getattr(op, "is_async", False) or inspect.isasyncgenfunction(real_func):
+                if getattr(op, "is_async", False) or inspect.isasyncgenfunction(
+                    real_func
+                ):
                     self.is_async = True
                     break
         return super().get_view()

@@ -76,7 +76,9 @@ class TestAsyncClient(NinjaExtraClientBase):
     async def _call(self, func: Callable, request: Mock, kwargs: Dict) -> NinjaResponse:
         res = await func(request, **kwargs)
 
-        if getattr(res, "streaming", False) and hasattr(res.streaming_content, "__aiter__"):
+        if getattr(res, "streaming", False) and hasattr(
+            res.streaming_content, "__aiter__"
+        ):
             chunks = []
             async_gen = res.streaming_content
             async for chunk in async_gen:
