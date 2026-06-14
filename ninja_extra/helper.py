@@ -10,6 +10,7 @@ def get_function_name(func_class: t.Any) -> str:
         return str(func_class.__name__)
     return str(func_class.__class__.__name__)
 
+
 def get_real_view_func(view_func: t.Callable) -> t.Callable:
     """
     Unwrap ninja_extra controller wrappers to retrieve the underlying view function.
@@ -22,9 +23,12 @@ def get_real_view_func(view_func: t.Callable) -> t.Callable:
         view_func = view_func.__wrapped__
     if hasattr(view_func, "get_route_function"):
         route_function = view_func.get_route_function()
-        if hasattr(route_function, "route") and hasattr(route_function.route, "view_func"):
-            return route_function.route.view_func
+        if hasattr(route_function, "route") and hasattr(
+            route_function.route, "view_func"
+        ):
+            return route_function.route.view_func  # type: ignore[no-any-return]
     return view_func
+
 
 # TODO: Add deprecation warning
 # @t.no_type_check
