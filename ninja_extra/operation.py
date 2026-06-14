@@ -37,7 +37,7 @@ from ninja_extra.compatible import asynccontextmanager
 from ninja_extra.constants import ROUTE_CONTEXT_VAR
 from ninja_extra.context import RouteContext, get_route_execution_context
 from ninja_extra.exceptions import APIException, Throttled
-from ninja_extra.helper import get_function_name
+from ninja_extra.helper import get_function_name, get_real_view_func
 from ninja_extra.logger import request_logger
 
 # from ninja_extra.signals import route_context_finished, route_context_started
@@ -61,7 +61,8 @@ class Operation(NinjaOperation):
         url_name: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
-        self.is_coroutine = is_async(view_func)
+        real_func = get_real_view_func(view_func)
+        self.is_coroutine = is_async(view_func) or inspect.isasyncgenfunction(real_func)
         self.url_name = url_name  # type: ignore[assignment]
         super().__init__(path, methods, view_func, **kwargs)
         self.signature = ViewSignature(self.path, self.view_func)
@@ -216,6 +217,10 @@ class Operation(NinjaOperation):
 
                 result = self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 assert ctx.response is not None
+
+                if getattr(self, "stream_format", None):
+                    return self._stream_response(request, result, ctx.response)
+
                 _processed_results = self._result_to_response(
                     request, result, ctx.response
                 )
@@ -296,13 +301,21 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
                 route_function = self._get_route_function()
                 if route_function:
-                    await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
+                    if hasattr(route_function, "async_run_check_permissions"):
+                        await route_function.async_run_check_permissions(ctx)  # type: ignore[attr-defined]
+                    else:
+                        route_function.run_permission_check(ctx)
 
                 if not ctx.has_computed_route_parameters:
                     await ctx.async_compute_route_parameters()
 
-                result = await self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 assert ctx.response is not None
+
+                if getattr(self, "stream_format", None):
+                    result = self.view_func(request, **ctx.kwargs["view_func_kwargs"])
+                    return await self._async_stream_response(request, result, ctx.response)
+
+                result = await self.view_func(request, **ctx.kwargs["view_func_kwargs"])
                 _processed_results = await sync_to_async(self._result_to_response)(
                     request, result, ctx.response
                 )
@@ -313,6 +326,15 @@ class AsyncOperation(Operation, NinjaAsyncOperation):
 
 
 class PathView(NinjaPathView):
+    def get_view(self) -> Callable:
+        if not self.is_async:
+            for op in self.operations:
+                real_func = get_real_view_func(op.view_func)
+                if getattr(op, "is_async", False) or inspect.isasyncgenfunction(real_func):
+                    self.is_async = True
+                    break
+        return super().get_view()
+
     async def _async_view(  # type: ignore
         self, request: HttpRequest, *args, **kwargs
     ) -> HttpResponseBase:
@@ -381,7 +403,8 @@ class PathView(NinjaPathView):
         self, view_func: TCallable
     ) -> Type[Union[Operation, AsyncOperation]]:
         operation_class = Operation
-        if is_async(view_func):
+        real_func = get_real_view_func(view_func)
+        if is_async(view_func) or inspect.isasyncgenfunction(real_func):
             self.is_async = True
             operation_class = AsyncOperation
         return operation_class
