@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.14'
       - name: Install Flit
-        run: pip install flit "django>=6.0,<7"
+        run: pip install "flit<4" "flit_core<4" "django>=6.0,<7"
       - name: Install Dependencies
         run: make install
       - name: Test
