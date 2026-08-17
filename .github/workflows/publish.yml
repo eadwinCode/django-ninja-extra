@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install Flit
-        run: pip install flit
+        run: pip install "flit<4" "flit_core<4"
       - name: Install Dependencies
         run: make install
       - name: Install build dependencies
@@ -28,4 +28,3 @@ jobs:
           password: ${{ secrets.PYPI_API_TOKEN }}
       - name: Deploy Documentation
         run: make doc-deploy
-
