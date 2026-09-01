@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, Optional, Tuple, Type, Union, cast
-from unittest.mock import Mock
 from urllib.parse import urlencode
 
+from django.http import HttpRequest
 from django.urls import Resolver404
 from ninja import NinjaAPI, Router
 from ninja.testing.client import NinjaClientBase, NinjaResponse
@@ -38,7 +38,7 @@ class NinjaExtraClientBase(NinjaClientBase):
 
     def _resolve(
         self, method: str, path: str, data: Dict, request_params: Any
-    ) -> Tuple[Callable, Mock, Dict]:
+    ) -> Tuple[Callable, HttpRequest, Dict]:
         url_path = path.split("?")[0].lstrip("/")
         for url in self.urls:
             try:
@@ -47,6 +47,7 @@ class NinjaExtraClientBase(NinjaClientBase):
                 continue
             if match:
                 request = self._build_request(method, path, data, request_params)
+                request.resolver_match = match
                 return match.func, request, match.kwargs
         raise Exception(f'Cannot resolve "{path}"')
 
@@ -68,12 +69,16 @@ class NinjaExtraClientBase(NinjaClientBase):
 
 
 class TestClient(NinjaExtraClientBase):
-    def _call(self, func: Callable, request: Mock, kwargs: Dict) -> "NinjaResponse":
+    def _call(
+        self, func: Callable, request: HttpRequest, kwargs: Dict
+    ) -> "NinjaResponse":
         return NinjaResponse(func(request, **kwargs))
 
 
 class TestAsyncClient(NinjaExtraClientBase):
-    async def _call(self, func: Callable, request: Mock, kwargs: Dict) -> NinjaResponse:
+    async def _call(
+        self, func: Callable, request: HttpRequest, kwargs: Dict
+    ) -> NinjaResponse:
         res = await func(request, **kwargs)
 
         if getattr(res, "streaming", False) and hasattr(
